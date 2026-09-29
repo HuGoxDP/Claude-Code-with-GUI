@@ -4,6 +4,12 @@ import type { TunnelErrorCode } from './tunnelError';
 import { buildRemotePairUrl } from './buildRemotePairUrl';
 import { MessageType } from '@/shared';
 
+export type SleepExternalChange = 'none' | 'setting' | 'scheme';
+
+function asExternalChange(value: unknown): SleepExternalChange {
+  return value === 'setting' || value === 'scheme' ? value : 'none';
+}
+
 interface TunnelStatus {
   tunnelEnabled: boolean;
   tunnelUrl: string | null;
@@ -27,6 +33,8 @@ interface TunnelStatus {
   installing: boolean;
   preventSleep: boolean;
   sleepLoading: boolean;
+  /** Someone else changed the lid setting the sleep guard holds; only the user's click may move the switch. */
+  sleepExternalChange: SleepExternalChange;
   error: string | null;
   errorCode: TunnelErrorCode | null;
   handleTunnelToggle: (checked: boolean) => Promise<void>;
@@ -47,6 +55,7 @@ export function useTunnelStatus(): TunnelStatus {
   const [installing, setInstalling] = useState(false);
   const [preventSleep, setPreventSleep] = useState(false);
   const [sleepLoading, setSleepLoading] = useState(false);
+  const [sleepExternalChange, setSleepExternalChange] = useState<SleepExternalChange>('none');
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<TunnelErrorCode | null>(null);
   const [pairUrl, setPairUrl] = useState<string | null>(null);
@@ -96,6 +105,7 @@ export function useTunnelStatus(): TunnelStatus {
         setTunnelEnabled(p.tunnel.enabled);
         setTunnelUrl(p.tunnel.url ?? null);
         setPreventSleep(p.sleepGuard.enabled);
+        setSleepExternalChange(asExternalChange(p.sleepGuard.externalChange));
       }
     }).catch(() => {});
   }, [send]);
@@ -137,6 +147,7 @@ export function useTunnelStatus(): TunnelStatus {
     const unsubSleep = subscribe(MessageType.SLEEP_GUARD_STATUS, (msg) => {
       const p = msg.payload as Record<string, unknown>;
       setPreventSleep(p.enabled as boolean);
+      setSleepExternalChange(asExternalChange(p.externalChange));
       setSleepLoading(false);
     });
     return () => { unsubTunnel(); unsubInstall(); unsubSleep(); };
@@ -154,12 +165,13 @@ export function useTunnelStatus(): TunnelStatus {
       await startTunnelNow();
     } else {
       setAwaitingInstallConsent(false);
-      if (preventSleep) {
-        await send(MessageType.SLEEP_GUARD_DISABLE, {}).catch(() => {});
-      }
+      // Sleep prevention is NOT touched here. The two toggles are independent
+      // features, and only the user's own click may move the sleep one. Stopping
+      // the tunnel used to turn sleep prevention off silently, which is a decision
+      // that was never the tunnel's to make.
       await send(MessageType.TUNNEL_STOP, {}).catch(() => {});
     }
-  }, [cloudflaredAvailable, startTunnelNow, preventSleep, send]);
+  }, [cloudflaredAvailable, startTunnelNow, send]);
 
   const confirmInstallAndStart = useCallback(async () => {
     setAwaitingInstallConsent(false);
@@ -211,6 +223,7 @@ export function useTunnelStatus(): TunnelStatus {
     installing,
     preventSleep,
     sleepLoading,
+    sleepExternalChange,
     error,
     errorCode,
     handleTunnelToggle,

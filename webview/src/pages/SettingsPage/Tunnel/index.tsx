@@ -6,9 +6,11 @@ import { TunnelStatusNotice } from '@/components/TunnelStatusNotice';
 import { SettingSection, SettingRow } from '../common';
 import { useTunnelStatus } from '@/hooks';
 import { useTranslation } from '@/i18n';
+import { SleepPreventionSwitch, SleepPreventionHint, useSleepPreventionCopy } from '@/components/SleepPrevention';
 
 export function TunnelSettings() {
   const { t } = useTranslation('settings');
+  const sleepCopy = useSleepPreventionCopy();
   const {
     tunnelEnabled,
     tunnelUrl,
@@ -21,6 +23,7 @@ export function TunnelSettings() {
     installing,
     preventSleep,
     sleepLoading,
+    sleepExternalChange,
     error,
     errorCode,
     handleTunnelToggle,
@@ -139,18 +142,18 @@ export function TunnelSettings() {
         )}
       </SettingSection>
 
-      <SettingSection title={t('tunnel.sleepPrevention.title')}>
+      <SettingSection title={sleepCopy.label}>
         <SettingRow
-          label={t('tunnel.sleepPrevention.label')}
-          description={t('tunnel.sleepPrevention.description')}
+          label={sleepCopy.label}
+          description={sleepCopy.description}
+          below={preventSleep ? <SleepPreventionHint externalChange={sleepExternalChange} /> : undefined}
         >
-          <ToggleSwitch
+          <SleepPreventionSwitch
             checked={preventSleep}
+            loading={sleepLoading}
             onChange={handleSleepToggle}
-            disabled={!tunnelEnabled || sleepLoading}
           />
         </SettingRow>
-
       </SettingSection>
     </div>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { XMarkIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { QRCodeSVG } from 'qrcode.react';
 import { ToggleSwitch } from '@/components/ToggleSwitch';
+import { SleepPreventionSwitch, SleepPreventionHint, useSleepPreventionCopy } from '@/components/SleepPrevention';
 import { Portal } from '@/components/Portal';
 import { TunnelStatusNotice } from '@/components/TunnelStatusNotice';
 import { useTunnelStatus } from '@/hooks';
@@ -14,6 +15,7 @@ interface Props {
 export function TunnelModal(props: Props) {
   const { onClose } = props;
   const { t } = useTranslation('common');
+  const sleepCopy = useSleepPreventionCopy();
   const {
     tunnelEnabled,
     tunnelUrl,
@@ -26,6 +28,7 @@ export function TunnelModal(props: Props) {
     installing,
     preventSleep,
     sleepLoading,
+    sleepExternalChange,
     error,
     errorCode,
     handleTunnelToggle,
@@ -174,17 +177,21 @@ export function TunnelModal(props: Props) {
             </div>
           )}
 
-          {/* Sleep prevention toggle */}
-          <div className="flex items-center justify-between border-t border-border-default pt-4">
-            <div>
-              <div className="text-sm text-text-primary">{t('tunnelModal.preventSleep')}</div>
-              <div className="text-xs text-text-tertiary">{t('tunnelModal.keepAwake')}</div>
+          {/* Sleep prevention, shared with the Settings page. Independent of the
+              tunnel: only its own switch moves it. */}
+          <div className="border-t border-border-default pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-text-primary">{sleepCopy.label}</div>
+                <div className="text-xs text-text-tertiary">{sleepCopy.description}</div>
+              </div>
+              <SleepPreventionSwitch
+                checked={preventSleep}
+                loading={sleepLoading}
+                onChange={handleSleepToggle}
+              />
             </div>
-            <ToggleSwitch
-              checked={preventSleep}
-              onChange={handleSleepToggle}
-              disabled={!tunnelEnabled || sleepLoading}
-            />
+            {preventSleep && <SleepPreventionHint externalChange={sleepExternalChange} />}
           </div>
         </div>
       </div>
