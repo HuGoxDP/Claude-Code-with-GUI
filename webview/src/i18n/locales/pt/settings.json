@@ -169,18 +169,22 @@
       "description": "Carrega mensagens mais antigas conforme você rola a tela. Desativado carrega toda a conversa de uma vez."
     },
     "configDir": {
-      "description": "Diretório inicial para a configuração do Claude. O mesmo que a variável de ambiente CLAUDE_CONFIG_DIR.",
+      "description": "Diretório inicial para a configuração do Claude.\nvariável de ambiente env",
       "placeholder": "Padrão (~/.claude)",
       "active": "Ativo: {{value}}",
       "projectUnavailable": "Abra um projeto para definir um valor de projeto."
     },
     "fileSuggestion": {
-      "description": "Comando personalizado que cria o índice de arquivos @. Igual à configuração fileSuggestion em settings.json.",
+      "description": "Comando personalizado que cria o índice de arquivos @.\nChave: fileSuggestion",
       "placeholder": "ex.: git ls-files --recurse-submodules"
     },
     "autoResumeOnLimit": {
       "label": "Retomada automática no limite de uso",
       "description": "Quando você atingir o limite da sessão, a retomada ocorrerá automaticamente após a redefinição da cota. Este é o padrão para novas sessões; cada sessão ainda pode alterná-lo."
+    },
+    "showThinkingSummaries": {
+      "label": "Mostrar resumos do raciocínio",
+      "description": "Pede ao Claude um resumo do raciocínio e o mostra dentro do bloco de raciocínio.\nChave: showThinkingSummaries"
     }
   },
   "diffView": {

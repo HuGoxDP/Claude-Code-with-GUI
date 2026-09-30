@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Streamdown} from 'streamdown';
+import {ChevronRightIcon} from '@heroicons/react/20/solid';
 import {math} from '../../utils/mathPlugin';
 import {code} from '../../utils/codePlugin';
 import './streaming.css';
@@ -52,6 +53,10 @@ export const ThinkingStreamingMessage: React.FC<ThinkingStreamingMessageProps> =
     // scrolls smoothly (matching the Claude Code extension) instead of jumping.
     const animatedTokens = useAnimatedThinkingTokens(isThinking ? estimatedTokens : undefined);
     const tokenText = formatThinkingTokens(animatedTokens);
+    // Models often stream a thinking block with no text at all. Expanding it
+    // would reveal nothing, so the label only looks and acts clickable once
+    // some thinking text has arrived (#496).
+    const hasThinkingText = thinking.trim() !== '';
 
     // Handle streaming animation
     useEffect(() => {
@@ -68,11 +73,21 @@ export const ThinkingStreamingMessage: React.FC<ThinkingStreamingMessageProps> =
         <ToolWrapper message={message} className="!mt-0">
             <div className={`text-text-primary/40 streaming-message ${className}`}>
                 <div>
-                    <div className="mb-0.5 cursor-pointer" onClick={toggleThinkingExpanded}>
+                    <div
+                        className={`mb-0.5 ${hasThinkingText ? 'cursor-pointer' : ''}`}
+                        onClick={hasThinkingText ? toggleThinkingExpanded : undefined}>
                         <div className="italic text-text-primary/50 flex items-center gap-1">
                             {label}
                             {tokenText && (
                                 <span className="not-italic tabular-nums opacity-80">· {tokenText}</span>
+                            )}
+                            {hasThinkingText && (
+                                <ChevronRightIcon
+                                    data-testid="thinking-chevron"
+                                    // Collapsed points reading-forward; expanded points down.
+                                    // Same rotate/mirror pairing as SendFoldToggle for RTL.
+                                    className={`w-3.5 h-3.5 shrink-0 transition-transform rtl:-scale-x-100 ${isThinkingExpanded ? 'rotate-90 rtl:-rotate-90' : ''}`}
+                                />
                             )}
                         </div>
                     </div>
