@@ -223,10 +223,12 @@ intellijPlatform {
             // Deprecations accumulate, so the upper-bound IU EAP below subsumes
             // intermediate release lines (e.g. 2024.3) for forward-compat checks.
             ide("IC", "2024.2.6")
-            // 2026.2 EAP coverage — driving #50 (Allow IDE EAP versions). Forward-compat
-            // needs to hold before we drop untilBuild. IU EAP is published with the
-            // build-number-based "<build>-EAP-SNAPSHOT" suffix.
-            ide("IU", "262.8117.19-EAP-SNAPSHOT", false)
+            // Upper bound: 2026.2 (262.*), forward-compat before we drop untilBuild (#50).
+            // This was pinned to the EAP "262.8117.19-EAP-SNAPSHOT" until JetBrains removed
+            // that build from both the snapshots and releases repositories (404), which
+            // made verifyPlugin unresolvable during the v0.33.1 release. 2026.2 is now a
+            // released line, so a released IU is the stable pin.
+            ide("IU", "2026.2")
         }
     }
 }
