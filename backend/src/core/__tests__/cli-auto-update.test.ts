@@ -145,6 +145,15 @@ describe('checkCliAutoUpdate', () => {
     expect(r.updates()).toEqual([]);
   });
 
+  it('announces an update whose new version could not be read back', async () => {
+    // UPDATE_CLI answers newVersion: null when `claude --version` times out, which happens on
+    // the first run of a freshly installed binary. Measured on 2.1.285 installed by volta.
+    const send = vi.fn(async (type: MessageType): Promise<Record<string, unknown>> =>
+      type === MessageType.GET_CLI_UPDATE_INFO ? { ...info() } : { status: 'ok', newVersion: null });
+    expect(await checkOnce(send)).toBe(true);
+    expect(mocks.resetTelemetry).toHaveBeenCalledOnce();
+  });
+
   it('survives a failing request', async () => {
     const send = vi.fn(async () => ({ status: 'error', error: 'offline' }));
     expect(await checkOnce(send)).toBe(false);
@@ -234,6 +243,38 @@ describe('startCliAutoUpdate and triggerCliAutoUpdate', () => {
 
     await vi.advanceTimersByTimeAsync(1 * MINUTE);
     triggerCliAutoUpdate();
+    await vi.waitFor(() => expect(mocks.state).toHaveBeenCalledTimes(2));
+  });
+
+  it('does not start the half-hour wait when auto-updates were off', async () => {
+    vi.useFakeTimers();
+    const r = router();
+    mocks.state.mockResolvedValue({ enabled: false, lock: null, settingsPath: '', channel: CliUpdateChannel.LATEST });
+    const { startCliAutoUpdate, triggerCliAutoUpdate } = await load();
+    startCliAutoUpdate(r.send, vi.fn());
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(r.send).not.toHaveBeenCalled();
+
+    // The user turns them on; the next chat, a minute later, checks at once.
+    mocks.state.mockResolvedValue({ enabled: true, lock: null, settingsPath: '', channel: CliUpdateChannel.LATEST });
+    await vi.advanceTimersByTimeAsync(1 * MINUTE);
+    triggerCliAutoUpdate();
+    await vi.waitFor(() => expect(r.updates()).toHaveLength(1));
+  });
+
+  it('checks at once when asked to, inside the half-hour wait', async () => {
+    vi.useFakeTimers();
+    const r = router(info({ cliVersion: '2.1.285' }));
+    const { startCliAutoUpdate, triggerCliAutoUpdate, triggerCliAutoUpdateNow } = await load();
+    startCliAutoUpdate(r.send, vi.fn());
+    await vi.advanceTimersByTimeAsync(10_000);
+    await vi.waitFor(() => expect(mocks.state).toHaveBeenCalledTimes(1));
+
+    triggerCliAutoUpdate();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(mocks.state).toHaveBeenCalledTimes(1);
+
+    triggerCliAutoUpdateNow();
     await vi.waitFor(() => expect(mocks.state).toHaveBeenCalledTimes(2));
   });
 

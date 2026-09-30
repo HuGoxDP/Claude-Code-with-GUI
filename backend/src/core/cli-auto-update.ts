@@ -101,6 +101,16 @@ export function triggerCliAutoUpdate(): void {
   void checkCliAutoUpdate().then(updated => { if (updated) announce(); });
 }
 
+/**
+ * Check now, whatever the throttle says. Called when the user turns Claude Code's auto-updates
+ * on in Settings: waiting for the next chat, up to half an hour, would read as the switch
+ * doing nothing.
+ */
+export function triggerCliAutoUpdateNow(): void {
+  lastCheckAt = undefined;
+  triggerCliAutoUpdate();
+}
+
 async function check(): Promise<boolean> {
   const send = request;
   if (!send) return false;
@@ -110,6 +120,8 @@ async function check(): Promise<boolean> {
   const setting = await readCliAutoUpdateState();
   if (!setting.enabled) {
     logDebug('[cli-auto-update]', 'Claude Code auto-updates are off');
+    // Nothing was checked, so nothing starts the half-hour wait: the next chat checks again.
+    lastCheckAt = undefined;
     return false;
   }
 
@@ -139,10 +151,15 @@ async function check(): Promise<boolean> {
     const payload = info.updateMode === UpdateMode.VERSIONED ? { version: target } : {};
     const result = await send(MessageType.UPDATE_CLI, payload);
     if (result.status !== 'ok') throw new Error(String(result.error ?? 'UPDATE_CLI failed'));
+    // UPDATE_CLI reads the new version with `claude --version`, which can time out on the
+    // first run of a freshly installed binary. The install itself succeeded, so a missing
+    // version still means a change: the open tabs refetch the version themselves.
     const newVersion = typeof result.newVersion === 'string' ? result.newVersion : null;
-    const changed = newVersion !== null && newVersion !== info.cliVersion;
-    lastVersion = newVersion ?? lastVersion;
-    if (changed) console.info(`[cli-auto-update] Claude Code is now ${newVersion}`);
+    const changed = newVersion === null || newVersion !== info.cliVersion;
+    lastVersion = newVersion ?? undefined;
+    if (changed) {
+      console.info(`[cli-auto-update] Claude Code is now ${newVersion ?? `${target} (version not read back)`}`);
+    }
     return settle(changed || changedElsewhere);
   } finally {
     await lock.release();

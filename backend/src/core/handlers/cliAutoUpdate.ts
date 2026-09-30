@@ -9,6 +9,7 @@ import {
   saveNonessentialTraffic,
 } from '../features/cli-auto-update-setting';
 import { readMergedClaudeSettings } from '../features/claude-settings';
+import { triggerCliAutoUpdateNow } from '../cli-auto-update';
 import { MessageType } from '../../shared';
 
 /**
@@ -60,6 +61,8 @@ export async function setCliAutoUpdateHandler(
     connections.broadcastToAll(MessageType.CLAUDE_SETTINGS_CHANGED, { settings, overrides });
   }
   const state = await readCliAutoUpdateState();
+  // Turned on and nothing else keeps it off: check now rather than at the next chat.
+  if (result.status === 'ok' && enabled && state.enabled) triggerCliAutoUpdateNow();
   connections.sendTo(connectionId, MessageType.ACK, {
     requestId: message.requestId,
     ...state,
@@ -106,6 +109,8 @@ export async function setNonessentialTrafficHandler(
     connections.broadcastToAll(MessageType.CLAUDE_SETTINGS_CHANGED, { settings, overrides });
   }
   const state = await readNonessentialTrafficState();
+  // Lifting the limit can be what turns auto-updates back on; if so, check now.
+  if (result.status === 'ok' && !disabled && (await readCliAutoUpdateState()).enabled) triggerCliAutoUpdateNow();
   connections.sendTo(connectionId, MessageType.ACK, {
     requestId: message.requestId,
     ...state,

@@ -57,6 +57,8 @@ It updates when all of these are true:
 
 The interactive CLI looks for an update when it is launched, and the plugin's counterpart of launching `claude` is a chat starting one. So the backend checks shortly after it starts and whenever a chat starts `claude`, at most once every 30 minutes. There is no timer: a backend nobody is chatting in does not reach the registry or run an update on its own, and the check runs beside the chat rather than in front of it, so a chat never waits for it.
 
+Turning auto-updates on in Settings, with the switch below or by lifting **Block nonessential traffic**, checks at once instead of waiting for the next chat. A check that finds auto-updates off does not start the 30-minute wait.
+
 ### Running sessions are not interrupted
 
 An update never stops a chat that is already running. The running `claude` keeps the version it started with, and the next chat starts the new one. Open tabs refresh the version shown in Settings → About.
