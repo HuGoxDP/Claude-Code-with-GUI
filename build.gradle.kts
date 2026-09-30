@@ -188,6 +188,17 @@ intellijPlatform {
             untilBuild = provider { null }
         }
         changeNotes = """
+            <h3>0.33.1 - Hide tool calls, CLI auto-update, and more fixes</h3>
+            <ul>
+                <li>Add a setting to hide tool call cards in the chat (#476 by @antoine-le-calloch)</li>
+                <li>Add background auto-update for the Claude Code CLI (#494 by @antoine-le-calloch)</li>
+                <li>Add the showThinkingSummaries setting to show thinking summaries (#502)</li>
+                <li>Fix empty Thinking labels looking clickable, and add a chevron to labels that have text (#502, reported by @Kolterdyx)</li>
+                <li>Fix sleep prevention overwriting the user's power settings, and keep the machine awake with the lid closed (#489, reported by @HawkOnPK)</li>
+                <li>Fix question, permission and plan panels hiding the collapse button when too tall (#503, reported by @emiltsonev)</li>
+                <li>Fix the update banner not naming the plugin, and fill the Plugins search from the Update button (#501, reported by @alexandrezia)</li>
+                <li>Fix a leftover Claude CLI when the client vanishes without closing its socket (#500, reported by @iljac)</li>
+            </ul>
             <h3>0.33.0 - Desktop notifications, and fixes for the message box and more</h3>
             <ul>
                 <li>Add desktop notifications on macOS, Windows and Linux (#105, reported by @egorshubin and @benomatis)</li>
