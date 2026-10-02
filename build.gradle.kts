@@ -188,6 +188,12 @@ intellijPlatform {
             untilBuild = provider { null }
         }
         changeNotes = """
+            <h3>0.33.2 - Add message timestamps, fix scrolling and permission mode</h3>
+            <ul>
+                <li>Add copy, fork and send time under each message (#498, reported by @hollandjake)</li>
+                <li>Fix background task details not scrolling like the main chat (#511, reported by @CraftedFury)</li>
+                <li>Fix an unsent permission mode being reverted when the slash panel opens (#497, reported by @TobbeLino)</li>
+            </ul>
             <h3>0.33.1 - Hide tool calls, CLI auto-update, and more fixes</h3>
             <ul>
                 <li>Add a setting to hide tool call cards in the chat (#476 by @antoine-le-calloch)</li>
