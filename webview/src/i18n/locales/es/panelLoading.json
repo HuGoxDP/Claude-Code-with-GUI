@@ -5,7 +5,8 @@
     "locatingNode": "Buscando Node.js...",
     "preparingBackend": "Preparando los archivos del backend...",
     "waitingForPort": "Esperando a que el backend esté listo...",
-    "loadingUi": "Cargando la pantalla (SSH)..."
+    "loadingUi": "Cargando la pantalla...",
+    "loadingUiRemote": "Cargando la pantalla (SSH)..."
   },
   "stuck": {
     "stillIndexing": "La indexación de un proyecto grande puede tardar varios minutos.",

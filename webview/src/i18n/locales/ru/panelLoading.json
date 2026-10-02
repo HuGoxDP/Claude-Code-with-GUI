@@ -5,7 +5,8 @@
     "locatingNode": "Поиск Node.js...",
     "preparingBackend": "Подготовка файлов бэкенда...",
     "waitingForPort": "Ожидание готовности бэкенда...",
-    "loadingUi": "Загрузка экрана (SSH)..."
+    "loadingUi": "Загрузка экрана...",
+    "loadingUiRemote": "Загрузка экрана (SSH)..."
   },
   "stuck": {
     "stillIndexing": "Индексирование большого проекта может занять несколько минут.",

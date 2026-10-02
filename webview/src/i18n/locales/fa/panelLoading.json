@@ -5,7 +5,8 @@
     "locatingNode": "در حال یافتن Node.js...",
     "preparingBackend": "در حال آماده‌سازی فایل‌های بک‌اند...",
     "waitingForPort": "در انتظار آماده شدن بک‌اند...",
-    "loadingUi": "در حال بارگذاری صفحه (SSH)..."
+    "loadingUi": "در حال بارگذاری صفحه...",
+    "loadingUiRemote": "در حال بارگذاری صفحه (SSH)..."
   },
   "stuck": {
     "stillIndexing": "نمایه‌سازی یک پروژه بزرگ ممکن است چند دقیقه طول بکشد.",

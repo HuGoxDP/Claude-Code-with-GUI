@@ -24,6 +24,13 @@ enum class LoadingPhase(val key: String) {
      * machine and took around four seconds in measurement (issue #292).
      */
     LOADING_UI("phase.loadingUi"),
+
+    /**
+     * [LOADING_UI] for a panel whose browser is rendered by a Remote Development
+     * client. The label names the link the wait is spent on, which a local IDE
+     * does not have.
+     */
+    LOADING_UI_REMOTE("phase.loadingUiRemote"),
     ;
 
     /** Text in the user's Interface Language. Cache-only lookup, safe on the EDT. */
