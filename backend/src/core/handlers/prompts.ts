@@ -8,8 +8,8 @@ import { getProjectsList } from '../features/getProjectsList';
 import {
   ensureGlobalMigrated,
   ensureProjectMigrated,
-  startKnownProjectsMigration,
 } from '../features/prompt-migration';
+import { startBackgroundMigration } from '../features/prompt-migration-sweep';
 import {
   readPrompts,
   readPromptOrderByCategory,
@@ -438,7 +438,7 @@ function afterMigration(handler: Handler): Handler {
       await ensureGlobalMigrated();
       const projectPath = readProjectPath(message);
       if (readScope(message) === 'project' && projectPath) await ensureProjectMigrated(projectPath);
-      startKnownProjectsMigration(async () => (await getProjectsList()).map((project) => project.path));
+      startBackgroundMigration(async () => (await getProjectsList()).map((project) => project.path));
     } catch (err) {
       console.error('[node-backend]', 'Failed to move the prompt library:', err);
       sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));

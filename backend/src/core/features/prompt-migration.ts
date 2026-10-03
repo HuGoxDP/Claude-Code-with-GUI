@@ -284,7 +284,6 @@ function runOnce(key: string, run: () => Promise<MigrationOutcome>): Promise<Mig
 export function resetMigrationMemory(): void {
   inFlight.clear();
   settled.clear();
-  knownProjectsStarted = false;
 }
 
 /** Move the shared file, if it has not been moved. Throws when it could not be. */
@@ -335,34 +334,4 @@ export async function migrateKnownProjects(
     }
   }
   return summary;
-}
-
-let knownProjectsStarted = false;
-
-/**
- * Start moving the project files of every project already known, once per
- * process, without making the request that triggered it wait.
- *
- * It only runs after the shared data has been moved (the caller has just
- * ensured that), and every failure is logged and left to the safety net: the
- * move is tried again whenever that project's library is opened.
- */
-export function startKnownProjectsMigration(
-  listProjectPaths: () => Promise<string[]>,
-  options: MigrationOptions = {},
-): void {
-  if (knownProjectsStarted) return;
-  knownProjectsStarted = true;
-
-  void (async () => {
-    try {
-      const summary = await migrateKnownProjects(await listProjectPaths(), options);
-      console.log(
-        '[node-backend]',
-        `Checked ${summary.checked} known projects for old prompt files: ${summary.moved} moved, ${summary.failed} failed`,
-      );
-    } catch (err) {
-      console.error('[node-backend]', 'Failed to check known projects for old prompt files:', err);
-    }
-  })();
 }
