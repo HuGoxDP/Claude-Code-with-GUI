@@ -3,6 +3,7 @@ import { useBridgeContext } from '@/contexts/BridgeContext';
 import { usePromptOrderSync } from '@/hooks/usePromptOrderSync';
 import { MessageType } from '@/shared';
 import { dropStrayText } from '@/utils/dropStrayText';
+import { getCaretOffset, setCaretOffset } from '@/utils/domSelection';
 import { findPromptToken, PROMPT_TRIGGER } from '@/utils/findPromptToken';
 import type {
   GetPromptsAck,
@@ -159,6 +160,8 @@ interface UsePromptLibraryReturn {
   deletePrompt: (prompt: ScopedPrompt) => Promise<void>;
   /** Read the library again, keeping the highlight where it is. */
   reload: () => void;
+  /** Give the composer the focus back with the caret where it was when an edit began. */
+  returnFocusToComposer: () => void;
   /**
    * File a prompt under a different set of categories and re-read the list.
    *
@@ -244,9 +247,13 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
   const editKeyDown = useRef(false);
   /** The composer's text when that key went down, to take the key's own character back out. */
   const textBeforeEditKey = useRef<string | null>(null);
+  /** Where the caret was in the composer when the edit began, to put it back afterwards. */
+  const caretBeforeEdit = useRef<number | null>(null);
   const noteEditKeyDown = () => {
     editKeyDown.current = true;
-    textBeforeEditKey.current = inputRef?.current?.textContent ?? null;
+    const composer = inputRef?.current;
+    textBeforeEditKey.current = composer?.textContent ?? null;
+    caretBeforeEdit.current = composer ? getCaretOffset(composer) : null;
   };
 
   const valueRef = useRef(value);
@@ -381,7 +388,15 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
    * category rename sent the message. A tick later it has finished.
    */
   const returnFocusToComposer = useCallback(() => {
-    setTimeout(() => inputRef?.current?.focus(), 0);
+    setTimeout(() => {
+      const composer = inputRef?.current;
+      if (!composer) return;
+      composer.focus();
+      // Focusing a contentEditable puts the caret at its start. The caret has to
+      // be where it was, after the `!!`: before it, the `!!` is no longer the
+      // token at the caret and the panel stops answering the keys.
+      if (caretBeforeEdit.current !== null) setCaretOffset(composer, caretBeforeEdit.current);
+    }, 0);
   }, [inputRef]);
 
   const cancelCategoryEdit = useCallback(() => {
@@ -819,6 +834,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     selectRow,
     deletePrompt,
     reload: () => load(true),
+    returnFocusToComposer,
     setPromptCategories,
     close,
   };

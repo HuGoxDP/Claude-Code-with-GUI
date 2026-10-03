@@ -674,14 +674,16 @@ export function ChatInput() {
   // the panel re-reads the library, and the composer gets the focus back so the
   // arrow keys are the panel's again.
   const reloadPromptLibrary = promptLibrary.reload;
+  const returnFocusToComposer = promptLibrary.returnFocusToComposer;
   useEffect(() => {
     const handler = () => {
       reloadPromptLibrary();
-      textareaRef.current?.focus();
+      // With the caret back after the `!!`, where it was when the edit began.
+      returnFocusToComposer();
     };
     window.addEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
     return () => window.removeEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
-  }, [reloadPromptLibrary, textareaRef]);
+  }, [reloadPromptLibrary, returnFocusToComposer]);
 
   /** Remove a prompt from the panel, after asking. Deleting cannot be undone. */
   const deleteSavedPrompt = useCallback(

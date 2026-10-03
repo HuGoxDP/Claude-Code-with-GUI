@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { MessageType } from '@/shared';
+import { getCaretOffset, setCaretOffset } from '@/utils/domSelection';
 import { ALL_CATEGORIES } from '@/utils/promptCategories';
 import { resetPromptOrder } from '@/utils/promptOrderStore';
 import type { PromptCategory, SavedPrompt } from '@/types/prompt';
@@ -835,6 +836,78 @@ describe('editing and deleting from the keyboard', () => {
 
       expect(document.execCommand).not.toHaveBeenCalled();
       expect(composer.textContent).toBe('!!');
+    });
+  });
+
+  // Focusing a contentEditable puts the caret at its start. With the caret
+  // before the `!!`, the `!!` is no longer the token at the caret, the panel stops
+  // answering, and the next key is simply typed.
+  describe('the caret in the composer after a category edit', () => {
+    const composerWithCaretAfterBangs = () => {
+      const element = document.createElement('div');
+      element.contentEditable = 'true';
+      element.tabIndex = 0; // jsdom only focuses what is focusable
+      element.textContent = '!!';
+      document.body.appendChild(element);
+      element.focus();
+      setCaretOffset(element, 2);
+      return element;
+    };
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 10));
+
+    it('is put back after the !! when the edit is cancelled', async () => {
+      const composer = composerWithCaretAfterBangs();
+      const { result } = renderLibrary(makeParams('!!'), { inputRef: { current: composer } });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+      press(result, 'ArrowLeft', 'ArrowLeft');
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'ㄷ', 'KeyE');
+      expect(result.current.editingCategory).toBe('c1');
+      composer.blur();
+      setCaretOffset(composer, 0); // what focusing it would otherwise leave behind
+
+      act(() => result.current.cancelCategoryEdit());
+      await act(async () => { await settle(); });
+
+      expect(document.activeElement).toBe(composer);
+      expect(getCaretOffset(composer)).toBe(2);
+    });
+
+    it('is put back after the !! when the edit is saved', async () => {
+      const composer = composerWithCaretAfterBangs();
+      const { result } = renderLibrary(makeParams('!!'), { inputRef: { current: composer } });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+      press(result, 'ArrowLeft', 'ArrowLeft');
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'ㄷ', 'KeyE');
+      composer.blur();
+      setCaretOffset(composer, 0);
+
+      await act(async () => {
+        await result.current.renameCategory('c1', 'reviews');
+        await settle();
+      });
+
+      expect(getCaretOffset(composer)).toBe(2);
+    });
+
+    it('is put back after the !! when an edit screen closes', async () => {
+      const composer = composerWithCaretAfterBangs();
+      const { result } = renderLibrary(makeParams('!!'), { inputRef: { current: composer }, onEditPrompt });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(1));
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'ㄷ', 'KeyE');
+      composer.blur();
+      setCaretOffset(composer, 0);
+
+      act(() => result.current.returnFocusToComposer());
+      await act(async () => { await settle(); });
+
+      expect(document.activeElement).toBe(composer);
+      expect(getCaretOffset(composer)).toBe(2);
     });
   });
 
