@@ -248,7 +248,7 @@
   },
   "promptLibrary": {
     "title": "Prompt Library",
-    "description": "Save phrases you type often, then type !! in the chat input to paste one.",
+    "description": "Save phrases you type often, then type !! in the chat input to paste one. Drag a row to reorder it, or onto a category to file it.",
     "create": "Create prompt",
     "empty": "No saved prompts yet",
     "projectUnavailable": "Open a project to save project prompts.",
@@ -322,7 +322,7 @@
     },
     "searchPlaceholder": "Search prompts",
     "categoryLabel": "Category",
-    "dragToCategory": "Drag onto a category to file it there",
+    "categoryOrderNote": "This order applies inside this category only.",
     "categoryPlaceholder": "Pick or type a category",
     "createCategoryNamed": "Create \"{{name}}\"",
     "removeCategory": "Remove {{name}}",

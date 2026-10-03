@@ -248,7 +248,7 @@
   },
   "promptLibrary": {
     "title": "Biblioteca de prompts",
-    "description": "Guarda las frases que escribes a menudo y escribe !! en el campo de chat para pegar una.",
+    "description": "Guarda las frases que escribes a menudo y escribe !! en el campo de chat para pegar una. Arrastra una fila para reordenarla, o a una categoría para archivarla ahí.",
     "create": "Crear prompt",
     "empty": "Todavía no hay prompts guardados",
     "projectUnavailable": "Abre un proyecto para guardar prompts de proyecto.",
@@ -322,7 +322,7 @@
     },
     "searchPlaceholder": "Buscar prompts",
     "categoryLabel": "Categoría",
-    "dragToCategory": "Arrástralo a una categoría para archivarlo ahí",
+    "categoryOrderNote": "Este orden solo se aplica dentro de esta categoría.",
     "categoryPlaceholder": "Elige o escribe una categoría",
     "createCategoryNamed": "Crear «{{name}}»",
     "removeCategory": "Quitar {{name}}",

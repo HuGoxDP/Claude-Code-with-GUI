@@ -316,6 +316,23 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
       // being typed in the sidebar.
       if (view.kind !== 'list' || formBusy || renamingCategory) return;
 
+      // With Alt held, up and down move the highlighted row itself instead of the
+      // highlight. The same move a drag makes, for someone who is not using a
+      // pointer: whichever column has the arrows is the one that is rearranged.
+      if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        if (focusedPaneRef.current === 'categories') {
+          // "All" and "uncategorised" carry no category and are not movable.
+          const category = sidebarRows[selectedCategoryIndex]?.category;
+          if (category) categoryReorder.moveBy(category.id, delta);
+        } else if (selectedRow && reorder.moveBy(selectedRow.scope, selectedRow.prompt.id, delta)) {
+          // The highlight goes with the card it was on.
+          setSelectedIndex(boundedIndex + delta);
+        }
+        return;
+      }
+
       // Left and right cross between the two columns; up and down move within
       // whichever one they last crossed into.
       if (e.key === 'ArrowLeft') {
@@ -373,6 +390,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     renamingCategory,
     sidebarRows,
     selectedCategoryIndex,
+    boundedIndex,
+    reorder,
+    categoryReorder,
   ]);
 
   /**
@@ -556,6 +576,11 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                 />
                 <PromptList
                 sortable={reorder.sortable}
+                note={
+                  orderViewOf(selectedCategory).kind === 'category'
+                    ? t('promptLibrary.categoryOrderNote')
+                    : undefined
+                }
                 globalPrompts={globalPrompts}
                 projectPrompts={projectPrompts}
                 projectAvailable={store.projectAvailable}

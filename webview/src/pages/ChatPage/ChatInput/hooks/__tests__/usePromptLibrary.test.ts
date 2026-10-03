@@ -331,6 +331,110 @@ describe('usePromptLibrary', () => {
   });
 });
 
+/**
+ * Alt with the up and down arrows moves the highlighted row itself, instead of
+ * the highlight: the same move a drag makes, for someone not using a pointer.
+ */
+describe('reordering from the keyboard', () => {
+  const category = (id: string, name: string): PromptCategory => ({ id, name, createdAt: 1 });
+  const altKey = (key: string) =>
+    ({ key, altKey: true, preventDefault: vi.fn() } as unknown as React.KeyboardEvent<HTMLElement>);
+  const ids = (rows: PromptRow[]) =>
+    rows.map((row) => (row.kind === 'prompt' ? row.prompt.id : 'create'));
+
+  beforeEach(() => {
+    resetPromptOrder();
+    sendMock.mockClear();
+    categories = [category('c1', 'review'), category('c2', 'docs')];
+    globalPrompts = [prompt('g1', 'one', 'one body'), prompt('g2', 'two', 'two body'), prompt('g3', 'three', 'three body')];
+    projectPrompts = [];
+  });
+
+  async function open() {
+    const rendered = renderLibrary(makeParams('!!'));
+    act(() => rendered.result.current.detectPrompt('!!', 2));
+    await waitFor(() => expect(rendered.result.current.rows).toHaveLength(4));
+    return rendered;
+  }
+
+  it('moves the highlighted prompt down a step, and the highlight goes with it', async () => {
+    const { result } = await open();
+
+    let handled = false;
+    act(() => {
+      handled = result.current.handleKeyDown(altKey('ArrowDown'));
+    });
+
+    expect(handled).toBe(true);
+    expect(ids(result.current.rows)).toEqual(['g2', 'g1', 'g3', 'create']);
+    expect(result.current.selectedIndex).toBe(1);
+  });
+
+  it('moves the highlighted prompt up a step', async () => {
+    const { result } = await open();
+    act(() => {
+      result.current.handleKeyDown(keyEvent('ArrowDown'));
+    });
+    expect(result.current.selectedIndex).toBe(1);
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowUp'));
+    });
+
+    expect(ids(result.current.rows)).toEqual(['g2', 'g1', 'g3', 'create']);
+    expect(result.current.selectedIndex).toBe(0);
+  });
+
+  it('leaves the list and the highlight alone at the top', async () => {
+    const { result } = await open();
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowUp'));
+    });
+
+    expect(ids(result.current.rows)).toEqual(['g1', 'g2', 'g3', 'create']);
+    expect(result.current.selectedIndex).toBe(0);
+  });
+
+  it('never moves the create row', async () => {
+    const { result } = await open();
+    act(() => {
+      result.current.handleKeyDown(keyEvent('ArrowUp')); // wraps to the create row
+    });
+    expect(result.current.selectedIndex).toBe(3);
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowUp'));
+    });
+
+    expect(ids(result.current.rows)).toEqual(['g1', 'g2', 'g3', 'create']);
+  });
+
+  it('moves the picked category down the column once the arrows are in it', async () => {
+    const { result } = await open();
+    await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+    act(() => result.current.selectCategory('c1'));
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowDown'));
+    });
+
+    expect(result.current.categoryRows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c2', 'c1']);
+  });
+
+  it('does not move "everything", which is not a category', async () => {
+    const { result } = await open();
+    await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+    act(() => result.current.selectCategory(ALL_CATEGORIES));
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowDown'));
+    });
+
+    expect(result.current.categoryRows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1', 'c2']);
+  });
+});
+
 describe('stepSelection', () => {
   const promptRow = (id: string): PromptRow => ({
     kind: 'prompt',

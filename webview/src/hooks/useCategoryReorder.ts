@@ -8,6 +8,7 @@ import {
   isCategorySortableId,
 } from '@/utils/promptOrder';
 import { updateCategoryOrder, useCategoryOrder } from '@/utils/promptOrderStore';
+import { moveCategoryBy } from '@/utils/promptReorderCommands';
 import type { PromptCategory } from '@/types/prompt';
 
 export interface CategoryReorder {
@@ -15,6 +16,8 @@ export interface CategoryReorder {
   categories: PromptCategory[];
   onDragOver: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  /** Move one category a step up or down the column. False at either end. */
+  moveBy: (categoryId: string, delta: -1 | 1) => boolean;
 }
 
 /**
@@ -55,5 +58,7 @@ export function useCategoryReorder(categories: PromptCategory[]): CategoryReorde
     updateCategoryOrder(() => categoryIdsOfSortable(finished));
   };
 
-  return { categories: shown, onDragOver, onDragEnd };
+  const moveBy = (categoryId: string, delta: -1 | 1) => moveCategoryBy(categories, categoryId, delta);
+
+  return { categories: shown, onDragOver, onDragEnd, moveBy };
 }

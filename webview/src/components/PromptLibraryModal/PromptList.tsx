@@ -49,6 +49,12 @@ interface Props {
    * slide aside, because there is nowhere in the list for it to be moved to.
    */
   sortable?: boolean;
+  /**
+   * A line above the lists, for what the user would otherwise have to guess. It
+   * says an order made inside a category belongs to that category alone, because
+   * the same prompt can be first in one category and last in the library.
+   */
+  note?: string;
   globalPrompts: SavedPrompt[];
   projectPrompts: SavedPrompt[];
   /** False when no project is open, so the project section explains itself instead. */
@@ -233,6 +239,7 @@ function PromptSection(props: SectionProps) {
 export function PromptList(props: Props) {
   const {
     sortable = true,
+    note,
     globalPrompts,
     projectPrompts,
     projectAvailable,
@@ -269,6 +276,7 @@ export function PromptList(props: Props) {
      * screen.
      */
     <div ref={scrollRef} className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto py-2">
+      {note && <p className="flex-shrink-0 text-xs text-text-tertiary">{note}</p>}
       <PromptSection
         sortable={sortable}
         title={t('promptLibrary.globalSection')}

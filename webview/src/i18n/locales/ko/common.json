@@ -248,7 +248,7 @@
   },
   "promptLibrary": {
     "title": "프롬프트 라이브러리",
-    "description": "자주 쓰는 문장을 저장해두고, 채팅 입력창에 !!를 입력해 붙여넣습니다.",
+    "description": "자주 쓰는 문장을 저장해두고, 채팅 입력창에 !!를 입력해 붙여넣습니다. 줄을 끌어서 순서를 바꾸고, 카테고리로 끌어다 놓아 분류할 수 있습니다.",
     "create": "프롬프트 만들기",
     "empty": "저장된 프롬프트가 아직 없습니다",
     "projectUnavailable": "프로젝트 프롬프트를 저장하려면 프로젝트를 여세요.",
@@ -322,7 +322,7 @@
     },
     "searchPlaceholder": "프롬프트 검색",
     "categoryLabel": "카테고리",
-    "dragToCategory": "카테고리로 끌어다 놓으면 분류됩니다",
+    "categoryOrderNote": "이 순서는 이 카테고리 안에서만 적용됩니다.",
     "categoryPlaceholder": "카테고리를 고르거나 입력하세요",
     "createCategoryNamed": "\"{{name}}\" 만들기",
     "removeCategory": "{{name}} 빼기",

@@ -3,21 +3,14 @@ import { move } from '@dnd-kit/helpers';
 import type { DragEndEvent, DragOverEvent } from '@dnd-kit/react';
 import { readCategoryDrop } from '@/utils/promptDrag';
 import {
-  emptyPromptOrder,
   isPromptSortableId,
   layeredPromptOrder,
-  mergeVisibleOrder,
   promptIdsOfSortable,
   promptSortableId,
   type OrderView,
 } from '@/utils/promptOrder';
-import {
-  getPromptOrder,
-  updatePromptOrder,
-  updatePromptOrderByCategory,
-  usePromptOrder,
-  usePromptOrderByCategory,
-} from '@/utils/promptOrderStore';
+import { usePromptOrder, usePromptOrderByCategory } from '@/utils/promptOrderStore';
+import { commitPromptOrder, movePromptBy } from '@/utils/promptReorderCommands';
 import type { PromptScope, SavedPrompt } from '@/types/prompt';
 
 type PromptLists<P extends SavedPrompt> = Record<PromptScope, P[]>;
@@ -42,6 +35,8 @@ export interface PromptReorder<P extends SavedPrompt> {
   sortable: boolean;
   onDragOver: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  /** Move one card a step up or down its section. False at either end. */
+  moveBy: (scope: PromptScope, promptId: string, delta: -1 | 1) => boolean;
 }
 
 /**
@@ -112,41 +107,36 @@ export function usePromptReorder<P extends SavedPrompt>(
     // back where it was. The category drop is handled by the caller.
     if (readCategoryDrop(event.operation.target?.data) !== null) return;
 
-    if (view.kind === 'category') {
-      updatePromptOrderByCategory((current) => {
-        const next = emptyPromptOrder();
-        for (const scope of ['global', 'project'] as const) {
-          // Only the category's own prompts: an order that listed every prompt in
-          // the library would give a prompt filed here later a stale place instead
-          // of the top.
-          const memberIds = layeredPromptOrder(
-            sources[scope].filter(isMember),
-            getPromptOrder()[scope],
-            current[view.id]?.[scope],
-          ).map((prompt) => prompt.id);
-          next[scope] = mergeVisibleOrder(memberIds, promptIdsOfSortable(scope, finished[scope]));
-        }
-        return { ...current, [view.id]: next };
-      });
-      return;
-    }
-
-    updatePromptOrder((current) => {
-      const next = emptyPromptOrder();
-      for (const scope of ['global', 'project'] as const) {
-        const fullIds = layeredPromptOrder(sources[scope], current[scope], undefined).map(
-          (prompt) => prompt.id,
-        );
-        next[scope] = mergeVisibleOrder(fullIds, promptIdsOfSortable(scope, finished[scope]));
-      }
-      return next;
+    commitPromptOrder({
+      view,
+      sources,
+      isMember,
+      visibleIds: {
+        global: promptIdsOfSortable('global', finished.global),
+        project: promptIdsOfSortable('project', finished.project),
+      },
     });
   };
+
+  const moveBy = (scope: PromptScope, promptId: string, delta: -1 | 1) =>
+    movePromptBy({
+      view,
+      sources,
+      isMember,
+      shownIds: {
+        global: shown.global.map((prompt) => prompt.id),
+        project: shown.project.map((prompt) => prompt.id),
+      },
+      scope,
+      promptId,
+      delta,
+    });
 
   return {
     lists: { global: previewed('global'), project: previewed('project') },
     sortable,
     onDragOver,
     onDragEnd,
+    moveBy,
   };
 }

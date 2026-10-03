@@ -21,6 +21,7 @@ import {
   usePromptOrder,
   usePromptOrderByCategory,
 } from '@/utils/promptOrderStore';
+import { moveCategoryBy, movePromptBy } from '@/utils/promptReorderCommands';
 import { replaceRangeWithText } from '../RichInput/replaceRangeWithText';
 
 /**
@@ -447,6 +448,46 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
       const hasCategories = categoryRows.length > 0;
 
+      // With Alt held, up and down move the highlighted row itself instead of the
+      // highlight: the same move a drag makes, for someone who is not using a
+      // pointer. Whichever column has the arrows is the one that is rearranged.
+      if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        if (hasCategories && state.focusedPane === 'categories') {
+          // "All" carries no category and is not movable.
+          const category = categoryRows.find((row) => row.key === state.selectedCategory)?.category;
+          if (category) moveCategoryBy(state.categories, category.id, delta);
+        } else {
+          const row = rows[selectedIndex];
+          if (row?.kind === 'prompt') {
+            const keyOf = (prompt: ScopedPrompt) => `${prompt.scope}:${prompt.id}`;
+            const memberKeys = new Set(memberPrompts.map(keyOf));
+            const shownIn = (scope: ScopedPrompt['scope']) =>
+              rows.flatMap((candidate) =>
+                candidate.kind === 'prompt' && candidate.prompt.scope === scope
+                  ? [candidate.prompt.id]
+                  : [],
+              );
+            const moved = movePromptBy({
+              view: orderView,
+              sources: {
+                global: state.loaded.filter((prompt) => prompt.scope === 'global'),
+                project: state.loaded.filter((prompt) => prompt.scope === 'project'),
+              },
+              isMember: (prompt) => memberKeys.has(keyOf(prompt)),
+              shownIds: { global: shownIn('global'), project: shownIn('project') },
+              scope: row.prompt.scope,
+              promptId: row.prompt.id,
+              delta,
+            });
+            // The highlight goes with the row it was on.
+            if (moved) setState((prev) => ({ ...prev, selectedIndex: selectedIndex + delta }));
+          }
+        }
+        return true;
+      }
+
       // Left and right cross between the two columns; up and down walk whichever
       // one was crossed into last. Left and right are only taken when there is a
       // second column to reach, so a library with no categories leaves the
@@ -511,6 +552,8 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       setFocusedPane,
       selectRow,
       close,
+      memberPrompts,
+      orderView,
     ],
   );
 
