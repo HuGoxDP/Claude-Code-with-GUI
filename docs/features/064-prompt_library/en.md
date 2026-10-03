@@ -128,10 +128,13 @@ The row lands next to the visible row you dropped it beside.
 
 #### Ordering categories
 
-Rows in the category column are dragged by the whole row too. **All** stays at
-the top and **Uncategorised** at the bottom; they cannot be dragged, and nothing
-can be dropped above or below them. A row whose name you are editing does not
-drag.
+Rows in the category column are dragged by the whole row too. **All** is
+sorted together with the categories. It starts at the top, but you can drag it
+between categories or to the bottom, and the place you leave it is saved. Only
+**Uncategorised** stays fixed at the bottom: it cannot be dragged, and nothing
+can be dropped below it. A row whose name you are editing does not drag. A
+category you create later always lands below **All**, at the end of the
+categories, wherever you left **All**.
 
 ![The Prompt Library with a category being dragged. "Debug" is lifted and sits
 just under "All", and "Review" and "Docs" have slid down one place.](./assets/reorder-categories.png)

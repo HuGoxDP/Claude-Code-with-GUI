@@ -92,6 +92,45 @@ export function applyCategoryOrder<C extends { id: string }>(categories: C[], id
   return [...known, ...unknown];
 }
 
+/**
+ * Where the "All" row sits among the ordered categories, as the number of
+ * categories above it.
+ *
+ * "All" is part of the column and can be dragged like a category, so the order
+ * holds its sentinel id at the place it was left. An order that does not name it
+ * leaves it on top, which is where it has always been.
+ */
+export function allRowIndex(ids: string[], categories: Array<{ id: string }>): number {
+  const known = new Set(categories.map((category) => category.id));
+  let above = 0;
+  for (const id of ids) {
+    if (id === ALL_CATEGORIES) return above;
+    if (known.has(id)) above += 1;
+  }
+  return 0;
+}
+
+/** The whole column as ids, "All" among them, in the order it is drawn. */
+export function columnIds(categories: Array<{ id: string }>, ids: string[]): string[] {
+  const arranged = applyCategoryOrder(categories, ids).map((category) => category.id);
+  const at = allRowIndex(ids, categories);
+  return [...arranged.slice(0, at), ALL_CATEGORIES, ...arranged.slice(at)];
+}
+
+/**
+ * The column order the backend has stored, as ids with "All" in its place.
+ *
+ * "All" is fixed at priority 0, so the categories with a negative priority sit
+ * above it and the rest below. [categories] arrive in the backend's order.
+ */
+export function categoryOrderFromPriorities(
+  categories: Array<{ id: string; priority?: number }>,
+): string[] {
+  const above = categories.filter((category) => (category.priority ?? 1) < 0);
+  const below = categories.filter((category) => (category.priority ?? 1) >= 0);
+  return [...above.map((c) => c.id), ALL_CATEGORIES, ...below.map((c) => c.id)];
+}
+
 /** Take the prompt ids back out of a section's sortable ids, dropping foreign ones. */
 export function promptIdsOfSortable(scope: PromptScope, sortableIds: string[]): string[] {
   const prefix = `${SORTABLE_ID_PREFIX}:${scope}:`;

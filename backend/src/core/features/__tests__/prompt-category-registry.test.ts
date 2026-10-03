@@ -97,6 +97,73 @@ describe('prompt category registry', () => {
     });
   });
 
+  describe('the "All" row in the column', () => {
+    const ALL = '__all__';
+    const priorities = async () =>
+      Object.fromEntries((await listCategories()).map((c) => [c.name, c.priority]));
+
+    it('is fixed at 0, with the categories above it negative and below it positive', async () => {
+      for (const name of ['a', 'b', 'c', 'd']) await createCategory(name);
+      const [a, b, c, d] = await Promise.all(['a', 'b', 'c', 'd'].map(idOf));
+
+      await reorderCategories([a, b, ALL, c, d]);
+
+      expect(await priorities()).toEqual({ a: -2, b: -1, c: 1, d: 2 });
+      expect(await names()).toEqual(['a', 'b', 'c', 'd']);
+    });
+
+    it('can sit at the very bottom', async () => {
+      for (const name of ['a', 'b']) await createCategory(name);
+
+      await reorderCategories([await idOf('a'), await idOf('b'), ALL]);
+
+      expect(await priorities()).toEqual({ a: -2, b: -1 });
+    });
+
+    it('can sit at the very top, which is where it starts', async () => {
+      for (const name of ['a', 'b']) await createCategory(name);
+
+      await reorderCategories([ALL, await idOf('b'), await idOf('a')]);
+
+      expect(await priorities()).toEqual({ b: 1, a: 2 });
+    });
+
+    it('stays on top when the order does not name it', async () => {
+      for (const name of ['a', 'b']) await createCategory(name);
+      await reorderCategories([await idOf('a'), await idOf('b'), ALL]);
+
+      await reorderCategories([await idOf('b'), await idOf('a')]);
+
+      expect(await priorities()).toEqual({ b: 1, a: 2 });
+    });
+
+    it('puts a category made later below it, however the column was arranged', async () => {
+      for (const name of ['a', 'b']) await createCategory(name);
+      await reorderCategories([await idOf('a'), await idOf('b'), ALL]);
+
+      await createCategory('c');
+
+      expect(await priorities()).toEqual({ a: -2, b: -1, c: 1 });
+      expect(await names()).toEqual(['a', 'b', 'c']);
+    });
+
+    it('keeps categories the order leaves out below the named ones', async () => {
+      for (const name of ['a', 'b', 'c']) await createCategory(name);
+
+      await reorderCategories([await idOf('c'), ALL]);
+
+      expect(await priorities()).toEqual({ c: -1, a: 1, b: 2 });
+    });
+
+    it('is named once even if the order repeats it', async () => {
+      for (const name of ['a', 'b']) await createCategory(name);
+
+      await reorderCategories([await idOf('a'), ALL, ALL, await idOf('b')]);
+
+      expect(await priorities()).toEqual({ a: -1, b: 1 });
+    });
+  });
+
   describe('resolveCategoryIdsByName()', () => {
     it('matches an existing name and creates a missing one', async () => {
       await createCategory('Review');

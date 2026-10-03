@@ -93,8 +93,21 @@ export class PromptCategory {
     readonly name: string,
     /** Creation time in epoch milliseconds. */
     readonly createdAt: number,
+    /**
+     * Place in the category column. The "All" row is fixed at 0, so a negative
+     * number is above it and a positive one below it; smaller is higher. Only the
+     * stored categories carry it: a category read from an export file has none.
+     */
+    readonly priority?: number,
   ) {}
 }
+
+/**
+ * Stands for the "All" row in a category order. It is not a category and has no
+ * row of its own; the order says where it sits among the categories. Must equal
+ * `ALL_CATEGORIES` in the webview.
+ */
+export const PROMPT_ALL_CATEGORIES_ID = '__all__';
 
 export type PromptResult =
   | { status: 'ok'; prompt: SavedPrompt }

@@ -308,11 +308,11 @@ describe('PromptDropdown', () => {
       expect(screen.getByRole('button', { name: /All/ })).not.toHaveAttribute('aria-current');
     });
 
-    it('shows the grab hand on a real category chip and not on "All"', () => {
+    it('shows the grab hand on a category chip and on "All", which sorts with them', () => {
       renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows });
 
       expect(screen.getByRole('button', { name: '리뷰 (2)' }).className).toContain('cursor-grab');
-      expect(screen.getByRole('button', { name: /All/ }).className).not.toContain('cursor-grab');
+      expect(screen.getByRole('button', { name: /All/ }).className).toContain('cursor-grab');
     });
 
     // The column the user arranged is the column drawn, with "All" still first.

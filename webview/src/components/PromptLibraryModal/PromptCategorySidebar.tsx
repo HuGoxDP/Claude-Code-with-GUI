@@ -38,15 +38,19 @@ export function buildSidebarRows(
   categories: PromptCategory[],
   counts: { all: number; uncategorised: number; byId: Map<string, number> },
   labels: { all: string; uncategorised: string },
+  /** How many categories sit above "All", which is part of the sorted column. */
+  allIndex = 0,
 ): SidebarRow[] {
+  const rows = categories.map((category) => ({
+    key: category.id,
+    label: category.name,
+    count: counts.byId.get(category.id) ?? 0,
+    category,
+  }));
   return [
+    ...rows.slice(0, allIndex),
     { key: ALL_CATEGORIES, label: labels.all, count: counts.all },
-    ...categories.map((category) => ({
-      key: category.id,
-      label: category.name,
-      count: counts.byId.get(category.id) ?? 0,
-      category,
-    })),
+    ...rows.slice(allIndex),
     ...(counts.uncategorised > 0
       ? [{ key: UNCATEGORISED, label: labels.uncategorised, count: counts.uncategorised }]
       : []),
@@ -219,7 +223,7 @@ export function PromptCategorySidebar(props: Props) {
             key={row.key}
             row={row}
             sortIndex={rows
-              .filter((candidate) => candidate.category)
+              .filter((candidate) => candidate.key !== UNCATEGORISED)
               .findIndex((candidate) => candidate.key === row.key)}
             className={rowClass(selected === row.key)}
             isSelected={selected === row.key}
@@ -283,10 +287,12 @@ interface CategoryRowButtonProps {
  * as live targets would promise a write that never happens.
  */
 function CategoryRowButton(props: CategoryRowButtonProps) {
-  // "All" and "uncategorised" are not the user's to move, so they take no part in
-  // the sorting at all. They are not merely disabled: a disabled item would still
-  // hold an index, and every real category's index is counted without them.
-  return props.row.category ? (
+  // "All" is a row of the column like the categories and sorts with them (it is
+  // fixed at priority 0, with categories above and below). "Uncategorised" is
+  // the leftover and stays last, so it takes no part in the sorting at all. It is
+  // not merely disabled: a disabled item would still hold an index, and every
+  // sorted row's index is counted without it.
+  return props.row.key !== UNCATEGORISED ? (
     <SortableCategoryRow {...props} />
   ) : (
     <CategoryRowFrame {...props} />
@@ -294,7 +300,7 @@ function CategoryRowButton(props: CategoryRowButtonProps) {
 }
 
 /**
- * A real category row, which can also be dragged to a new place in the column.
+ * A row that can be dragged to a new place in the column: a category, or "All".
  *
  * The whole row is the handle, as it is for a prompt card. It stays a drop target
  * for prompts at the same time; the two are told apart by drag type.
@@ -361,7 +367,7 @@ function CategoryRowFrame(props: CategoryRowFrameProps) {
         isDropTarget && wouldAccept ? 'ring-1 ring-accent-primary bg-accent-primary/10' : ''
       } ${dragged !== null && !wouldAccept ? 'opacity-40' : ''} ${
         // Only a real category can be picked up, so only it shows the grab hand.
-        row.category ? 'cursor-grab active:cursor-grabbing' : ''
+        row.key !== UNCATEGORISED ? 'cursor-grab active:cursor-grabbing' : ''
       } ${
         // Lifted while held, and above the rows it passes rather than under them.
         isDragging ? 'relative z-10 bg-surface-overlay shadow-lg' : ''

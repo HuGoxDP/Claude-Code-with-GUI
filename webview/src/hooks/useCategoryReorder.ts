@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { move } from '@dnd-kit/helpers';
 import type { DragEndEvent, DragOverEvent } from '@dnd-kit/react';
 import {
+  allRowIndex,
   applyCategoryOrder,
   categoryIdsOfSortable,
   categorySortableId,
+  columnIds,
   isCategorySortableId,
 } from '@/utils/promptOrder';
 import { updateCategoryOrder, useCategoryOrder } from '@/utils/promptOrderStore';
@@ -14,10 +16,12 @@ import type { PromptCategory } from '@/types/prompt';
 export interface CategoryReorder {
   /** The categories to draw, in the order to draw them: arranged, then previewed. */
   categories: PromptCategory[];
+  /** How many of those categories sit above the "All" row, which is part of the column. */
+  allIndex: number;
   onDragOver: (event: DragOverEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
   /** Move one category a step up or down the column. False at either end. */
-  moveBy: (categoryId: string, delta: -1 | 1) => boolean;
+  moveBy: (rowId: string, delta: -1 | 1) => boolean;
 }
 
 /**
@@ -37,12 +41,12 @@ export function useCategoryReorder(categories: PromptCategory[]): CategoryReorde
   const [preview, setPreview] = useState<string[] | null>(null);
 
   const arranged = applyCategoryOrder(categories, order);
-  const arrangedSortableIds = arranged.map((category) => categorySortableId(category.id));
+  // "All" is a row of the column like any other, so it is sorted with them.
+  const arrangedSortableIds = columnIds(categories, order).map(categorySortableId);
 
-  const shown =
-    preview === null
-      ? arranged
-      : applyCategoryOrder(arranged, categoryIdsOfSortable(preview));
+  const previewIds = preview === null ? null : categoryIdsOfSortable(preview);
+  const shown = previewIds === null ? arranged : applyCategoryOrder(arranged, previewIds);
+  const allIndex = allRowIndex(previewIds ?? order, shown);
 
   const onDragOver = (event: DragOverEvent) => {
     if (!isCategorySortableId(event.operation.source?.id)) return;
@@ -58,7 +62,7 @@ export function useCategoryReorder(categories: PromptCategory[]): CategoryReorde
     updateCategoryOrder(() => categoryIdsOfSortable(finished));
   };
 
-  const moveBy = (categoryId: string, delta: -1 | 1) => moveCategoryBy(categories, categoryId, delta);
+  const moveBy = (rowId: string, delta: -1 | 1) => moveCategoryBy(categories, rowId, delta);
 
-  return { categories: shown, onDragOver, onDragEnd, moveBy };
+  return { categories: shown, allIndex, onDragOver, onDragEnd, moveBy };
 }

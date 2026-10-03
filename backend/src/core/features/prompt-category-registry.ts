@@ -3,7 +3,7 @@ import { PromptCategoryCollection } from '../entities/prompt/PromptCategory.coll
 import { PromptCategory as PromptCategoryEntity } from '../entities/prompt/PromptCategory.entity';
 import { EntityChange } from '../entities/AbstractEntityCollection';
 import { PromptCategoryItemLinkCollection } from '../entities/prompt/PromptCategoryItemLink.collection';
-import { PROMPT_CATEGORY_MAX_LENGTH, PromptCategory } from './prompts';
+import { PROMPT_ALL_CATEGORIES_ID, PROMPT_CATEGORY_MAX_LENGTH, PromptCategory } from './prompts';
 
 /**
  * The category records, kept apart from the prompts that reference them.
@@ -43,7 +43,7 @@ function validateName(name: string): string | null {
 }
 
 function toWire(category: PromptCategoryEntity): PromptCategory {
-  return new PromptCategory(category.uuid, category.name, category.createdAt);
+  return new PromptCategory(category.uuid, category.name, category.createdAt, category.priority);
 }
 
 /**
@@ -155,6 +155,12 @@ export async function deleteCategory(id: string): Promise<CategoryResult> {
 /**
  * Put the category column in the order [orderedIds] gives.
  *
+ * The "All" row is part of the column: [orderedIds] holds
+ * {@link PROMPT_ALL_CATEGORIES_ID} at the place it should sit. It has no row of
+ * its own and is fixed at priority 0, so the categories above it are stored with
+ * negative priorities (the one nearest "All" is -1) and the ones below it with
+ * positive ones (the one nearest is 1). A list without it keeps "All" on top.
+ *
  * Categories the order does not mention keep their relative places below the
  * named ones, and ids that are not categories are ignored, so a stale drag cannot
  * fail the whole move. Answers with the column as it now stands.
@@ -164,11 +170,30 @@ export async function reorderCategories(orderedIds: string[]): Promise<CategoryR
     const collection = new PromptCategoryCollection();
     const existing = await collection.inColumnOrder();
     const idByUuid = new Map(existing.map((category) => [category.uuid, category.id]));
-    const named = orderedIds.map((uuid) => idByUuid.get(uuid)).filter((id): id is number => id !== undefined);
-    const rest = existing.map((category) => category.id).filter((id) => !named.includes(id));
-    const rank = new Map([...new Set([...named, ...rest])].map((id, index) => [id, index + 1]));
+
+    // The column as a list of internal ids, with null standing for "All".
+    const sequence: Array<number | null> = [];
+    for (const uuid of orderedIds) {
+      if (uuid === PROMPT_ALL_CATEGORIES_ID) {
+        if (!sequence.includes(null)) sequence.push(null);
+        continue;
+      }
+      const id = idByUuid.get(uuid);
+      if (id !== undefined && !sequence.includes(id)) sequence.push(id);
+    }
+    const rest = existing.map((category) => category.id).filter((id) => !sequence.includes(id));
+    // Not named: "All" stays where it has always been, on top.
+    const column = sequence.includes(null) ? [...sequence, ...rest] : [null, ...sequence, ...rest];
+
+    const allAt = column.indexOf(null);
+    const priorityOf = new Map<number, number>();
+    column.forEach((id, index) => {
+      if (id !== null) priorityOf.set(id, index - allAt);
+    });
     await collection.mutate((categories) => {
-      for (const category of categories) category.priority = rank.get(category.id) ?? category.priority;
+      for (const category of categories) {
+        category.priority = priorityOf.get(category.id) ?? category.priority;
+      }
       return EntityChange.write(categories, undefined);
     });
   });

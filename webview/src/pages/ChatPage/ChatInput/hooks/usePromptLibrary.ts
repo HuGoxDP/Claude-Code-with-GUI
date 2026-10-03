@@ -16,7 +16,13 @@ import {
   matchesCategorySelection,
   type CategorySelection,
 } from '@/utils/promptCategories';
-import { applyCategoryOrder, arrangeByScope, orderViewOf } from '@/utils/promptOrder';
+import {
+  allRowIndex,
+  applyCategoryOrder,
+  arrangeByScope,
+  categoryOrderFromPriorities,
+  orderViewOf,
+} from '@/utils/promptOrder';
 import {
   useCategoryOrder,
   usePromptOrder,
@@ -269,7 +275,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
       .then((ack) => {
         const read = ack?.categories ?? [];
-        hydrateCategoryOrder(read.map((category) => category.id));
+        hydrateCategoryOrder(categoryOrderFromPriorities(read));
         setState(prev => ({ ...prev, categories: read }));
       })
       .catch(() => setState(prev => ({ ...prev, categories: [] })));
@@ -357,7 +363,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       })) as PromptCategoriesAck;
       if (ack?.status === 'error' || !ack?.categories) return;
       const renamed = ack.categories;
-      hydrateCategoryOrder(renamed.map(category => category.id));
+      hydrateCategoryOrder(categoryOrderFromPriorities(renamed));
       setState(prev => ({ ...prev, categories: renamed }));
     },
     [bridge, inputRef, state.categories],
@@ -445,16 +451,24 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
   // The column in the order the user dragged it into, so the arrow keys walk it
   // in the order it is drawn in. The library modal reads the same order.
   const categoryColumnOrder = useCategoryOrder();
+  const arrangedCategoryRows: PanelCategoryRow[] = applyCategoryOrder(
+    state.categories,
+    categoryColumnOrder,
+  ).map((category) => ({
+    key: category.id,
+    category,
+    count: counts.byId.get(category.id) ?? 0,
+  }));
+  // "All" is a row of the column like the categories and sits where the order
+  // left it, with categories above it and below it.
+  const allAt = allRowIndex(categoryColumnOrder, state.categories);
   const categoryRows: PanelCategoryRow[] =
     state.categories.length === 0
       ? []
       : [
+          ...arrangedCategoryRows.slice(0, allAt),
           { key: ALL_CATEGORIES, category: null, count: counts.all },
-          ...applyCategoryOrder(state.categories, categoryColumnOrder).map((category) => ({
-            key: category.id,
-            category,
-            count: counts.byId.get(category.id) ?? 0,
-          })),
+          ...arrangedCategoryRows.slice(allAt),
         ];
 
   const selectCategory = useCallback((key: CategorySelection) => {
@@ -549,9 +563,8 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         e.preventDefault();
         const delta = e.key === 'ArrowDown' ? 1 : -1;
         if (hasCategories && state.focusedPane === 'categories') {
-          // "All" carries no category and is not movable.
-          const category = categoryRows.find((row) => row.key === state.selectedCategory)?.category;
-          if (category) moveCategoryBy(state.categories, category.id, delta);
+          // "All" sorts with the categories, so it moves like one.
+          moveCategoryBy(state.categories, String(state.selectedCategory), delta);
         } else {
           const row = rows[selectedIndex];
           if (row?.kind === 'prompt') {

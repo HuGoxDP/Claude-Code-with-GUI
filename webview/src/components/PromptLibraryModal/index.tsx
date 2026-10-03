@@ -30,6 +30,7 @@ import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 import { PromptCategorySidebar, RenameRequest, buildSidebarRows } from './PromptCategorySidebar';
 import {
   ALL_CATEGORIES,
+  UNCATEGORISED,
   matchesCategorySelection,
   countByCategory,
   type CategorySelection,
@@ -187,10 +188,15 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   // The column in the order the user dragged it into, so the arrow keys and the
   // screen walk the same rows.
   const categoryReorder = useCategoryReorder(store.categories);
-  const sidebarRows = buildSidebarRows(categoryReorder.categories, counts, {
-    all: t('promptLibrary.allCategories'),
-    uncategorised: t('promptLibrary.uncategorised'),
-  });
+  const sidebarRows = buildSidebarRows(
+    categoryReorder.categories,
+    counts,
+    {
+      all: t('promptLibrary.allCategories'),
+      uncategorised: t('promptLibrary.uncategorised'),
+    },
+    categoryReorder.allIndex,
+  );
   const selectedCategoryIndex = Math.max(
     0,
     sidebarRows.findIndex((row) => row.key === selectedCategory),
@@ -372,9 +378,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
         e.preventDefault();
         const delta = e.key === 'ArrowDown' ? 1 : -1;
         if (focusedPaneRef.current === 'categories') {
-          // "All" and "uncategorised" carry no category and are not movable.
-          const category = sidebarRows[selectedCategoryIndex]?.category;
-          if (category) categoryReorder.moveBy(category.id, delta);
+          // "All" sorts with the categories; "uncategorised" is fixed at the bottom.
+          const row = sidebarRows[selectedCategoryIndex];
+          if (row && row.key !== UNCATEGORISED) categoryReorder.moveBy(String(row.key), delta);
         } else if (selectedRow && reorder.moveBy(selectedRow.scope, selectedRow.prompt.id, delta)) {
           // The highlight goes with the card it was on.
           setSelectedIndex(boundedIndex + delta);

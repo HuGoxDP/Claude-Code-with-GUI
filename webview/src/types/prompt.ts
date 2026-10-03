@@ -28,6 +28,11 @@ export interface PromptCategory {
   id: string;
   name: string;
   createdAt: number;
+  /**
+   * Place in the category column, as the backend stores it. "All" is fixed at 0,
+   * so a negative number is above it and a positive one below it.
+   */
+  priority?: number;
 }
 
 /** The reply to the four category messages: always the full list. */

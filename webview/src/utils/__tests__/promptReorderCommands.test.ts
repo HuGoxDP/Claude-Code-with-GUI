@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { ALL_CATEGORIES } from '../promptCategories';
 import {
   getCategoryOrder,
   getPromptOrder,
@@ -132,21 +133,34 @@ describe('promptReorderCommands', () => {
   describe('moveCategoryBy', () => {
     const categories = ['a', 'b', 'c'].map(category);
 
+    // "All" is a row of the column too, and starts on top of it.
     it('moves a category one step down the column', () => {
       expect(moveCategoryBy(categories, 'a', 1)).toBe(true);
 
-      expect(getCategoryOrder()).toEqual(['b', 'a', 'c']);
+      expect(getCategoryOrder()).toEqual([ALL_CATEGORIES, 'b', 'a', 'c']);
     });
 
     it('moves a category one step up the column', () => {
       expect(moveCategoryBy(categories, 'c', -1)).toBe(true);
 
-      expect(getCategoryOrder()).toEqual(['a', 'c', 'b']);
+      expect(getCategoryOrder()).toEqual([ALL_CATEGORIES, 'a', 'c', 'b']);
     });
 
-    it('does nothing at either end', () => {
-      expect(moveCategoryBy(categories, 'a', -1)).toBe(false);
+    it('lets a category move up past "All"', () => {
+      expect(moveCategoryBy(categories, 'a', -1)).toBe(true);
+
+      expect(getCategoryOrder()).toEqual(['a', ALL_CATEGORIES, 'b', 'c']);
+    });
+
+    it('moves "All" like any other row', () => {
+      expect(moveCategoryBy(categories, ALL_CATEGORIES, 1)).toBe(true);
+
+      expect(getCategoryOrder()).toEqual(['a', ALL_CATEGORIES, 'b', 'c']);
+    });
+
+    it('does nothing at the bottom, or at the top for "All"', () => {
       expect(moveCategoryBy(categories, 'c', 1)).toBe(false);
+      expect(moveCategoryBy(categories, ALL_CATEGORIES, -1)).toBe(false);
 
       expect(getCategoryOrder()).toEqual([]);
     });
@@ -160,7 +174,8 @@ describe('promptReorderCommands', () => {
 
       expect(moveCategoryBy(categories, 'c', 1)).toBe(true);
 
-      expect(getCategoryOrder()).toEqual(['a', 'c', 'b']);
+      // "All" was not named, so it was on top, and the move starts from there.
+      expect(getCategoryOrder()).toEqual([ALL_CATEGORIES, 'a', 'c', 'b']);
     });
   });
 

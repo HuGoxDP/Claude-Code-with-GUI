@@ -13,6 +13,11 @@ import type { PromptLink, SavedPrompt } from '@/types/prompt';
 const prompt = (id: string): SavedPrompt => ({ id, name: id, content: `${id} body`, createdAt: 1, updatedAt: 1 });
 
 let workingDirectory: string | null = '/work';
+const defaultCategories: Array<{ id: string; name: string; createdAt: number; priority?: number }> = [
+  { id: 'c2', name: 'docs', createdAt: 1 },
+  { id: 'c1', name: 'review', createdAt: 1 },
+];
+let categoriesAck = defaultCategories;
 const sendMock = vi.fn((type: string, payload?: Record<string, unknown>) => {
   if (type === MessageType.GET_PROMPTS) {
     return Promise.resolve(
@@ -22,12 +27,7 @@ const sendMock = vi.fn((type: string, payload?: Record<string, unknown>) => {
     );
   }
   if (type === MessageType.GET_PROMPT_CATEGORIES) {
-    return Promise.resolve({
-      categories: [
-        { id: 'c2', name: 'docs', createdAt: 1 },
-        { id: 'c1', name: 'review', createdAt: 1 },
-      ],
-    });
+    return Promise.resolve({ categories: categoriesAck });
   }
   return Promise.resolve({ status: 'ok' });
 });
@@ -49,6 +49,7 @@ describe('usePromptStore', () => {
     resetPromptOrder();
     sendMock.mockClear();
     workingDirectory = '/work';
+    categoriesAck = defaultCategories;
   });
 
   async function loaded() {
@@ -75,7 +76,18 @@ describe('usePromptStore', () => {
     it('fills the category column from the order the categories arrive in', async () => {
       await loaded();
 
-      await waitFor(() => expect(getCategoryOrder()).toEqual(['c2', 'c1']));
+      // "All" is part of the column; with no stored place it is on top.
+      await waitFor(() => expect(getCategoryOrder()).toEqual(['__all__', 'c2', 'c1']));
+    });
+
+    it('puts "All" where the saved priorities left it', async () => {
+      categoriesAck = [
+        { id: 'c1', name: 'review', createdAt: 1, priority: -1 },
+        { id: 'c2', name: 'docs', createdAt: 1, priority: 1 },
+      ];
+      await loaded();
+
+      await waitFor(() => expect(getCategoryOrder()).toEqual(['c1', '__all__', 'c2']));
     });
 
     it('replaces an order made on the screen with the saved one on reload', async () => {

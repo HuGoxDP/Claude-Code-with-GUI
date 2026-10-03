@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
+  allRowIndex,
+  categoryOrderFromPriorities,
+  columnIds,
   applyCategoryOrder,
   applyPromptOrder,
   arrangeByScope,
@@ -214,5 +217,61 @@ describe('sortable ids', () => {
 
     expect(promptIdsOfSortable('global', ids)).toEqual(['a', 'c']);
     expect(promptIdsOfSortable('project', ids)).toEqual(['b']);
+  });
+});
+
+
+describe('"All" in the category column', () => {
+  const cats = ['a', 'b', 'c'].map((id) => ({ id }));
+
+  describe('allRowIndex', () => {
+    it('is the number of categories above it', () => {
+      expect(allRowIndex(['a', 'b', ALL_CATEGORIES, 'c'], cats)).toBe(2);
+      expect(allRowIndex([ALL_CATEGORIES, 'a', 'b', 'c'], cats)).toBe(0);
+      expect(allRowIndex(['a', 'b', 'c', ALL_CATEGORIES], cats)).toBe(3);
+    });
+
+    it('leaves it on top when the order does not name it', () => {
+      expect(allRowIndex(['c', 'a'], cats)).toBe(0);
+      expect(allRowIndex([], cats)).toBe(0);
+    });
+
+    it('does not count an id with no category behind it', () => {
+      expect(allRowIndex(['gone', 'a', ALL_CATEGORIES], cats)).toBe(1);
+    });
+  });
+
+  describe('columnIds', () => {
+    it('writes the whole column with "All" at its place', () => {
+      expect(columnIds(cats, ['b', ALL_CATEGORIES, 'a', 'c'])).toEqual(['b', ALL_CATEGORIES, 'a', 'c']);
+    });
+
+    it('puts "All" on top and new categories last when nothing was arranged', () => {
+      expect(columnIds(cats, [])).toEqual([ALL_CATEGORIES, 'a', 'b', 'c']);
+    });
+
+    it('puts a category the order has never heard of below "All", even when "All" is last', () => {
+      expect(columnIds(cats, ['a', 'b', ALL_CATEGORIES])).toEqual(['a', 'b', ALL_CATEGORIES, 'c']);
+    });
+  });
+
+  describe('categoryOrderFromPriorities', () => {
+    it('puts the negative priorities above "All" and the rest below it', () => {
+      expect(
+        categoryOrderFromPriorities([
+          { id: 'a', priority: -2 },
+          { id: 'b', priority: -1 },
+          { id: 'c', priority: 1 },
+        ]),
+      ).toEqual(['a', 'b', ALL_CATEGORIES, 'c']);
+    });
+
+    it('reads a category with no priority as below "All"', () => {
+      expect(categoryOrderFromPriorities([{ id: 'a' }, { id: 'b' }])).toEqual([ALL_CATEGORIES, 'a', 'b']);
+    });
+
+    it('is just "All" for an empty column', () => {
+      expect(categoryOrderFromPriorities([])).toEqual([ALL_CATEGORIES]);
+    });
   });
 });

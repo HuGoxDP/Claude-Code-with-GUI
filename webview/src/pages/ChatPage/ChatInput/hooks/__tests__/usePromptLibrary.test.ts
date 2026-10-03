@@ -396,7 +396,10 @@ describe('reordering from the keyboard', () => {
       result.current.handleKeyDown(altKey('ArrowDown'));
     });
 
-    expect(sendMock).toHaveBeenCalledWith(MessageType.REORDER_PROMPT_CATEGORIES, { ids: ['c2', 'c1'] });
+    // "All" is part of the column, so the saved order names it too.
+    expect(sendMock).toHaveBeenCalledWith(MessageType.REORDER_PROMPT_CATEGORIES, {
+      ids: [ALL_CATEGORIES, 'c2', 'c1'],
+    });
   });
 
   it('moves the highlighted prompt up a step', async () => {
@@ -451,7 +454,7 @@ describe('reordering from the keyboard', () => {
     expect(result.current.categoryRows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c2', 'c1']);
   });
 
-  it('does not move "everything", which is not a category', async () => {
+  it('moves "everything" like any other row, since it sorts with the categories', async () => {
     const { result } = await open();
     await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
     act(() => result.current.selectCategory(ALL_CATEGORIES));
@@ -460,7 +463,18 @@ describe('reordering from the keyboard', () => {
       result.current.handleKeyDown(altKey('ArrowDown'));
     });
 
-    expect(result.current.categoryRows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1', 'c2']);
+    expect(result.current.categoryRows.map((row) => row.key)).toEqual(['c1', ALL_CATEGORIES, 'c2']);
+  });
+
+  it('draws "everything" at the place the saved column left it', async () => {
+    categories = [
+      { ...category('c1', 'review'), priority: -1 },
+      { ...category('c2', 'docs'), priority: 1 },
+    ];
+    const { result } = await open();
+    await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+
+    expect(result.current.categoryRows.map((row) => row.key)).toEqual(['c1', ALL_CATEGORIES, 'c2']);
   });
 });
 

@@ -1,6 +1,6 @@
 import { arrayMove } from '@dnd-kit/helpers';
 import {
-  applyCategoryOrder,
+  columnIds,
   emptyPromptOrder,
   layeredPromptOrder,
   mergeVisibleOrder,
@@ -114,16 +114,17 @@ export function movePromptBy<P extends SavedPrompt>(options: MovePromptOptions<P
 }
 
 /**
- * Move one category a step up or down the column. Answers whether it moved,
- * which is false at either end. "All" and "uncategorised" are not categories and
- * are never passed here.
+ * Move one row of the category column a step up or down. Answers whether it
+ * moved, which is false at either end. The row may be "All" (passed as its
+ * sentinel id), which sorts with the categories; "uncategorised" is fixed at the
+ * bottom and never passed here.
  */
 export function moveCategoryBy(
   categories: PromptCategory[],
   categoryId: string,
   delta: -1 | 1,
 ): boolean {
-  const ids = applyCategoryOrder(categories, getCategoryOrder()).map((category) => category.id);
+  const ids = columnIds(categories, getCategoryOrder());
   const from = ids.indexOf(categoryId);
   const to = from + delta;
   if (from < 0 || to < 0 || to >= ids.length) return false;

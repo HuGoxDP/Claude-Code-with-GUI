@@ -158,18 +158,20 @@ export function PromptDropdown(props: Props) {
     ...rows.filter((row) => row.kind === 'create'),
   ];
   // The category chips as drawn, for the same reason: the column is previewed
-  // sliding aside while a chip is held. "All" is not the user's to move, so it
-  // stays first and takes no part in the sorting.
+  // sliding aside while a chip is held. "All" is a chip of the column like the
+  // others and sorts with them, so it is drawn at the place the order gives it.
   const categoryReorder = useCategoryReorder(
     categoryRows.flatMap((row) => (row.category ? [row.category] : [])),
   );
   const allChip = categoryRows.find((row) => !row.category);
+  const drawnCategories = categoryReorder.categories.flatMap((category) => {
+    const row = categoryRows.find((candidate) => candidate.category?.id === category.id);
+    return row ? [row] : [];
+  });
   const drawnCategoryRows: PanelCategoryRow[] = [
+    ...drawnCategories.slice(0, categoryReorder.allIndex),
     ...(allChip ? [allChip] : []),
-    ...categoryReorder.categories.flatMap((category) => {
-      const row = categoryRows.find((candidate) => candidate.category?.id === category.id);
-      return row ? [row] : [];
-    }),
+    ...drawnCategories.slice(categoryReorder.allIndex),
   ];
   const rowsIndexOf = (drawnRow: PromptRow) =>
     rows.findIndex((row) =>
@@ -244,9 +246,7 @@ export function PromptDropdown(props: Props) {
                   <PanelCategoryChip
                     key={row.key}
                     row={row}
-                    sortIndex={drawnCategoryRows
-                      .filter((candidate) => candidate.category)
-                      .findIndex((candidate) => candidate.key === row.key)}
+                    sortIndex={drawnCategoryRows.findIndex((candidate) => candidate.key === row.key)}
                     label={row.category?.name ?? tCommon('promptLibrary.allCategories')}
                     isSelected={row.key === selectedCategory}
                     isFocusedPane={focusedPane === 'categories'}
@@ -402,16 +402,13 @@ interface PanelCategoryChipProps {
  * stay dim rather than promising a write that never happens.
  */
 function PanelCategoryChip(props: PanelCategoryChipProps) {
-  // "All" is not the user's to move, so it takes no part in the sorting at all.
-  return props.row.category ? (
-    <SortablePanelCategoryChip {...props} />
-  ) : (
-    <PanelCategoryChipFrame {...props} />
-  );
+  // Every chip sorts, "All" included: it is fixed at priority 0 and the
+  // categories sit above and below it.
+  return <SortablePanelCategoryChip {...props} />;
 }
 
 /**
- * A real category chip, which can also be dragged to a new place in the column.
+ * A chip (a category, or "All") that can also be dragged to a new place in the column.
  * The whole chip is the handle; it stays a drop target for prompts at the same
  * time, and the two are told apart by drag type.
  */
@@ -483,7 +480,7 @@ function PanelCategoryChipFrame(props: PanelCategoryChipFrameProps) {
         dragged !== null && !wouldAccept ? 'opacity-40' : ''
       } ${
         // Only a real category can be picked up, so only it shows the grab hand.
-        row.category ? 'cursor-grab active:cursor-grabbing' : ''
+        'cursor-grab active:cursor-grabbing'
       } ${
         // Lifted while held, and above the chips it passes rather than under them.
         isDragging ? 'relative z-10 bg-surface-overlay shadow-lg' : ''

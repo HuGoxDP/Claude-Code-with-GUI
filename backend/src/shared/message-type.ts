@@ -630,7 +630,7 @@ export enum MessageType {
   DELETE_PROMPT_CATEGORY = 'DELETE_PROMPT_CATEGORY',
   /** Save a new order for the prompts of one scope, as {scope, workingDir, ids, categoryId?}. `ids` are prompt uuids, top first. Without `categoryId` the order is the library's own ("All") order; with it, only that category's own order changes. Prompts the list leaves out keep their relative places below the named ones. The reply carries {scope}. inbound webview→backend */
   REORDER_PROMPTS = 'REORDER_PROMPTS',
-  /** Save a new order for the category column, as {ids}, category uuids top first. Categories the list leaves out keep their relative places below the named ones. The reply carries the full {categories} list in the new order. inbound webview→backend */
+  /** Save a new order for the category column, as {ids}, category uuids top first. The "All" row is part of the column: the string '__all__' stands for it at the place it should sit, and the categories above it are stored with negative priorities and the ones below with positive ones. Without it "All" stays on top. Categories the list leaves out keep their relative places below the named ones. The reply carries the full {categories} list in the new order. inbound webview→backend */
   REORDER_PROMPT_CATEGORIES = 'REORDER_PROMPT_CATEGORIES',
 
   // -- Attachments --

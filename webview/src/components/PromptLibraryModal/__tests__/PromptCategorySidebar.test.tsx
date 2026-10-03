@@ -30,6 +30,34 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof PromptCate
 
 const rowFor = (key: string) => document.querySelector(`[data-category-key="${key}"]`);
 
+describe('buildSidebarRows with "All" among the categories', () => {
+  const labels = { all: 'All', uncategorised: 'Uncategorised' };
+  const counts = { all: 5, uncategorised: 2, byId: new Map([['c1', 3], ['c2', 0]]) };
+  const two = [category('c1', 'a'), category('c2', 'b')];
+
+  it('puts "All" after the categories above it', () => {
+    expect(buildSidebarRows(two, counts, labels, 1).map((row) => row.key)).toEqual([
+      'c1',
+      ALL_CATEGORIES,
+      'c2',
+      UNCATEGORISED,
+    ]);
+  });
+
+  it('can put "All" below every category, and still leaves "uncategorised" last', () => {
+    expect(buildSidebarRows(two, counts, labels, 2).map((row) => row.key)).toEqual([
+      'c1',
+      'c2',
+      ALL_CATEGORIES,
+      UNCATEGORISED,
+    ]);
+  });
+
+  it('keeps "All" on top by default', () => {
+    expect(buildSidebarRows(two, counts, labels).map((row) => row.key)[0]).toBe(ALL_CATEGORIES);
+  });
+});
+
 describe('buildSidebarRows', () => {
   it('leads with "all" and trails with "uncategorised"', () => {
     expect(rows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1', 'c2', UNCATEGORISED]);
@@ -67,11 +95,11 @@ describe('a category row that can be picked up', () => {
     expect(rowFor(ALL_CATEGORIES)).not.toHaveAttribute('aria-current');
   });
 
-  it('shows the grab hand on real categories, and not on the two fixed rows', () => {
+  it('shows the grab hand on the categories and on "All", and not on the fixed last row', () => {
     renderSidebar();
 
     expect(rowFor('c1')?.className).toContain('cursor-grab');
-    expect(rowFor(ALL_CATEGORIES)?.className).not.toContain('cursor-grab');
+    expect(rowFor(ALL_CATEGORIES)?.className).toContain('cursor-grab');
     expect(rowFor(UNCATEGORISED)?.className).not.toContain('cursor-grab');
   });
 

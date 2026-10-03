@@ -3,6 +3,7 @@ import { MessageType } from '@/shared';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { useWorkingDir } from '@/contexts/WorkingDirContext';
 import { usePromptOrderSync } from '@/hooks/usePromptOrderSync';
+import { categoryOrderFromPriorities } from '@/utils/promptOrder';
 import { hydrateCategoryOrder, hydratePromptOrder } from '@/utils/promptOrderStore';
 import type {
   PromptCategory,
@@ -97,7 +98,7 @@ export function usePromptStore(): PromptStore {
     (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
       .then((ack) => {
         const read = ack?.categories ?? [];
-        hydrateCategoryOrder(read.map((category) => category.id));
+        hydrateCategoryOrder(categoryOrderFromPriorities(read));
         setCategories(read);
       })
       .catch(() => setCategories([]));
@@ -184,7 +185,7 @@ export function usePromptStore(): PromptStore {
    */
   const applyCategoryAck = useCallback((ack: PromptCategoriesAck) => {
     if (ack?.status !== 'error' && ack?.categories) {
-      hydrateCategoryOrder(ack.categories.map((category) => category.id));
+      hydrateCategoryOrder(categoryOrderFromPriorities(ack.categories));
       setCategories(ack.categories);
     }
     return ack;

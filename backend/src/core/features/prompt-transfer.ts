@@ -5,7 +5,7 @@ import {
   parseCategoryIds,
   parseCategoryRecords,
   mutatePromptStore,
-  type PromptCategory,
+  PromptCategory,
   type PromptScope,
   SavedPrompt,
 } from './prompts';
@@ -121,7 +121,10 @@ export function buildExportFile(
     now.toISOString(),
     prompts.length,
     prompts,
-    categories.filter((category) => used.has(category.id)),
+    // Without the place in this machine's column: that means nothing elsewhere.
+    categories
+      .filter((category) => used.has(category.id))
+      .map((category) => new PromptCategory(category.id, category.name, category.createdAt)),
     links.filter((link) => used.has(link.categoryId) && exported.has(link.promptId)),
   );
 }
