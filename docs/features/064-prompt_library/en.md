@@ -150,6 +150,46 @@ too, and does nothing at the very top or bottom.
 Where the IDE claims `Alt+↑↓` as one of its own shortcuts, the key may not reach
 the row. Use the mouse there.
 
+### Editing and deleting from the keyboard
+
+While a row is highlighted you can edit and delete without the mouse. It works
+the same in the library screen and in the `!!` panel.
+
+| Highlighted | Key | What happens |
+|-------------|-----|--------------|
+| A prompt | **`e`** or **`→`** | Same as pressing its pencil button: that prompt's edit screen opens |
+| A prompt | **`Backspace`** | Asks first whether to delete it. `Esc` on the question cancels |
+| A category | **`e`** or **`→`** | The category's name turns into a text field in place. `Enter` saves, `Esc` puts the old name back |
+| A category | **`Backspace`** | Asks first whether to delete it. Only the category goes; its prompts stay |
+
+- `e` is recognised by the **position of the key**, not by the letter it types.
+  The key that types `ㄷ` on a Korean keyboard works as `e` too.
+- **All** and **Uncategorised** are not categories, so they cannot be edited or
+  deleted. `→` still crosses from those two rows into the lists, as before.
+- To get from the category column back into the lists, press **`Enter`**,
+  because `→` now edits the category's name.
+- After a delete the library screen or the `!!` panel stays open, and only the
+  deleted row disappears.
+- In the library screen's search box, `e` and `Backspace` are ordinary
+  characters. Press the up or down arrow and the cursor leaves the box for the
+  list; from then on they are commands.
+- The `!!` panel shares its place with the text you were typing, so `e` and
+  `Backspace` become commands only **after you have moved a row with the up or
+  down arrow**. Type anything again and they go back to being part of the search.
+
+### `Esc` cancels only what you were doing
+
+`Esc` closes the one thing on top. If the question about deleting is open, that
+question closes; if a category name is being edited, that edit is cancelled; on
+the edit screen it goes back to the list; on the list it closes the library. The
+`!!` panel and the dialog that asks for `{{...}}` values behave the same.
+
+**That holds while Claude is answering, too.** Before, closing one of these with
+`Esc` during a response could let the same key reach the input as well, stopping
+the tools and cutting the response off. Now the `Esc` that closes a window or a
+panel ends there and does not stop the response. To stop a response, press `Esc`
+when no window or panel is open.
+
 ### Writing a prompt
 
 ![The Edit Prompt screen. A Name field reading "Reproduce a report". A Category
