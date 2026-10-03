@@ -30,7 +30,10 @@ import {
 import {
   buildExportFile,
   extractCategoryRecords,
+  extractImportLinks,
+  parseLinks,
   remapImportedCategories,
+  type PromptLink,
   exportFileName,
   parseImportFile,
   buildImportPreview,
@@ -117,6 +120,13 @@ async function getPromptsHandlerRaw(
     console.error('[node-backend]', 'Failed to read prompts:', err);
     sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
   }
+}
+
+/** The order inside each category as the rows an export file carries. */
+function linksFromOrder(orderByCategory: Record<string, string[]>): PromptLink[] {
+  return Object.entries(orderByCategory).flatMap(([categoryId, promptIds]) =>
+    promptIds.map((promptId, index) => ({ categoryId, promptId, priority: index + 1 })),
+  );
 }
 
 function readIdList(value: unknown): string[] {
@@ -233,7 +243,8 @@ async function exportPromptsHandlerRaw(
   }
 
   const now = new Date();
-  const file = buildExportFile(chosen, await listCategories(), now);
+  const links = linksFromOrder(await readPromptOrderByCategory(scope, projectPath));
+  const file = buildExportFile(chosen, await listCategories(), now, links);
   const result = await bridge.saveFile({
     suggestedName: exportFileName(now),
     contents: `${JSON.stringify(file, null, 2)}\n`,
@@ -282,10 +293,17 @@ async function previewPromptImportHandlerRaw(
 
   // The file's category ids are the exporting machine's, so they are matched by
   // name and rewritten before the preview shows what would land.
-  const remapped = await remapImportedCategories(parsed.prompts, extractCategoryRecords(JSON.parse(raw)));
+  const fileJson: unknown = JSON.parse(raw);
+  const remapped = await remapImportedCategories(
+    parsed.prompts,
+    extractCategoryRecords(fileJson),
+    extractImportLinks(fileJson),
+  );
   const existing = await readPrompts(scope, projectPath);
-  const preview = buildImportPreview(remapped, existing);
-  sendOk(connections, connectionId, message, { scope, ...preview });
+  const preview = buildImportPreview(remapped.prompts, existing);
+  // The order inside each category rides along with the preview, because the
+  // choice the user makes next comes back as a separate request.
+  sendOk(connections, connectionId, message, { scope, ...preview, links: remapped.links });
 }
 
 /** Apply a previewed import with the strategy the user chose. */
@@ -320,7 +338,13 @@ async function importPromptsHandlerRaw(
     return;
   }
 
-  const result = await importPromptsIntoStore(scope, projectPath, prompts, strategy);
+  const result = await importPromptsIntoStore(
+    scope,
+    projectPath,
+    prompts,
+    strategy,
+    parseLinks(message.payload?.links),
+  );
   if (result.status === 'error') {
     sendError(connections, connectionId, message, result.error);
     return;

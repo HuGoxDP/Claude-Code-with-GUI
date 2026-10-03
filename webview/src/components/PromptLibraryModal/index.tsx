@@ -8,7 +8,13 @@ import {
   INSERT_PROMPT_EVENT,
   type InsertPromptDetail,
 } from '@/commandPalette/sections/context/items';
-import type { ConflictStrategy, ImportItem, PromptScope, SavedPrompt } from '@/types/prompt';
+import type {
+  ConflictStrategy,
+  ImportItem,
+  PromptLink,
+  PromptScope,
+  SavedPrompt,
+} from '@/types/prompt';
 import { usePromptStore } from './usePromptStore';
 import { PromptList, buildPromptRows, matchesPromptQuery } from './PromptList';
 import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
@@ -49,6 +55,7 @@ type TransferState =
       items: ImportItem[];
       newCount: number;
       updateCount: number;
+      links: PromptLink[];
     };
 
 /**
@@ -215,6 +222,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
       items: ack.items,
       newCount: ack.newCount ?? 0,
       updateCount: ack.updateCount ?? 0,
+      links: ack.links ?? [],
     });
   };
 
@@ -247,9 +255,10 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     scope: PromptScope,
     prompts: SavedPrompt[],
     strategy: ConflictStrategy,
+    links: PromptLink[],
   ) => {
     setTransfer(null);
-    const ack = await store.importPrompts(scope, prompts, strategy);
+    const ack = await store.importPrompts(scope, prompts, strategy, links);
     if (ack?.status === 'error') {
       setTransferNote(transferError(ack.error));
       return;
@@ -642,7 +651,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
           items={transfer.items}
           newCount={transfer.newCount}
           updateCount={transfer.updateCount}
-          onConfirm={(prompts, strategy) => void confirmImport(transfer.scope, prompts, strategy)}
+          onConfirm={(prompts, strategy) =>
+            void confirmImport(transfer.scope, prompts, strategy, transfer.links)
+          }
           onCancel={() => setTransfer(null)}
         />
       )}

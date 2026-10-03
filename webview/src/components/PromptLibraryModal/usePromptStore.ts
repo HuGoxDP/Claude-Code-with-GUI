@@ -12,6 +12,7 @@ import type {
   GetPromptsAck,
   ImportPromptsAck,
   PreviewImportAck,
+  PromptLink,
   PromptScope,
   SavedPrompt,
 } from '@/types/prompt';
@@ -70,6 +71,7 @@ export interface PromptStore {
     scope: PromptScope,
     prompts: SavedPrompt[],
     strategy: ConflictStrategy,
+    links?: PromptLink[],
   ) => Promise<ImportPromptsAck>;
 }
 
@@ -228,11 +230,17 @@ export function usePromptStore(): PromptStore {
   );
 
   const importPrompts = useCallback(
-    async (scope: PromptScope, prompts: SavedPrompt[], strategy: ConflictStrategy) => {
+    async (
+      scope: PromptScope,
+      prompts: SavedPrompt[],
+      strategy: ConflictStrategy,
+      links?: PromptLink[],
+    ) => {
       const ack = (await bridge.send(MessageType.IMPORT_PROMPTS, {
         ...scopePayload(scope),
         prompts,
         strategy,
+        links,
       })) as ImportPromptsAck;
       reload();
       return ack;

@@ -60,6 +60,16 @@ export interface PromptMutationAck {
   prompt: SavedPrompt;
 }
 
+/**
+ * One prompt sitting in one category, with its place there. An export file
+ * carries them so the order inside each category survives the trip.
+ */
+export interface PromptLink {
+  categoryId: string;
+  promptId: string;
+  priority: number;
+}
+
 /** What to do with an incoming prompt whose id is already stored. */
 export type ConflictStrategy = 'skip' | 'overwrite' | 'duplicate';
 
@@ -93,6 +103,12 @@ export interface PreviewImportAck {
   items?: ImportItem[];
   newCount?: number;
   updateCount?: number;
+  /**
+   * The order inside each category, in this machine's category ids. Handed back
+   * unchanged with the import request: the choice the user makes next arrives as
+   * a separate request.
+   */
+  links?: PromptLink[];
 }
 
 /** The reply to IMPORT_PROMPTS. */

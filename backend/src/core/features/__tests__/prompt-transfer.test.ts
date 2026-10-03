@@ -8,6 +8,9 @@ import {
   parseImportFile,
   buildImportPreview,
   applyImport,
+  categoryOrderFromLinks,
+  extractImportLinks,
+  parseLinks,
 } from '../prompt-transfer';
 import type { SavedPrompt } from '../prompts';
 
@@ -204,5 +207,119 @@ describe('applyImport', () => {
     const result = applyImport([], [prompt({ id: 'p1' }), prompt({ id: 'p1' })], 'skip');
     expect(result.prompts).toHaveLength(1);
     expect(result.skipped).toBe(1);
+  });
+});
+
+describe('export format v2', () => {
+  const link = (categoryId: string, promptId: string, priority: number) => ({
+    categoryId,
+    promptId,
+    priority,
+  });
+
+  it('is marked v2 and keeps the prompts and categories keys an older reader looks for', () => {
+    const file = buildExportFile(
+      [prompt({ categories: ['c1'] })],
+      [{ id: 'c1', name: 'review', createdAt: 1 }],
+      new Date('2026-09-13T01:02:03Z'),
+      [link('c1', 'p1', 1)],
+    );
+
+    expect(file.format).toBe('claude-code-prompts-export-v2');
+    expect(Object.keys(file)).toEqual(
+      expect.arrayContaining(['prompts', 'categories', 'links', 'promptCount']),
+    );
+    expect(file.links).toEqual([link('c1', 'p1', 1)]);
+  });
+
+  it('carries only the links of the prompts and categories it exports', () => {
+    const file = buildExportFile(
+      [prompt({ id: 'p1', categories: ['c1'] })],
+      [
+        { id: 'c1', name: 'one', createdAt: 1 },
+        { id: 'c2', name: 'two', createdAt: 1 },
+      ],
+      new Date(),
+      [link('c1', 'p1', 1), link('c1', 'other', 2), link('c2', 'p1', 1)],
+    );
+
+    expect(file.links).toEqual([link('c1', 'p1', 1)]);
+  });
+
+  it('writes an empty links list when there are none', () => {
+    expect(buildExportFile([prompt()]).links).toEqual([]);
+  });
+});
+
+describe('reading links', () => {
+  it('reads the links of a v2 file', () => {
+    expect(
+      extractImportLinks({ links: [{ categoryId: 'c', promptId: 'p', priority: 2 }] }),
+    ).toEqual([{ categoryId: 'c', promptId: 'p', priority: 2 }]);
+  });
+
+  it('reads a file with no links as having none', () => {
+    expect(extractImportLinks({ prompts: [] })).toEqual([]);
+    expect(extractImportLinks([])).toEqual([]);
+    expect(extractImportLinks(null)).toEqual([]);
+  });
+
+  it('drops an entry that is not a link without losing the good ones', () => {
+    expect(
+      parseLinks([
+        { categoryId: 'c', promptId: 'p', priority: 1 },
+        { categoryId: 'c', promptId: 'p' },
+        { categoryId: 1, promptId: 'p', priority: 1 },
+        { categoryId: 'c', promptId: 'p', priority: Number.NaN },
+        'nope',
+        null,
+      ]),
+    ).toEqual([{ categoryId: 'c', promptId: 'p', priority: 1 }]);
+  });
+});
+
+describe('categoryOrderFromLinks', () => {
+  it('lists each category\'s prompts by priority, top first', () => {
+    expect(
+      categoryOrderFromLinks([
+        { categoryId: 'c', promptId: 'b', priority: 2 },
+        { categoryId: 'c', promptId: 'a', priority: 1 },
+        { categoryId: 'd', promptId: 'a', priority: 1 },
+      ]),
+    ).toEqual({ c: ['a', 'b'], d: ['a'] });
+  });
+
+  it('follows a prompt that was kept as a copy to the copy\'s id', () => {
+    expect(
+      categoryOrderFromLinks(
+        [{ categoryId: 'c', promptId: 'a', priority: 1 }],
+        new Map([['a', 'a-copy']]),
+      ),
+    ).toEqual({ c: ['a-copy'] });
+  });
+
+  it('lists a prompt once', () => {
+    expect(
+      categoryOrderFromLinks([
+        { categoryId: 'c', promptId: 'a', priority: 1 },
+        { categoryId: 'c', promptId: 'a', priority: 2 },
+      ]),
+    ).toEqual({ c: ['a'] });
+  });
+});
+
+describe('applyImport copies', () => {
+  it('says which id a conflicting prompt was kept under when both are kept', () => {
+    const result = applyImport([prompt({ id: 'p1' })], [prompt({ id: 'p1' })], 'duplicate');
+
+    const copyId = result.copyIdOf.get('p1');
+    expect(copyId).toBeDefined();
+    expect(copyId).not.toBe('p1');
+    expect(result.prompts.map((p) => p.id)).toContain(copyId);
+  });
+
+  it('has no copies for the other two choices', () => {
+    expect(applyImport([prompt({ id: 'p1' })], [prompt({ id: 'p1' })], 'skip').copyIdOf.size).toBe(0);
+    expect(applyImport([prompt({ id: 'p1' })], [prompt({ id: 'p1' })], 'overwrite').copyIdOf.size).toBe(0);
   });
 });

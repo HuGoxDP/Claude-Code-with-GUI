@@ -503,6 +503,7 @@ export async function mutatePromptStore(
   scope: PromptScope,
   projectPath: string | undefined,
   mutate: (prompts: SavedPrompt[]) => SavedPrompt[] | string,
+  categoryOrder: () => Record<string, string[]> = () => ({}),
 ): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
   const resolved = resolveScopeCwd(scope, projectPath);
   if (resolved.status === 'error') return resolved;
@@ -512,7 +513,7 @@ export async function mutatePromptStore(
     const current = snapshot.items.map((item) => toWire(item, snapshot));
     const next = mutate(current);
     if (typeof next === 'string') return { status: 'error', error: next };
-    await bringInLine(resolved.cwd, snapshot, current, next);
+    await bringInLine(resolved.cwd, snapshot, current, next, categoryOrder());
     return { status: 'ok' };
   } catch (err) {
     return failure('Failed to write prompts:', err);
@@ -522,12 +523,17 @@ export async function mutatePromptStore(
 /**
  * Make the stored scope equal [next]: delete what is gone, edit what changed,
  * and add what is new on top in the order [next] lists it.
+ *
+ * Inside a category the new prompts also go on top. They keep the order
+ * [categoryOrder] gives for that category (category id to prompt ids, top first),
+ * and any the order does not mention follow in the order [next] lists them.
  */
 async function bringInLine(
   cwd: string | null,
   snapshot: ScopeSnapshot,
   current: SavedPrompt[],
   next: SavedPrompt[],
+  categoryOrder: Record<string, string[]> = {},
 ): Promise<void> {
   const items = new PromptItemCollection();
   const itemByUuid = new Map(snapshot.items.map((item) => [item.uuid, item]));
@@ -571,7 +577,7 @@ async function bringInLine(
   // Room for all of them at once, then each takes the place its position in the
   // incoming list gives it, so the file's order survives the import.
   await makeRoomAtTop(items, cwd, added.length);
-  const links = new PromptCategoryItemLinkCollection();
+  const createdIdByUuid = new Map<string, number>();
   for (const [index, prompt] of added.entries()) {
     const item = await items.create({
       cwd,
@@ -582,9 +588,47 @@ async function bringInLine(
       createdAt: prompt.createdAt,
       updatedAt: prompt.updatedAt,
     });
-    for (const categoryId of await existingCategoryIds(prompt.categories ?? [])) {
-      await fileOnTop(links, cwd, categoryId, item.id);
+    createdIdByUuid.set(prompt.id, item.id);
+  }
+
+  // Each category the new prompts are filed under gets them all at once, on top
+  // of what it already holds, in one block.
+  const links = new PromptCategoryItemLinkCollection();
+  const members = new Map<string, string[]>();
+  for (const prompt of added) {
+    for (const categoryUuid of prompt.categories ?? []) {
+      members.set(categoryUuid, [...(members.get(categoryUuid) ?? []), prompt.id]);
     }
+  }
+  for (const [categoryUuid, promptIds] of members) {
+    const [categoryId] = await existingCategoryIds([categoryUuid]);
+    if (categoryId === undefined) continue;
+
+    const wanted = categoryOrder[categoryUuid] ?? [];
+    const rank = (id: string) => {
+      const place = wanted.indexOf(id);
+      return place === -1 ? Number.MAX_SAFE_INTEGER : place;
+    };
+    // A stable sort: those the order does not mention keep their incoming order.
+    const ordered = [...promptIds].sort((a, b) => rank(a) - rank(b));
+
+    await links.mutate((rows) => ({
+      rows: rows.map((row) =>
+        row.cwd === cwd && row.categoryId === categoryId
+          ? { ...row, priority: row.priority + ordered.length }
+          : row,
+      ),
+      result: undefined,
+    }));
+    await links.createMissing(
+      ordered.map((id, index) => ({
+        cwd,
+        categoryId,
+        itemId: createdIdByUuid.get(id) as number,
+        priority: index + 1,
+      })),
+      (stored, candidate) => stored.categoryId === candidate.categoryId && stored.itemId === candidate.itemId,
+    );
   }
 }
 
