@@ -197,9 +197,22 @@ describe('PromptLibraryModal keyboard', () => {
       expect(screen.getByDisplayValue('review')).toBeInTheDocument();
     });
 
-    it('does the same with the right arrow, and under another layout', () => {
+    it('does not edit with the right arrow: it crosses into that category\'s prompts', () => {
       intoCategories();
+
       pressKey('ArrowRight', 'ArrowRight');
+
+      expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+      // Now in the prompts, where Right edits the highlighted prompt.
+      pressKey('ArrowRight', 'ArrowRight');
+      expect(nameField()).toBeInTheDocument();
+    });
+
+    it('edits under another layout too', () => {
+      intoCategories();
+
+      pressKey('ㄷ', 'KeyE');
+
       expect(screen.getByDisplayValue('review')).toBeInTheDocument();
     });
 
@@ -250,14 +263,6 @@ describe('PromptLibraryModal keyboard', () => {
       expect(nameField()).toBeInTheDocument();
     });
 
-    it('goes back into the lists with Enter once a category is picked', () => {
-      intoCategories();
-
-      pressKey('Enter', 'Enter');
-      pressKey('e', 'KeyE');
-
-      expect(nameField()).toBeInTheDocument();
-    });
   });
 
   describe('deleting a category', () => {

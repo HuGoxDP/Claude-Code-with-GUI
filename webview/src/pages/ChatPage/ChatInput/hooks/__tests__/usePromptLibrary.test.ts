@@ -621,8 +621,7 @@ describe('the category column', () => {
     act(() => { result.current.handleKeyDown(keyEvent('ArrowDown')); });
     expect(result.current.selectedCategory).toBe('c1');
 
-    // Right is spent on editing a category, so Enter is the way back in.
-    act(() => { result.current.handleKeyDown(keyEvent('Enter')); });
+    act(() => { result.current.handleKeyDown(keyEvent('ArrowRight')); });
     act(() => { result.current.handleKeyDown(keyEvent('ArrowDown')); });
 
     expect(result.current.selectedCategory).toBe('c1');
@@ -797,13 +796,14 @@ describe('editing and deleting from the keyboard', () => {
       expect(result.current.editingCategory).toBe('c1');
     });
 
-    it('goes into edit mode with the right arrow too', async () => {
+    it('does not go into edit mode with the right arrow: it crosses into the rows', async () => {
       const { result } = await open();
       intoCategories(result);
 
       press(result, 'ArrowRight', 'ArrowRight');
 
-      expect(result.current.editingCategory).toBe('c1');
+      expect(result.current.editingCategory).toBeNull();
+      expect(result.current.focusedPane).toBe('prompts');
     });
 
     it('is deleted with Backspace, which only asks', async () => {
@@ -827,20 +827,6 @@ describe('editing and deleting from the keyboard', () => {
 
       press(result, 'ArrowRight', 'ArrowRight');
       expect(result.current.focusedPane).toBe('prompts');
-    });
-
-    it('takes Enter as the way back into the rows, and pastes nothing', async () => {
-      const params = makeParams('!!');
-      const { result } = renderLibrary(params, { onEditPrompt });
-      act(() => result.current.detectPrompt('!!', 2));
-      await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
-      intoCategories(result);
-
-      const { handled } = press(result, 'Enter', 'Enter');
-
-      expect(handled).toBe(true);
-      expect(result.current.focusedPane).toBe('prompts');
-      expect(params.onChange).not.toHaveBeenCalled();
     });
   });
 

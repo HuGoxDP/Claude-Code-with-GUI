@@ -148,6 +148,8 @@ interface UsePromptLibraryReturn {
    * panel rather than waiting for the next time it is opened.
    */
   deletePrompt: (prompt: ScopedPrompt) => Promise<void>;
+  /** Read the library again, keeping the highlight where it is. */
+  reload: () => void;
   /**
    * File a prompt under a different set of categories and re-read the list.
    *
@@ -259,7 +261,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
    * Project prompts are listed before global ones because a project-specific
    * phrase is the more specific answer when both match what the user typed.
    */
-  const load = useCallback(() => {
+  const load = useCallback((keepSelection = false) => {
     setState(prev => ({ ...prev, isLoading: true }));
 
     // Read with the prompts, because a category name is only reachable through
@@ -298,7 +300,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         setState(prev => ({
           ...prev,
           loaded: [...project, ...global],
-          selectedIndex: 0,
+          selectedIndex: keepSelection ? prev.selectedIndex : 0,
           isLoading: false,
           hasLoaded: true,
         }));
@@ -586,12 +588,14 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       // matched by its key position so it works under any layout.
       const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
       if (state.navigated && bare) {
-        const wantsEdit = e.code === 'KeyE' || e.key === 'ArrowRight';
         const wantsDelete = e.key === 'Backspace';
+        // Right edits a prompt, but never a category: in the category column it
+        // is the key that crosses into that category's prompts.
+        const wantsEdit =
+          e.code === 'KeyE' || (e.key === 'ArrowRight' && !(hasCategories && state.focusedPane === 'categories'));
         if (wantsEdit || wantsDelete) {
           if (hasCategories && state.focusedPane === 'categories') {
-            // "All" is not a category: it cannot be edited or deleted, and Right
-            // still crosses into the rows from it.
+            // "All" is not a category: it cannot be edited or deleted.
             const category = categoryRows.find(row => row.key === state.selectedCategory)?.category;
             if (category && (wantsEdit || onDeleteCategory)) {
               e.preventDefault();
@@ -622,14 +626,6 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
           navigated: true,
           focusedPane: e.key === 'ArrowLeft' ? 'categories' : 'prompts',
         }));
-        return true;
-      }
-
-      // Right is spent on editing a category, so Enter is the way from a picked
-      // category back into the rows.
-      if (hasCategories && state.focusedPane === 'categories' && e.key === 'Enter') {
-        e.preventDefault();
-        setState(prev => ({ ...prev, navigated: true, focusedPane: 'prompts' }));
         return true;
       }
 
@@ -720,6 +716,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     handleKeyDown,
     selectRow,
     deletePrompt,
+    reload: () => load(true),
     setPromptCategories,
     close,
   };

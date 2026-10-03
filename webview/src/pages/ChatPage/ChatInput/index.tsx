@@ -50,6 +50,7 @@ import { escapeMayInterrupt } from '@/utils/escapeMayInterrupt';
 import { PromptDropdown } from './PromptDropdown';
 import {
   OPEN_PROMPT_LIBRARY_EVENT,
+  PROMPT_EDIT_CLOSED_EVENT,
   INSERT_PROMPT_EVENT,
   type OpenPromptLibraryDetail,
   type InsertPromptDetail,
@@ -657,20 +658,30 @@ export function ChatInput() {
   /**
    * Open the library on this prompt's edit screen.
    *
-   * The panel closes first: the editor is a modal over the composer, and a
-   * dropdown left hanging under it would outlive the token that opened it.
+   * The panel is left open underneath: the editor is a modal over the composer,
+   * and when it closes, by saving or by cancelling, the user is back in the panel
+   * they came from rather than in an empty composer.
    */
-  const editSavedPrompt = useCallback(
-    (prompt: ScopedPrompt) => {
-      promptLibrary.close();
-      window.dispatchEvent(
-        new CustomEvent<OpenPromptLibraryDetail>(OPEN_PROMPT_LIBRARY_EVENT, {
-          detail: { view: 'list', edit: { scope: prompt.scope, prompt } },
-        }),
-      );
-    },
-    [promptLibrary],
-  );
+  const editSavedPrompt = useCallback((prompt: ScopedPrompt) => {
+    window.dispatchEvent(
+      new CustomEvent<OpenPromptLibraryDetail>(OPEN_PROMPT_LIBRARY_EVENT, {
+        detail: { view: 'list', edit: { scope: prompt.scope, prompt } },
+      }),
+    );
+  }, []);
+
+  // The editor opened from the panel went away. The prompt may have changed, so
+  // the panel re-reads the library, and the composer gets the focus back so the
+  // arrow keys are the panel's again.
+  const reloadPromptLibrary = promptLibrary.reload;
+  useEffect(() => {
+    const handler = () => {
+      reloadPromptLibrary();
+      textareaRef.current?.focus();
+    };
+    window.addEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
+    return () => window.removeEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
+  }, [reloadPromptLibrary, textareaRef]);
 
   /** Remove a prompt from the panel, after asking. Deleting cannot be undone. */
   const deleteSavedPrompt = useCallback(

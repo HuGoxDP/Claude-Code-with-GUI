@@ -6,6 +6,7 @@ import { useWorkingDir } from '@/contexts/WorkingDirContext';
 import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import {
   INSERT_PROMPT_EVENT,
+  PROMPT_EDIT_CLOSED_EVENT,
   type InsertPromptDetail,
 } from '@/commandPalette/sections/context/items';
 import type {
@@ -83,6 +84,25 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     return initialView === 'create' ? { kind: 'create', scope: 'global' } : { kind: 'list' };
   });
   const [formBusy, setFormBusy] = useState(false);
+  /**
+   * Leave the edit screen for wherever it was reached from.
+   *
+   * Opened from inside the library, it goes back to the library's list. Opened
+   * from the `!!` panel, the library was never on screen, so there is no list to
+   * go back to: the whole modal closes and the panel underneath is what is left.
+   */
+  const leaveEdit = () => {
+    if (initialEdit) onClose();
+    else setView({ kind: 'list' });
+  };
+  useEffect(() => {
+    if (!initialEdit) return;
+    return () => {
+      window.dispatchEvent(new CustomEvent(PROMPT_EDIT_CLOSED_EVENT));
+    };
+    // The origin is fixed for the life of the modal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   /**
    * The transfer screen on top of the library, or null when none is open.
    *
@@ -326,7 +346,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     // A category name being typed answers Escape itself: it cancels the edit.
     if (renamingCategory) return false;
     if (formBusy) return true; // locked while a save is in flight
-    if (view.kind !== 'list') {
+    if (view.kind === 'edit') {
+      leaveEdit();
+    } else if (view.kind !== 'list') {
       setView({ kind: 'list' });
     } else {
       onClose();
@@ -377,12 +399,15 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
       // "e" on a Latin keyboard types a different letter on a Korean one.
       const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
       if (!typing && bare) {
-        const wantsEdit = e.code === 'KeyE' || e.key === 'ArrowRight';
+        const pressedE = e.code === 'KeyE';
         const wantsDelete = e.key === 'Backspace';
+        // Right edits a prompt, but never a category: in the category column it
+        // is the key that crosses into that category's prompts.
+        const wantsEdit = pressedE || (e.key === 'ArrowRight' && focusedPaneRef.current === 'prompts');
         if (wantsEdit || wantsDelete) {
           if (focusedPaneRef.current === 'categories') {
             // "All" and "uncategorised" are not categories and cannot be edited
-            // or deleted. Right still crosses into the lists from them.
+            // or deleted.
             const category = sidebarRows[selectedCategoryIndex]?.category;
             if (category) {
               e.preventDefault();
@@ -417,13 +442,6 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
 
       if (focusedPaneRef.current === 'categories') {
         if (sidebarRows.length === 0) return;
-        // Right is spent on editing a category, so Enter is the way back into
-        // the lists once the right category is picked.
-        if (e.key === 'Enter' && !typing && !(e.target instanceof HTMLButtonElement)) {
-          e.preventDefault();
-          focusPane('prompts');
-          return;
-        }
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
           const step = e.key === 'ArrowDown' ? 1 : -1;
@@ -539,7 +557,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     categoryIds: string[],
   ) => {
     await store.update(scope, id, name, content, categoryIds);
-    setView({ kind: 'list' });
+    leaveEdit();
   };
 
   const handleDelete = async (scope: PromptScope, prompt: SavedPrompt) => {
@@ -701,7 +719,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                 onSubmit={(name, content, categoryIds) =>
                   handleUpdate(view.scope, view.prompt.id, name, content, categoryIds)
                 }
-                onCancel={() => setView({ kind: 'list' })}
+                onCancel={leaveEdit}
                 onBusyChange={setFormBusy}
               />
             )}
