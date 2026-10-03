@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from '@/i18n';
 import { fillPromptVariables } from '@/utils/promptVariables';
@@ -79,13 +80,12 @@ export function PromptVariablesModal({ content, names, onSubmit, onCancel }: Pro
     submitRef.current?.focus();
   };
 
-  const handleDialogKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      e.stopPropagation();
-      onCancel();
-    }
-  };
+  // Escape cancels the questions and nothing else, in particular not a running
+  // response behind the composer.
+  useEscapeLayer(() => {
+    onCancel();
+    return true;
+  });
 
   const handleFieldKeyDown = (e: React.KeyboardEvent, index: number) => {
     // Enter walks the fields rather than submitting, so the last thing a user
@@ -118,7 +118,6 @@ export function PromptVariablesModal({ content, names, onSubmit, onCancel }: Pro
         aria-modal="true"
         aria-label={t('promptLibrary.variables.title')}
         tabIndex={-1}
-        onKeyDown={handleDialogKeyDown}
         className="flex max-h-[80vh] w-[min(32rem,90vw)] flex-col rounded-lg border border-border-default bg-surface-raised shadow-xl focus:outline-none"
       >
         <div className="flex-shrink-0 px-4 pt-4 pb-2">

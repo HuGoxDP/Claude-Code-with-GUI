@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 import { useTranslation } from '@/i18n';
 import type { ConflictStrategy, ImportItem, SavedPrompt } from '@/types/prompt';
 
@@ -34,6 +35,12 @@ function TransferShell({
   children,
 }: ShellProps) {
   const { t } = useTranslation('common');
+  // Escape cancels this dialog and nothing else: not the library under it, and
+  // not the running response behind that.
+  useEscapeLayer(() => {
+    onCancel();
+    return true;
+  });
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -46,13 +53,6 @@ function TransferShell({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-            onCancel();
-          }
-        }}
         className="flex max-h-[80vh] w-[min(36rem,90vw)] flex-col rounded-lg border border-border-default bg-surface-raised shadow-xl focus:outline-none"
       >
         <div className="flex-shrink-0 px-4 pt-4 pb-2">

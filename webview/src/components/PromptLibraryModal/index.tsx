@@ -25,7 +25,8 @@ import { useCategoryReorder } from '@/hooks/useCategoryReorder';
 import { categoriesAfterDrop, readCategoryDrop, readPromptDrag } from '@/utils/promptDrag';
 import { orderViewOf } from '@/utils/promptOrder';
 import { PROMPT_SENSORS } from '@/utils/promptSensors';
-import { PromptCategorySidebar, buildSidebarRows } from './PromptCategorySidebar';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
+import { PromptCategorySidebar, RenameRequest, buildSidebarRows } from './PromptCategorySidebar';
 import {
   ALL_CATEGORIES,
   matchesCategorySelection,
@@ -126,6 +127,17 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   };
   /** True while a category name is being typed, so the arrows leave the caret alone. */
   const [renamingCategory, setRenamingCategory] = useState(false);
+  /** The category the keyboard asked to put into edit mode, if any. */
+  const [renameRequest, setRenameRequest] = useState<RenameRequest | null>(null);
+  /**
+   * The delete handlers, made fresh on every render further down. The key
+   * listener reads them from here so it keeps the newest ones without having to
+   * re-subscribe whenever a render makes new functions.
+   */
+  const deleteActions = useRef({
+    prompt: (_scope: PromptScope, _prompt: SavedPrompt) => {},
+    category: (_category: { id: string; name: string }) => {},
+  });
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // The cards in the order they are drawn, which is also the order the arrow
@@ -306,18 +318,24 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     };
   }, []);
 
+  // Escape belongs to whatever is on top: this modal, or the confirm dialog and
+  // the transfer dialogs above it. The layer takes the key before the composer
+  // does, so closing the library or leaving the edit screen never also stops a
+  // response that is still streaming behind it.
+  useEscapeLayer(() => {
+    // A category name being typed answers Escape itself: it cancels the edit.
+    if (renamingCategory) return false;
+    if (formBusy) return true; // locked while a save is in flight
+    if (view.kind !== 'list') {
+      setView({ kind: 'list' });
+    } else {
+      onClose();
+    }
+    return true;
+  });
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (formBusy) return; // locked while a save is in flight
-        if (view.kind !== 'list') {
-          setView({ kind: 'list' });
-        } else {
-          onClose();
-        }
-        return;
-      }
 
       // Arrow navigation belongs to the list only. While a form is open the
       // arrows move the caret inside the name and content fields, which is what
@@ -342,6 +360,48 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
         return;
       }
 
+      // A letter or a backspace typed into the search box is text, not a command.
+      const typing =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable);
+
+      // Up and down are the user leaving the search box for the list. Taking the
+      // focus out of it is what makes the next `e` an edit instead of a letter.
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && typing) {
+        dialogRef.current?.focus();
+      }
+
+      // Edit and delete act on whichever row the highlight is on. `e` is matched
+      // by its physical key, so it works under any layout: the key that types
+      // "e" on a Latin keyboard types a different letter on a Korean one.
+      const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
+      if (!typing && bare) {
+        const wantsEdit = e.code === 'KeyE' || e.key === 'ArrowRight';
+        const wantsDelete = e.key === 'Backspace';
+        if (wantsEdit || wantsDelete) {
+          if (focusedPaneRef.current === 'categories') {
+            // "All" and "uncategorised" are not categories and cannot be edited
+            // or deleted. Right still crosses into the lists from them.
+            const category = sidebarRows[selectedCategoryIndex]?.category;
+            if (category) {
+              e.preventDefault();
+              if (wantsEdit) setRenameRequest(new RenameRequest(category.id));
+              else deleteActions.current.category(category);
+              return;
+            }
+          } else if (selectedRow) {
+            e.preventDefault();
+            if (wantsEdit) {
+              setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
+            } else {
+              deleteActions.current.prompt(selectedRow.scope, selectedRow.prompt);
+            }
+            return;
+          }
+        }
+      }
+
       // Left and right cross between the two columns; up and down move within
       // whichever one they last crossed into.
       if (e.key === 'ArrowLeft') {
@@ -357,6 +417,13 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
 
       if (focusedPaneRef.current === 'categories') {
         if (sidebarRows.length === 0) return;
+        // Right is spent on editing a category, so Enter is the way back into
+        // the lists once the right category is picked.
+        if (e.key === 'Enter' && !typing && !(e.target instanceof HTMLButtonElement)) {
+          e.preventDefault();
+          focusPane('prompts');
+          return;
+        }
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
           const step = e.key === 'ArrowDown' ? 1 : -1;
@@ -485,6 +552,10 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     if (!confirmed) return;
     await store.remove(scope, prompt.id);
   };
+  deleteActions.current = {
+    prompt: (scope, prompt) => void handleDelete(scope, prompt),
+    category: (category) => void handleDeleteCategory(category),
+  };
 
   const isListView = view.kind === 'list';
 
@@ -582,6 +653,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                   onRename={(id, name) => store.renameCategory(id, name)}
                   onDelete={(category) => void handleDeleteCategory(category)}
                   onEditingChange={setRenamingCategory}
+                  renameRequest={renameRequest}
                 />
                 <PromptList
                 sortable={reorder.sortable}

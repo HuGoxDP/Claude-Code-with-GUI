@@ -70,6 +70,17 @@ interface Props {
   onDelete: (category: PromptCategory) => void;
   /** Set while a name is being typed, so the arrow keys leave the caret alone. */
   onEditingChange?: (editing: boolean) => void;
+  /**
+   * Asks for a category's name to be put into edit mode, which is what the `e`
+   * and Right keys do. A new object each time, because asking for the same row
+   * twice (edit, Escape, edit again) is two requests.
+   */
+  renameRequest?: RenameRequest | null;
+}
+
+/** A request to start editing one category's name. */
+export class RenameRequest {
+  constructor(readonly categoryId: string) {}
 }
 
 /**
@@ -88,8 +99,17 @@ interface Props {
  *   nothing left.
  */
 export function PromptCategorySidebar(props: Props) {
-  const { rows, selected, isFocusedPane, onSelect, onCreate, onRename, onDelete, onEditingChange } =
-    props;
+  const {
+    rows,
+    selected,
+    isFocusedPane,
+    onSelect,
+    onCreate,
+    onRename,
+    onDelete,
+    onEditingChange,
+    renameRequest,
+  } = props;
   const { t } = useTranslation('common');
 
   /** The category being renamed, or the sentinel while a new name is typed. */
@@ -119,6 +139,15 @@ export function PromptCategorySidebar(props: Props) {
     skipCommitRef.current = false;
     setEditingKey(category.id);
   };
+
+  // The keyboard asks for edit mode from outside, where the row's name is not known.
+  useEffect(() => {
+    if (!renameRequest) return;
+    const category = rows.find((row) => row.category?.id === renameRequest.categoryId)?.category;
+    if (category) startRename(category);
+    // Only a new request starts an edit; a re-render with the same one must not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renameRequest]);
 
   const startCreate = () => {
     setDraft('');
