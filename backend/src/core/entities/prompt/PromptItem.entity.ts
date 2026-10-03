@@ -1,21 +1,5 @@
-import { AbstractEntity, BASE_COLUMNS, type Columns, type EntityRow } from '../AbstractEntity';
-
-export interface PromptItemRow extends EntityRow {
-  /**
-   * Identity that survives leaving this machine. The numeric `id` means nothing
-   * on another computer, so exported files name a prompt by this instead. A
-   * prompt moved from the old store keeps its old id here.
-   */
-  uuid: string;
-  name: string;
-  content: string;
-  /** Place in the library's own order. Smaller is higher; 1 is the top. */
-  priority: number;
-  /** Creation time in epoch milliseconds. */
-  createdAt: number;
-  /** Last edit time in epoch milliseconds. Equals `createdAt` until the first edit. */
-  updatedAt: number;
-}
+import { AbstractEntity } from '../AbstractEntity';
+import { Column, RawRow } from '../Column';
 
 /**
  * One saved prompt (`prompt_items`).
@@ -24,35 +8,68 @@ export interface PromptItemRow extends EntityRow {
  * with none is shared by every project. Which categories it sits in, and where in
  * each, is not stored here but in the links (`prompt_category_item_links`).
  */
-export class PromptItem extends AbstractEntity<PromptItemRow> {
-  static readonly columns: Columns = {
-    ...BASE_COLUMNS,
-    uuid: 'string',
-    name: 'string',
-    content: 'string',
-    priority: 'int',
-    createdAt: 'number',
-    updatedAt: 'number',
-  };
+export class PromptItem extends AbstractEntity {
+  static readonly COLUMNS = AbstractEntity.columnsWith(
+    new Column('uuid', 'string'),
+    new Column('name', 'string'),
+    new Column('content', 'string'),
+    new Column('priority', 'int'),
+    new Column('createdAt', 'number'),
+    new Column('updatedAt', 'number'),
+  );
 
-  uuid: string;
-  name: string;
-  content: string;
-  priority: number;
-  createdAt: number;
-  updatedAt: number;
-
-  constructor(row: PromptItemRow) {
-    super(row);
-    this.uuid = row.uuid;
-    this.name = row.name;
-    this.content = row.content;
-    this.priority = row.priority;
-    this.createdAt = row.createdAt;
-    this.updatedAt = row.updatedAt;
+  constructor(
+    id: number,
+    cwd: string | null,
+    /**
+     * Identity that survives leaving this machine. The numeric `id` means nothing
+     * on another computer, so exported files name a prompt by this instead. A
+     * prompt moved from the old store keeps its old id here.
+     */
+    public uuid: string,
+    public name: string,
+    public content: string,
+    /** Place in the library's own order. Smaller is higher; 1 is the top. */
+    public priority: number,
+    /** Creation time in epoch milliseconds. */
+    public createdAt: number,
+    /** Last edit time in epoch milliseconds. Equals `createdAt` until the first edit. */
+    public updatedAt: number,
+  ) {
+    super(id, cwd);
   }
 
-  toRow(): PromptItemRow {
+  /** A prompt that has not been inserted yet, so it has no number. */
+  static draft(
+    cwd: string | null,
+    uuid: string,
+    name: string,
+    content: string,
+    priority: number,
+    createdAt: number,
+    updatedAt: number,
+  ): PromptItem {
+    return new PromptItem(0, cwd, uuid, name, content, priority, createdAt, updatedAt);
+  }
+
+  static fromRow(row: RawRow): PromptItem {
+    return new PromptItem(
+      row.int('id'),
+      row.nullableString('cwd'),
+      row.string('uuid'),
+      row.string('name'),
+      row.string('content'),
+      row.int('priority'),
+      row.number('createdAt'),
+      row.number('updatedAt'),
+    );
+  }
+
+  get columns(): readonly Column[] {
+    return PromptItem.COLUMNS;
+  }
+
+  toJSON() {
     return {
       id: this.id,
       cwd: this.cwd,

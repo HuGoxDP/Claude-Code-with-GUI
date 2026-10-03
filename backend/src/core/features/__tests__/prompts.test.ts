@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, readFileSync, mkdirSync, existsSync
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
+  SavedPrompt,
   readPrompts,
   readPromptOrderByCategory,
   createPrompt,
@@ -248,8 +249,8 @@ describe('prompt library store', () => {
       const shared = await ok('global', 'shared', [categoryId]);
       const mine = await ok('project', 'mine', [categoryId]);
 
-      expect(await readPromptOrderByCategory('global')).toEqual({ [categoryId]: [shared.id] });
-      expect(await readPromptOrderByCategory('project', projectDir)).toEqual({ [categoryId]: [mine.id] });
+      expect(Object.fromEntries(await readPromptOrderByCategory('global'))).toEqual({ [categoryId]: [shared.id] });
+      expect(Object.fromEntries(await readPromptOrderByCategory('project', projectDir))).toEqual({ [categoryId]: [mine.id] });
     });
   });
 
@@ -354,7 +355,7 @@ describe('prompt library store', () => {
       await reorderPrompts('global', undefined, [a.id, b.id], categoryId);
 
       expect(await namesOf('global')).toEqual(['b', 'a']);
-      expect((await readPromptOrderByCategory('global'))[categoryId]).toEqual([a.id, b.id]);
+      expect((await readPromptOrderByCategory('global')).get(categoryId)).toEqual([a.id, b.id]);
     });
 
     it('refuses an unknown category', async () => {
@@ -378,8 +379,8 @@ describe('prompt library store', () => {
     it('adds the new prompts on top in the order the list gives, keeping the old ones', async () => {
       await ok('global', 'old');
       const result = await mutatePromptStore('global', undefined, (prompts) => [
-        { id: 'in-1', name: 'in1', content: 'x', createdAt: 5, updatedAt: 5 },
-        { id: 'in-2', name: 'in2', content: 'y', createdAt: 6, updatedAt: 6 },
+        new SavedPrompt('in-1', 'in1', 'x', 5, 5),
+        new SavedPrompt('in-2', 'in2', 'y', 6, 6),
         ...prompts,
       ]);
       expect(result).toEqual({ status: 'ok' });
@@ -391,7 +392,9 @@ describe('prompt library store', () => {
       const a = await ok('global', 'a');
       const b = await ok('global', 'b');
       await mutatePromptStore('global', undefined, (prompts) =>
-        prompts.filter((p) => p.id !== b.id).map((p) => ({ ...p, name: 'renamed' })),
+        prompts
+          .filter((p) => p.id !== b.id)
+          .map((p) => new SavedPrompt(p.id, 'renamed', p.content, p.createdAt, p.updatedAt, p.categories)),
       );
       expect(await namesOf('global')).toEqual(['renamed']);
       expect((await readPrompts('global'))[0]?.id).toBe(a.id);

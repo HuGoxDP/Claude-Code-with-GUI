@@ -1,5 +1,6 @@
-import { AbstractEntityCollection, type SequenceSource } from '../AbstractEntityCollection';
-import { SystemSequence, type SystemSequenceRow } from './SystemSequence.entity';
+import { AbstractEntityCollection, EntityChange, SequenceSource } from '../AbstractEntityCollection';
+import { RawRow } from '../Column';
+import { SystemSequence } from './SystemSequence.entity';
 
 /**
  * Every table's counter, and the one place ids come from.
@@ -9,34 +10,32 @@ import { SystemSequence, type SystemSequenceRow } from './SystemSequence.entity'
  * never deletes a row, so its own ids are simply one more than the highest.
  */
 export class SystemSequenceCollection
-  extends AbstractEntityCollection<SystemSequence, SystemSequenceRow>
+  extends AbstractEntityCollection<SystemSequence>
   implements SequenceSource
 {
   readonly domain = 'system';
   readonly table = 'system_sequences';
-  protected readonly columns = SystemSequence.columns;
+  protected readonly columns = SystemSequence.COLUMNS;
 
   constructor() {
     super(null);
   }
 
-  protected hydrate(row: SystemSequenceRow): SystemSequence {
-    return new SystemSequence(row);
+  protected hydrate(row: RawRow): SystemSequence {
+    return SystemSequence.fromRow(row);
   }
 
   async next(table: string, floor: number, count = 1): Promise<number> {
-    return this.mutate((rows) => {
-      const existing = rows.find((row) => row.tableName === table);
+    return this.mutate((sequences) => {
+      const existing = sequences.find((sequence) => sequence.tableName === table);
       const lastId = Math.max(existing?.lastId ?? 0, floor) + count;
 
       if (existing) {
-        return {
-          rows: rows.map((row) => (row === existing ? { ...row, lastId } : row)),
-          result: lastId,
-        };
+        existing.lastId = lastId;
+        return EntityChange.write(sequences, lastId);
       }
-      const id = rows.reduce((highest, row) => Math.max(highest, row.id), 0) + 1;
-      return { rows: [...rows, { id, cwd: null, tableName: table, lastId }], result: lastId };
+      const id = sequences.reduce((highest, sequence) => Math.max(highest, sequence.id), 0) + 1;
+      return EntityChange.write([...sequences, new SystemSequence(id, null, table, lastId)], lastId);
     });
   }
 }

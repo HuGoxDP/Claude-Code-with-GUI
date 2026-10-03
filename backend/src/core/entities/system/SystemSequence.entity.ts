@@ -1,11 +1,5 @@
-import { AbstractEntity, BASE_COLUMNS, type Columns, type EntityRow } from '../AbstractEntity';
-
-export interface SystemSequenceRow extends EntityRow {
-  /** The table this counter numbers, e.g. `prompt_items`. */
-  tableName: string;
-  /** The last id handed out for that table. Never goes down. */
-  lastId: number;
-}
+import { AbstractEntity } from '../AbstractEntity';
+import { Column, RawRow } from '../Column';
 
 /**
  * The counter behind one table's ids (`system_sequences`).
@@ -15,23 +9,32 @@ export interface SystemSequenceRow extends EntityRow {
  * in another project's file, say) would then silently point at a stranger. So the
  * highest id ever handed out is kept here, apart from the rows themselves.
  */
-export class SystemSequence extends AbstractEntity<SystemSequenceRow> {
-  static readonly columns: Columns = {
-    ...BASE_COLUMNS,
-    tableName: 'string',
-    lastId: 'int',
-  };
+export class SystemSequence extends AbstractEntity {
+  static readonly COLUMNS = AbstractEntity['columnsWith'](
+    new Column('tableName', 'string'),
+    new Column('lastId', 'int'),
+  );
 
-  tableName: string;
-  lastId: number;
-
-  constructor(row: SystemSequenceRow) {
-    super(row);
-    this.tableName = row.tableName;
-    this.lastId = row.lastId;
+  constructor(
+    id: number,
+    cwd: string | null,
+    /** The table this counter numbers, e.g. `prompt_items`. */
+    public tableName: string,
+    /** The last id handed out for that table. Never goes down. */
+    public lastId: number,
+  ) {
+    super(id, cwd);
   }
 
-  toRow(): SystemSequenceRow {
+  static fromRow(row: RawRow): SystemSequence {
+    return new SystemSequence(row.int('id'), row.nullableString('cwd'), row.string('tableName'), row.int('lastId'));
+  }
+
+  get columns(): readonly Column[] {
+    return SystemSequence.COLUMNS;
+  }
+
+  toJSON() {
     return { id: this.id, cwd: this.cwd, tableName: this.tableName, lastId: this.lastId };
   }
 }

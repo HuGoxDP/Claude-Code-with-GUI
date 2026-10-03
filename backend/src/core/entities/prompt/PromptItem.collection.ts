@@ -1,19 +1,20 @@
 import { AbstractEntityCollection } from '../AbstractEntityCollection';
+import { RawRow } from '../Column';
 import { defaultSequences } from '../defaultSequences';
 import { normalizeCwd } from '../normalizeCwd';
-import { PromptItem, type PromptItemRow } from './PromptItem.entity';
+import { PromptItem } from './PromptItem.entity';
 
-export class PromptItemCollection extends AbstractEntityCollection<PromptItem, PromptItemRow> {
+export class PromptItemCollection extends AbstractEntityCollection<PromptItem> {
   readonly domain = 'prompt';
   readonly table = 'prompt_items';
-  protected readonly columns = PromptItem.columns;
+  protected readonly columns = PromptItem.COLUMNS;
 
   constructor() {
     super(defaultSequences());
   }
 
-  protected hydrate(row: PromptItemRow): PromptItem {
-    return new PromptItem(row);
+  protected hydrate(row: RawRow): PromptItem {
+    return PromptItem.fromRow(row);
   }
 
   /**

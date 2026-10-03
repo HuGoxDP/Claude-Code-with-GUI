@@ -1,18 +1,5 @@
-import { AbstractEntity, BASE_COLUMNS, type Columns, type EntityRow } from '../AbstractEntity';
-
-export interface SystemMigrationRow extends EntityRow {
-  /** What was moved, e.g. `prompts-to-entities`. */
-  name: string;
-  /** The file the rows were read from. It is left exactly as it was. */
-  sourceFile: string;
-  promptCount: number;
-  categoryCount: number;
-  linkCount: number;
-  /** Rows in the source that could not be read, or pointed at nothing. */
-  skippedCount: number;
-  /** When it finished, in epoch milliseconds. */
-  ranAt: number;
-}
+import { AbstractEntity } from '../AbstractEntity';
+import { Column, RawRow } from '../Column';
 
 /**
  * The record that a piece of old data has been moved (`system_migrations`).
@@ -21,38 +8,68 @@ export interface SystemMigrationRow extends EntityRow {
  * record and so is run again, and one that finished is never run a second time,
  * which is what stops rows the user has since deleted from coming back.
  */
-export class SystemMigration extends AbstractEntity<SystemMigrationRow> {
-  static readonly columns: Columns = {
-    ...BASE_COLUMNS,
-    name: 'string',
-    sourceFile: 'string',
-    promptCount: 'int',
-    categoryCount: 'int',
-    linkCount: 'int',
-    skippedCount: 'int',
-    ranAt: 'number',
-  };
+export class SystemMigration extends AbstractEntity {
+  static readonly COLUMNS = AbstractEntity['columnsWith'](
+    new Column('name', 'string'),
+    new Column('sourceFile', 'string'),
+    new Column('promptCount', 'int'),
+    new Column('categoryCount', 'int'),
+    new Column('linkCount', 'int'),
+    new Column('skippedCount', 'int'),
+    new Column('ranAt', 'number'),
+  );
 
-  name: string;
-  sourceFile: string;
-  promptCount: number;
-  categoryCount: number;
-  linkCount: number;
-  skippedCount: number;
-  ranAt: number;
-
-  constructor(row: SystemMigrationRow) {
-    super(row);
-    this.name = row.name;
-    this.sourceFile = row.sourceFile;
-    this.promptCount = row.promptCount;
-    this.categoryCount = row.categoryCount;
-    this.linkCount = row.linkCount;
-    this.skippedCount = row.skippedCount;
-    this.ranAt = row.ranAt;
+  constructor(
+    id: number,
+    cwd: string | null,
+    /** What was moved, e.g. `prompts-to-entities`. */
+    public name: string,
+    /** The file the rows were read from. It is left exactly as it was. */
+    public sourceFile: string,
+    public promptCount: number,
+    public categoryCount: number,
+    public linkCount: number,
+    /** Rows in the source that could not be read, or pointed at nothing. */
+    public skippedCount: number,
+    /** When it finished, in epoch milliseconds. */
+    public ranAt: number,
+  ) {
+    super(id, cwd);
   }
 
-  toRow(): SystemMigrationRow {
+  /** A record that has not been inserted yet, so it has no number. */
+  static draft(
+    cwd: string | null,
+    name: string,
+    sourceFile: string,
+    promptCount: number,
+    categoryCount: number,
+    linkCount: number,
+    skippedCount: number,
+    ranAt: number,
+  ): SystemMigration {
+    return new SystemMigration(0, cwd, name, sourceFile, promptCount, categoryCount, linkCount, skippedCount, ranAt);
+  }
+
+  static fromRow(row: RawRow): SystemMigration {
+    return new SystemMigration(
+      row.int('id'),
+      row.nullableString('cwd'),
+      row.string('name'),
+      row.string('sourceFile'),
+      row.int('promptCount'),
+      row.int('categoryCount'),
+      row.int('linkCount'),
+      row.int('skippedCount'),
+      row.number('ranAt'),
+    );
+  }
+
+  get columns(): readonly Column[] {
+    return SystemMigration.COLUMNS;
+  }
+
+  toJSON() {
     return {
       id: this.id,
       cwd: this.cwd,

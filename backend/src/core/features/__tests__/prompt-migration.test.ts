@@ -16,6 +16,7 @@ import { readPrompts, readPromptOrderByCategory, createPrompt, deletePrompt } fr
 import { listCategories } from '../prompt-category-registry';
 import { SystemMigrationCollection } from '../../entities/system/SystemMigration.collection';
 import { PromptItemCollection } from '../../entities/prompt/PromptItem.collection';
+import { PromptItem } from '../../entities/prompt/PromptItem.entity';
 
 // The old files are written the way the previous version wrote them, and the
 // move is checked against real directories: what matters is that every screen
@@ -102,7 +103,7 @@ describe('prompt migration', () => {
       expect(read.find((p) => p.id === 'new')?.categories).toEqual(['cat-a', 'cat-b']);
       expect(read.find((p) => p.id === 'mid')?.categories).toBeUndefined();
       // Inside a category: the newest first, too.
-      expect(await readPromptOrderByCategory('global')).toEqual({
+      expect(Object.fromEntries(await readPromptOrderByCategory('global'))).toEqual({
         'cat-a': ['new'],
         'cat-b': ['new', 'old'],
       });
@@ -220,15 +221,9 @@ describe('prompt migration', () => {
     it('moves only what is missing after a run that was cut off half way', async () => {
       write(globalFile(), { prompts: [prompt('a', 1), prompt('b', 2)] });
       // The first prompt had been written when the process ended.
-      await new PromptItemCollection().create({
-        cwd: null,
-        uuid: 'a',
-        name: 'name a',
-        content: 'content a',
-        priority: 2,
-        createdAt: 1,
-        updatedAt: 6,
-      });
+      await new PromptItemCollection().insert(
+        PromptItem.draft(null, 'a', 'name a', 'content a', 2, 1, 6),
+      );
 
       await ensureGlobalMigrated(options());
 
@@ -298,8 +293,8 @@ describe('prompt migration', () => {
       await ensureProjectMigrated(projectDir, options());
 
       expect((await readPrompts('project', projectDir))[0]?.categories).toEqual(['cat']);
-      expect(await readPromptOrderByCategory('project', projectDir)).toEqual({ cat: ['mine'] });
-      expect(await readPromptOrderByCategory('global')).toEqual({});
+      expect(Object.fromEntries(await readPromptOrderByCategory('project', projectDir))).toEqual({ cat: ['mine'] });
+      expect(Object.fromEntries(await readPromptOrderByCategory('global'))).toEqual({});
     });
 
     it('keeps the same prompt id in two projects apart', async () => {

@@ -148,7 +148,7 @@ describe('exporting and importing the prompt library', () => {
     return {
       list: prompts.map((p) => [p.name, p.content, (p.categories ?? []).map((id) => nameOf.get(id)).sort()]),
       insideCategory: Object.fromEntries(
-        Object.entries(order).map(([id, ids]) => [nameOf.get(id), ids.map((promptId) => byId.get(promptId))]),
+        [...order].map(([id, ids]) => [nameOf.get(id), ids.map((promptId) => byId.get(promptId))]),
       ),
       column: (await listCategories()).map((c) => c.name),
     };

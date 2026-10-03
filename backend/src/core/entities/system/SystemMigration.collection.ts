@@ -1,21 +1,19 @@
 import { AbstractEntityCollection } from '../AbstractEntityCollection';
+import { RawRow } from '../Column';
 import { defaultSequences } from '../defaultSequences';
-import { SystemMigration, type SystemMigrationRow } from './SystemMigration.entity';
+import { SystemMigration } from './SystemMigration.entity';
 
-export class SystemMigrationCollection extends AbstractEntityCollection<
-  SystemMigration,
-  SystemMigrationRow
-> {
+export class SystemMigrationCollection extends AbstractEntityCollection<SystemMigration> {
   readonly domain = 'system';
   readonly table = 'system_migrations';
-  protected readonly columns = SystemMigration.columns;
+  protected readonly columns = SystemMigration.COLUMNS;
 
   constructor() {
     super(defaultSequences());
   }
 
-  protected hydrate(row: SystemMigrationRow): SystemMigration {
-    return new SystemMigration(row);
+  protected hydrate(row: RawRow): SystemMigration {
+    return SystemMigration.fromRow(row);
   }
 
   /** Whether [name] has already been run for [cwd] (null for the shared data). */

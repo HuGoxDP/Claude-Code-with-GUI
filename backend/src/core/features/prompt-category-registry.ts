@@ -1,8 +1,9 @@
 import { randomUUID } from 'crypto';
 import { PromptCategoryCollection } from '../entities/prompt/PromptCategory.collection';
-import type { PromptCategory as PromptCategoryEntity } from '../entities/prompt/PromptCategory.entity';
+import { PromptCategory as PromptCategoryEntity } from '../entities/prompt/PromptCategory.entity';
+import { EntityChange } from '../entities/AbstractEntityCollection';
 import { PromptCategoryItemLinkCollection } from '../entities/prompt/PromptCategoryItemLink.collection';
-import { PROMPT_CATEGORY_MAX_LENGTH, type PromptCategory } from './prompts';
+import { PROMPT_CATEGORY_MAX_LENGTH, PromptCategory } from './prompts';
 
 /**
  * The category records, kept apart from the prompts that reference them.
@@ -42,7 +43,7 @@ function validateName(name: string): string | null {
 }
 
 function toWire(category: PromptCategoryEntity): PromptCategory {
-  return { id: category.uuid, name: category.name, createdAt: category.createdAt };
+  return new PromptCategory(category.uuid, category.name, category.createdAt);
 }
 
 /**
@@ -85,13 +86,9 @@ export async function createCategory(name: string): Promise<CategoryResult> {
       rejected = 'Category already exists';
       return;
     }
-    await collection.create({
-      cwd: null,
-      uuid: randomUUID(),
-      name: trimmed,
-      priority: bottomPriority(existing),
-      createdAt: Date.now(),
-    });
+    await collection.insert(
+      PromptCategoryEntity.draft(randomUUID(), trimmed, bottomPriority(existing), Date.now()),
+    );
   });
   if (written.status === 'error') return written;
   if (rejected !== null) return { status: 'error', error: rejected };
@@ -123,7 +120,8 @@ export async function renameCategory(id: string, name: string): Promise<Category
       failure = 'Category already exists';
       return;
     }
-    await collection.update(target.id, { name: trimmed });
+    target.name = trimmed;
+    await collection.save(target);
   });
   if (written.status === 'error') return written;
   if (failure !== null) return { status: 'error', error: failure };
@@ -143,10 +141,12 @@ export async function deleteCategory(id: string): Promise<CategoryResult> {
     const target = (await collection.all()).find((category) => category.uuid === id);
     if (!target) return;
     await collection.delete(target.id);
-    await new PromptCategoryItemLinkCollection().mutate((rows) => ({
-      rows: rows.filter((row) => row.categoryId !== target.id),
-      result: undefined,
-    }));
+    await new PromptCategoryItemLinkCollection().mutate((links) =>
+      EntityChange.write(
+        links.filter((link) => link.categoryId !== target.id),
+        undefined,
+      ),
+    );
   });
   if (written.status === 'error') return written;
   return { status: 'ok', categories: await listCategories() };
@@ -167,10 +167,10 @@ export async function reorderCategories(orderedIds: string[]): Promise<CategoryR
     const named = orderedIds.map((uuid) => idByUuid.get(uuid)).filter((id): id is number => id !== undefined);
     const rest = existing.map((category) => category.id).filter((id) => !named.includes(id));
     const rank = new Map([...new Set([...named, ...rest])].map((id, index) => [id, index + 1]));
-    await collection.mutate((rows) => ({
-      rows: rows.map((row) => ({ ...row, priority: rank.get(row.id) ?? row.priority })),
-      result: undefined,
-    }));
+    await collection.mutate((categories) => {
+      for (const category of categories) category.priority = rank.get(category.id) ?? category.priority;
+      return EntityChange.write(categories, undefined);
+    });
   });
   if (written.status === 'error') return written;
   return { status: 'ok', categories: await listCategories() };
@@ -198,13 +198,9 @@ export async function resolveCategoryIdsByName(names: string[]): Promise<Map<str
     for (const name of wanted) {
       if (known.some((category) => isSameCategoryName(category.name, name))) continue;
       known.push(
-        await collection.create({
-          cwd: null,
-          uuid: randomUUID(),
-          name,
-          priority: bottomPriority(known),
-          createdAt: Date.now(),
-        }),
+        await collection.insert(
+          PromptCategoryEntity.draft(randomUUID(), name, bottomPriority(known), Date.now()),
+        ),
       );
     }
   });

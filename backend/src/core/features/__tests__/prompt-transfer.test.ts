@@ -9,19 +9,23 @@ import {
   buildImportPreview,
   applyImport,
   categoryOrderFromLinks,
+  PromptLink,
   extractImportLinks,
   parseLinks,
 } from '../prompt-transfer';
-import type { SavedPrompt } from '../prompts';
+import { SavedPrompt } from '../prompts';
 
-const prompt = (over: Partial<SavedPrompt> = {}): SavedPrompt => ({
-  id: 'p1',
-  name: 'a name',
-  content: 'some content',
-  createdAt: 1000,
-  updatedAt: 1000,
-  ...over,
-});
+const prompt = (over: Record<string, unknown> = {}): SavedPrompt => {
+  const fields: Record<string, unknown> = { id: 'p1', name: 'a name', content: 'some content', createdAt: 1000, updatedAt: 1000, ...over };
+  return new SavedPrompt(
+    fields.id as string,
+    fields.name as string,
+    fields.content as string,
+    fields.createdAt as number,
+    fields.updatedAt as number,
+    (fields.categories as string[] | undefined) ?? [],
+  );
+};
 
 describe('buildExportFile', () => {
   it('stamps the format so a reader can tell where the file came from', () => {
@@ -211,11 +215,8 @@ describe('applyImport', () => {
 });
 
 describe('export format v2', () => {
-  const link = (categoryId: string, promptId: string, priority: number) => ({
-    categoryId,
-    promptId,
-    priority,
-  });
+  const link = (categoryId: string, promptId: string, priority: number) =>
+    new PromptLink(categoryId, promptId, priority);
 
   it('is marked v2 and keeps the prompts and categories keys an older reader looks for', () => {
     const file = buildExportFile(
@@ -254,8 +255,8 @@ describe('export format v2', () => {
 describe('reading links', () => {
   it('reads the links of a v2 file', () => {
     expect(
-      extractImportLinks({ links: [{ categoryId: 'c', promptId: 'p', priority: 2 }] }),
-    ).toEqual([{ categoryId: 'c', promptId: 'p', priority: 2 }]);
+      extractImportLinks({ links: [new PromptLink('c', 'p', 2)] }),
+    ).toEqual([new PromptLink('c', 'p', 2)]);
   });
 
   it('reads a file with no links as having none', () => {
@@ -267,14 +268,14 @@ describe('reading links', () => {
   it('drops an entry that is not a link without losing the good ones', () => {
     expect(
       parseLinks([
-        { categoryId: 'c', promptId: 'p', priority: 1 },
+        new PromptLink('c', 'p', 1),
         { categoryId: 'c', promptId: 'p' },
         { categoryId: 1, promptId: 'p', priority: 1 },
         { categoryId: 'c', promptId: 'p', priority: Number.NaN },
         'nope',
         null,
       ]),
-    ).toEqual([{ categoryId: 'c', promptId: 'p', priority: 1 }]);
+    ).toEqual([new PromptLink('c', 'p', 1)]);
   });
 });
 
@@ -282,29 +283,29 @@ describe('categoryOrderFromLinks', () => {
   it('lists each category\'s prompts by priority, top first', () => {
     expect(
       categoryOrderFromLinks([
-        { categoryId: 'c', promptId: 'b', priority: 2 },
-        { categoryId: 'c', promptId: 'a', priority: 1 },
-        { categoryId: 'd', promptId: 'a', priority: 1 },
+        new PromptLink('c', 'b', 2),
+        new PromptLink('c', 'a', 1),
+        new PromptLink('d', 'a', 1),
       ]),
-    ).toEqual({ c: ['a', 'b'], d: ['a'] });
+    ).toEqual(new Map([['c', ['a', 'b']], ['d', ['a']]]));
   });
 
   it('follows a prompt that was kept as a copy to the copy\'s id', () => {
     expect(
       categoryOrderFromLinks(
-        [{ categoryId: 'c', promptId: 'a', priority: 1 }],
+        [new PromptLink('c', 'a', 1)],
         new Map([['a', 'a-copy']]),
       ),
-    ).toEqual({ c: ['a-copy'] });
+    ).toEqual(new Map([['c', ['a-copy']]]));
   });
 
   it('lists a prompt once', () => {
     expect(
       categoryOrderFromLinks([
-        { categoryId: 'c', promptId: 'a', priority: 1 },
-        { categoryId: 'c', promptId: 'a', priority: 2 },
+        new PromptLink('c', 'a', 1),
+        new PromptLink('c', 'a', 2),
       ]),
-    ).toEqual({ c: ['a'] });
+    ).toEqual(new Map([['c', ['a']]]));
   });
 });
 

@@ -4,10 +4,14 @@ import { join } from 'path';
 import { entitiesRoot } from '../entities/entityPaths';
 import { normalizeCwd } from '../entities/normalizeCwd';
 import { PromptCategoryCollection } from '../entities/prompt/PromptCategory.collection';
+import { PromptCategory as PromptCategoryEntity } from '../entities/prompt/PromptCategory.entity';
+import { PromptCategoryItemLink } from '../entities/prompt/PromptCategoryItemLink.entity';
+import { PromptItem } from '../entities/prompt/PromptItem.entity';
+import { SystemMigration } from '../entities/system/SystemMigration.entity';
 import { PromptCategoryItemLinkCollection } from '../entities/prompt/PromptCategoryItemLink.collection';
 import { PromptItemCollection } from '../entities/prompt/PromptItem.collection';
 import { SystemMigrationCollection } from '../entities/system/SystemMigration.collection';
-import { parseCategoryIds, parseCategoryRecords } from './prompts';
+import { parseCategoryIds, parseCategoryRecords, type PromptCategory } from './prompts';
 
 /**
  * Moving the prompt library out of the old `prompts.json` files into the entity
@@ -33,29 +37,47 @@ import { parseCategoryIds, parseCategoryRecords } from './prompts';
 
 export const PROMPTS_TO_ENTITIES = 'prompts-to-entities';
 
-export interface MigrationOptions {
-  /** Where the old shared file lives (`<home>/.claude-code-gui/prompts.json`). Defaults to the user's home. */
-  home?: string;
+export class MigrationOptions {
+  constructor(
+    /** Where the old shared file lives (`<home>/.claude-code-gui/prompts.json`). Defaults to the user's home. */
+    readonly home?: string,
+  ) {}
 }
 
 /** What one move did. */
-export type MigrationOutcome =
-  | { status: 'already-moved' }
+export class MigrationOutcome {
+  promptCount?: number;
+  categoryCount?: number;
+  linkCount?: number;
+  skippedCount?: number;
+
+  private constructor(readonly status: 'already-moved' | 'no-source' | 'moved') {}
+
+  /** A record says the move was done before, so nothing was touched. */
+  static alreadyMoved(): MigrationOutcome {
+    return new MigrationOutcome('already-moved');
+  }
+
   /** There was no old file, so there was nothing to move and nothing is recorded. */
-  | { status: 'no-source' }
-  | {
-      status: 'moved';
-      promptCount: number;
-      categoryCount: number;
-      linkCount: number;
-      skippedCount: number;
-    };
+  static noSource(): MigrationOutcome {
+    return new MigrationOutcome('no-source');
+  }
+
+  static moved(promptCount: number, categoryCount: number, linkCount: number, skippedCount: number): MigrationOutcome {
+    const outcome = new MigrationOutcome('moved');
+    outcome.promptCount = promptCount;
+    outcome.categoryCount = categoryCount;
+    outcome.linkCount = linkCount;
+    outcome.skippedCount = skippedCount;
+    return outcome;
+  }
+}
 
 const LEGACY_DIR_NAME = '.claude-code-gui';
 const LEGACY_FILE_NAME = 'prompts.json';
 const VALID_ID_PATTERN = /^[a-zA-Z0-9-]{1,64}$/;
 
-export function legacyGlobalFile(options: MigrationOptions = {}): string {
+export function legacyGlobalFile(options: MigrationOptions = new MigrationOptions()): string {
   return join(options.home ?? homedir(), LEGACY_DIR_NAME, LEGACY_FILE_NAME);
 }
 
@@ -63,20 +85,24 @@ export function legacyProjectFile(projectPath: string): string {
   return join(projectPath, LEGACY_DIR_NAME, LEGACY_FILE_NAME);
 }
 
-interface LegacyPrompt {
-  id: string;
-  name: string;
-  content: string;
-  createdAt: number;
-  updatedAt: number;
-  categories: string[];
+class LegacyPrompt {
+  constructor(
+    readonly id: string,
+    readonly name: string,
+    readonly content: string,
+    readonly createdAt: number,
+    readonly updatedAt: number,
+    readonly categories: string[],
+  ) {}
 }
 
-interface LegacyFile {
-  prompts: LegacyPrompt[];
-  categories: ReturnType<typeof parseCategoryRecords>;
-  /** Rows that could not be read, or that repeat an id already read. */
-  skippedCount: number;
+class LegacyFile {
+  constructor(
+    readonly prompts: LegacyPrompt[],
+    readonly categories: PromptCategory[],
+    /** Rows that could not be read, or that repeat an id already read. */
+    readonly skippedCount: number,
+  ) {}
 }
 
 /**
@@ -92,7 +118,7 @@ async function readLegacyFile(filePath: string): Promise<LegacyFile | null> {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw err;
   }
-  if (raw.trim() === '') return { prompts: [], categories: [], skippedCount: 0 };
+  if (raw.trim() === '') return new LegacyFile([], [], 0);
 
   const parsed = JSON.parse(raw) as Record<string, unknown> | null;
   const rawPrompts = Array.isArray(parsed?.prompts) ? (parsed.prompts as unknown[]) : [];
@@ -120,16 +146,18 @@ async function readLegacyFile(filePath: string): Promise<LegacyFile | null> {
       continue;
     }
     seen.add(id);
-    prompts.push({
-      id,
-      name,
-      content,
-      createdAt: typeof createdAt === 'number' ? createdAt : 0,
-      updatedAt: typeof updatedAt === 'number' ? updatedAt : 0,
-      categories: parseCategoryIds(candidate.categories),
-    });
+    prompts.push(
+      new LegacyPrompt(
+        id,
+        name,
+        content,
+        typeof createdAt === 'number' ? createdAt : 0,
+        typeof updatedAt === 'number' ? updatedAt : 0,
+        parseCategoryIds(candidate.categories),
+      ),
+    );
   }
-  return { prompts, categories, skippedCount };
+  return new LegacyFile(prompts, categories, skippedCount);
 }
 
 /**
@@ -140,10 +168,10 @@ async function readLegacyFile(filePath: string): Promise<LegacyFile | null> {
  */
 async function moveLegacyFile(filePath: string, cwd: string | null): Promise<MigrationOutcome> {
   const migrations = new SystemMigrationCollection();
-  if (await migrations.hasRun(PROMPTS_TO_ENTITIES, cwd)) return { status: 'already-moved' };
+  if (await migrations.hasRun(PROMPTS_TO_ENTITIES, cwd)) return MigrationOutcome.alreadyMoved();
 
   const legacy = await readLegacyFile(filePath);
-  if (legacy === null) return { status: 'no-source' };
+  if (legacy === null) return MigrationOutcome.noSource();
 
   // The order every screen showed: newest first. A stable sort keeps the file's
   // own order for prompts made in the same millisecond.
@@ -151,30 +179,20 @@ async function moveLegacyFile(filePath: string, cwd: string | null): Promise<Mig
 
   const categories = new PromptCategoryCollection();
   if (cwd === null) {
-    await categories.createMissing(
-      legacy.categories.map((category, index) => ({
-        cwd: null,
-        uuid: category.id,
-        name: category.name,
-        priority: index + 1,
-        createdAt: category.createdAt,
-      })),
+    await categories.insertMissing(
+      legacy.categories.map((category, index) =>
+        PromptCategoryEntity.draft(category.id, category.name, index + 1, category.createdAt),
+      ),
       (stored, candidate) => stored.uuid === candidate.uuid,
     );
   }
   const categoryIdByUuid = new Map((await categories.all()).map((category) => [category.uuid, category.id]));
 
   const items = new PromptItemCollection();
-  await items.createMissing(
-    ordered.map((prompt, index) => ({
-      cwd,
-      uuid: prompt.id,
-      name: prompt.name,
-      content: prompt.content,
-      priority: index + 1,
-      createdAt: prompt.createdAt,
-      updatedAt: prompt.updatedAt,
-    })),
+  await items.insertMissing(
+    ordered.map((prompt, index) =>
+      PromptItem.draft(cwd, prompt.id, prompt.name, prompt.content, index + 1, prompt.createdAt, prompt.updatedAt),
+    ),
     (stored, candidate) => stored.uuid === candidate.uuid && stored.cwd === candidate.cwd,
   );
   const itemIdByUuid = new Map(
@@ -185,7 +203,7 @@ async function moveLegacyFile(filePath: string, cwd: string | null): Promise<Mig
   // no link, so that prompt reads as uncategorised, and is counted as skipped.
   let skippedCount = legacy.skippedCount;
   const nextPlace = new Map<number, number>();
-  const wantedLinks: Array<{ cwd: string | null; categoryId: number; itemId: number; priority: number }> = [];
+  const wantedLinks: PromptCategoryItemLink[] = [];
   for (const prompt of ordered) {
     const itemId = itemIdByUuid.get(prompt.id);
     if (itemId === undefined) throw new Error(`prompt ${prompt.id} was not written`);
@@ -197,11 +215,11 @@ async function moveLegacyFile(filePath: string, cwd: string | null): Promise<Mig
       }
       const priority = (nextPlace.get(categoryId) ?? 0) + 1;
       nextPlace.set(categoryId, priority);
-      wantedLinks.push({ cwd, categoryId, itemId, priority });
+      wantedLinks.push(PromptCategoryItemLink.draft(cwd, categoryId, itemId, priority));
     }
   }
   const links = new PromptCategoryItemLinkCollection();
-  await links.createMissing(
+  await links.insertMissing(
     wantedLinks,
     (stored, candidate) =>
       stored.categoryId === candidate.categoryId && stored.itemId === candidate.itemId,
@@ -209,23 +227,20 @@ async function moveLegacyFile(filePath: string, cwd: string | null): Promise<Mig
 
   await verifyMoved(cwd, ordered, legacy, wantedLinks.length);
 
-  await migrations.create({
-    cwd,
-    name: PROMPTS_TO_ENTITIES,
-    sourceFile: filePath,
-    promptCount: ordered.length,
-    categoryCount: cwd === null ? legacy.categories.length : 0,
-    linkCount: wantedLinks.length,
-    skippedCount,
-    ranAt: Date.now(),
-  });
-  return {
-    status: 'moved',
-    promptCount: ordered.length,
-    categoryCount: cwd === null ? legacy.categories.length : 0,
-    linkCount: wantedLinks.length,
-    skippedCount,
-  };
+  const categoryCount = cwd === null ? legacy.categories.length : 0;
+  await migrations.insert(
+    SystemMigration.draft(
+      cwd,
+      PROMPTS_TO_ENTITIES,
+      filePath,
+      ordered.length,
+      categoryCount,
+      wantedLinks.length,
+      skippedCount,
+      Date.now(),
+    ),
+  );
+  return MigrationOutcome.moved(ordered.length, categoryCount, wantedLinks.length, skippedCount);
 }
 
 /** Read the rows back and compare them with what was meant to be written. */
@@ -265,7 +280,7 @@ const inFlight = new Map<string, Promise<MigrationOutcome>>();
 const settled = new Set<string>();
 
 function runOnce(key: string, run: () => Promise<MigrationOutcome>): Promise<MigrationOutcome> {
-  if (settled.has(key)) return Promise.resolve({ status: 'already-moved' });
+  if (settled.has(key)) return Promise.resolve(MigrationOutcome.alreadyMoved());
   const running = inFlight.get(key);
   if (running) return running;
 
@@ -287,7 +302,7 @@ export function resetMigrationMemory(): void {
 }
 
 /** Move the shared file, if it has not been moved. Throws when it could not be. */
-export function ensureGlobalMigrated(options: MigrationOptions = {}): Promise<MigrationOutcome> {
+export function ensureGlobalMigrated(options: MigrationOptions = new MigrationOptions()): Promise<MigrationOutcome> {
   const filePath = legacyGlobalFile(options);
   return runOnce(`${entitiesRoot()}|global`, () => moveLegacyFile(filePath, null));
 }
@@ -298,17 +313,19 @@ export function ensureGlobalMigrated(options: MigrationOptions = {}): Promise<Mi
  */
 export async function ensureProjectMigrated(
   projectPath: string,
-  options: MigrationOptions = {},
+  options: MigrationOptions = new MigrationOptions(),
 ): Promise<MigrationOutcome> {
   await ensureGlobalMigrated(options);
   const cwd = normalizeCwd(projectPath);
   return runOnce(`${entitiesRoot()}|${cwd}`, () => moveLegacyFile(legacyProjectFile(projectPath), cwd));
 }
 
-export interface KnownProjectsSummary {
-  checked: number;
-  moved: number;
-  failed: number;
+export class KnownProjectsSummary {
+  constructor(
+    public checked = 0,
+    public moved = 0,
+    public failed = 0,
+  ) {}
 }
 
 /**
@@ -319,10 +336,10 @@ export interface KnownProjectsSummary {
  */
 export async function migrateKnownProjects(
   projectPaths: string[],
-  options: MigrationOptions = {},
+  options: MigrationOptions = new MigrationOptions(),
 ): Promise<KnownProjectsSummary> {
   await ensureGlobalMigrated(options);
-  const summary: KnownProjectsSummary = { checked: 0, moved: 0, failed: 0 };
+  const summary = new KnownProjectsSummary();
   for (const projectPath of new Set(projectPaths)) {
     summary.checked += 1;
     try {

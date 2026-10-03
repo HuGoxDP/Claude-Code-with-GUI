@@ -1,24 +1,19 @@
 import { AbstractEntityCollection } from '../AbstractEntityCollection';
+import { RawRow } from '../Column';
 import { defaultSequences } from '../defaultSequences';
-import {
-  PromptCategoryItemLink,
-  type PromptCategoryItemLinkRow,
-} from './PromptCategoryItemLink.entity';
+import { PromptCategoryItemLink } from './PromptCategoryItemLink.entity';
 
-export class PromptCategoryItemLinkCollection extends AbstractEntityCollection<
-  PromptCategoryItemLink,
-  PromptCategoryItemLinkRow
-> {
+export class PromptCategoryItemLinkCollection extends AbstractEntityCollection<PromptCategoryItemLink> {
   readonly domain = 'prompt';
   readonly table = 'prompt_category_item_links';
-  protected readonly columns = PromptCategoryItemLink.columns;
+  protected readonly columns = PromptCategoryItemLink.COLUMNS;
 
   constructor() {
     super(defaultSequences());
   }
 
-  protected hydrate(row: PromptCategoryItemLinkRow): PromptCategoryItemLink {
-    return new PromptCategoryItemLink(row);
+  protected hydrate(row: RawRow): PromptCategoryItemLink {
+    return PromptCategoryItemLink.fromRow(row);
   }
 
   /** The links into one category, in the order of that category. */

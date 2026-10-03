@@ -33,7 +33,7 @@ import {
   extractImportLinks,
   parseLinks,
   remapImportedCategories,
-  type PromptLink,
+  PromptLink,
   exportFileName,
   parseImportFile,
   buildImportPreview,
@@ -112,7 +112,8 @@ async function getPromptsHandlerRaw(
 
   try {
     const prompts = await readPrompts(scope, projectPath);
-    const orderByCategory = await readPromptOrderByCategory(scope, projectPath);
+    // The wire carries the map as a JSON object, which is built here, at the edge.
+    const orderByCategory = Object.fromEntries(await readPromptOrderByCategory(scope, projectPath));
     sendOk(connections, connectionId, message, { scope, prompts, orderByCategory });
   } catch (err) {
     // An entity file that exists but cannot be read is not an empty library: the
@@ -123,9 +124,9 @@ async function getPromptsHandlerRaw(
 }
 
 /** The order inside each category as the rows an export file carries. */
-function linksFromOrder(orderByCategory: Record<string, string[]>): PromptLink[] {
-  return Object.entries(orderByCategory).flatMap(([categoryId, promptIds]) =>
-    promptIds.map((promptId, index) => ({ categoryId, promptId, priority: index + 1 })),
+function linksFromOrder(orderByCategory: Map<string, string[]>): PromptLink[] {
+  return [...orderByCategory].flatMap(([categoryId, promptIds]) =>
+    promptIds.map((promptId, index) => new PromptLink(categoryId, promptId, index + 1)),
   );
 }
 

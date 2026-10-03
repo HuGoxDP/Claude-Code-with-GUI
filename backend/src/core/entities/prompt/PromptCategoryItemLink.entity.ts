@@ -1,14 +1,5 @@
-import { AbstractEntity, BASE_COLUMNS, type Columns, type EntityRow } from '../AbstractEntity';
-
-export interface PromptCategoryItemLinkRow extends EntityRow {
-  categoryId: number;
-  itemId: number;
-  /**
-   * Place of the item inside the category. Smaller is higher; 1 is the top. An
-   * item can sit in several categories, each with a place of its own.
-   */
-  priority: number;
-}
+import { AbstractEntity } from '../AbstractEntity';
+import { Column, RawRow } from '../Column';
 
 /**
  * One item sitting in one category (`prompt_category_item_links`).
@@ -18,26 +9,47 @@ export interface PromptCategoryItemLinkRow extends EntityRow {
  * never changed on its own, so the links of one project can be found, and
  * removed with it, without opening the items.
  */
-export class PromptCategoryItemLink extends AbstractEntity<PromptCategoryItemLinkRow> {
-  static readonly columns: Columns = {
-    ...BASE_COLUMNS,
-    categoryId: 'int',
-    itemId: 'int',
-    priority: 'int',
-  };
+export class PromptCategoryItemLink extends AbstractEntity {
+  static readonly COLUMNS = AbstractEntity['columnsWith'](
+    new Column('categoryId', 'int'),
+    new Column('itemId', 'int'),
+    new Column('priority', 'int'),
+  );
 
-  categoryId: number;
-  itemId: number;
-  priority: number;
-
-  constructor(row: PromptCategoryItemLinkRow) {
-    super(row);
-    this.categoryId = row.categoryId;
-    this.itemId = row.itemId;
-    this.priority = row.priority;
+  constructor(
+    id: number,
+    cwd: string | null,
+    public categoryId: number,
+    public itemId: number,
+    /**
+     * Place of the item inside the category. Smaller is higher; 1 is the top. An
+     * item can sit in several categories, each with a place of its own.
+     */
+    public priority: number,
+  ) {
+    super(id, cwd);
   }
 
-  toRow(): PromptCategoryItemLinkRow {
+  /** A link that has not been inserted yet, so it has no number. */
+  static draft(cwd: string | null, categoryId: number, itemId: number, priority: number): PromptCategoryItemLink {
+    return new PromptCategoryItemLink(0, cwd, categoryId, itemId, priority);
+  }
+
+  static fromRow(row: RawRow): PromptCategoryItemLink {
+    return new PromptCategoryItemLink(
+      row.int('id'),
+      row.nullableString('cwd'),
+      row.int('categoryId'),
+      row.int('itemId'),
+      row.int('priority'),
+    );
+  }
+
+  get columns(): readonly Column[] {
+    return PromptCategoryItemLink.COLUMNS;
+  }
+
+  toJSON() {
     return {
       id: this.id,
       cwd: this.cwd,

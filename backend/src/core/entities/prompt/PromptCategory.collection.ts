@@ -1,21 +1,19 @@
 import { AbstractEntityCollection } from '../AbstractEntityCollection';
+import { RawRow } from '../Column';
 import { defaultSequences } from '../defaultSequences';
-import { PromptCategory, type PromptCategoryRow } from './PromptCategory.entity';
+import { PromptCategory } from './PromptCategory.entity';
 
-export class PromptCategoryCollection extends AbstractEntityCollection<
-  PromptCategory,
-  PromptCategoryRow
-> {
+export class PromptCategoryCollection extends AbstractEntityCollection<PromptCategory> {
   readonly domain = 'prompt';
   readonly table = 'prompt_categories';
-  protected readonly columns = PromptCategory.columns;
+  protected readonly columns = PromptCategory.COLUMNS;
 
   constructor() {
     super(defaultSequences());
   }
 
-  protected hydrate(row: PromptCategoryRow): PromptCategory {
-    return new PromptCategory(row);
+  protected hydrate(row: RawRow): PromptCategory {
+    return PromptCategory.fromRow(row);
   }
 
   /** Every category in the order of the category column. */

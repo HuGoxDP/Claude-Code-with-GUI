@@ -2,12 +2,13 @@ import { readdir, realpath, stat } from 'fs/promises';
 import { homedir } from 'os';
 import { join } from 'path';
 import { SystemMigrationCollection } from '../entities/system/SystemMigration.collection';
+import { SystemMigration } from '../entities/system/SystemMigration.entity';
 import {
   ensureGlobalMigrated,
   ensureProjectMigrated,
   legacyProjectFile,
   migrateKnownProjects,
-  type MigrationOptions,
+  MigrationOptions,
 } from './prompt-migration';
 
 /**
@@ -72,24 +73,49 @@ const MACOS_PROTECTED = new Set(['Desktop', 'Documents', 'Downloads']);
 /** Deeper than any real project tree, so a pathological layout cannot run for long. */
 const MAX_DEPTH = 12;
 
-export interface SweepOptions extends MigrationOptions {
-  /** Which platform's rules apply. Defaults to this machine's. */
-  platform?: NodeJS.Platform;
-  /** Checked between folders; the pass stops, unrecorded, once it answers true. */
-  shouldStop?: () => boolean;
+export class SweepOptions extends MigrationOptions {
+  constructor(
+    home?: string,
+    /** Which platform's rules apply. Defaults to this machine's. */
+    readonly platform?: NodeJS.Platform,
+    /** Checked between folders; the pass stops, unrecorded, once it answers true. */
+    readonly shouldStop?: () => boolean,
+  ) {
+    super(home);
+  }
+
+  /** The same options with another way to ask for a stop. */
+  withStop(shouldStop: () => boolean): SweepOptions {
+    return new SweepOptions(this.home, this.platform, shouldStop);
+  }
 }
 
-export interface SweepSummary {
-  /** Folders looked into. */
-  visited: number;
-  /** Project prompt files found. */
-  found: number;
-  /** Project prompt files moved by this pass. */
-  moved: number;
-  /** Project prompt files that could not be moved this time. */
-  failed: number;
-  /** False when the pass was stopped before it covered the home folder. */
-  completed: boolean;
+export class SweepSummary {
+  constructor(
+    /** Folders looked into. */
+    public visited: number,
+    /** Project prompt files found. */
+    public found: number,
+    /** Project prompt files moved by this pass. */
+    public moved: number,
+    /** Project prompt files that could not be moved this time. */
+    public failed: number,
+    /** False when the pass was stopped before it covered the home folder. */
+    public completed: boolean,
+  ) {}
+
+  /** The same counts with another verdict on whether the pass finished. */
+  withCompleted(completed: boolean): SweepSummary {
+    return new SweepSummary(this.visited, this.found, this.moved, this.failed, completed);
+  }
+}
+
+/** What a walk over the home folder found. */
+export class FoundProjects {
+  constructor(
+    readonly projects: string[],
+    readonly completed: boolean,
+  ) {}
 }
 
 const yieldToEventLoop = () => new Promise<void>((resolve) => setImmediate(resolve));
@@ -103,9 +129,9 @@ const yieldToEventLoop = () => new Promise<void>((resolve) => setImmediate(resol
  */
 export async function findProjectsWithPromptFiles(
   home: string,
-  options: SweepOptions = {},
+  options: SweepOptions = new SweepOptions(),
   onVisit: () => void = () => {},
-): Promise<{ projects: string[]; completed: boolean }> {
+): Promise<FoundProjects> {
   const platform = options.platform ?? process.platform;
   const shouldStop = options.shouldStop ?? (() => false);
   const rootReal = await realpath(home).catch(() => home);
@@ -116,7 +142,7 @@ export async function findProjectsWithPromptFiles(
   const queue: Array<{ dir: string; depth: number }> = [{ dir: rootReal, depth: 0 }];
 
   while (queue.length > 0) {
-    if (shouldStop()) return { projects: [...projects], completed: false };
+    if (shouldStop()) return new FoundProjects([...projects], false);
     const { dir, depth } = queue.shift() as { dir: string; depth: number };
     onVisit();
     await yieldToEventLoop();
@@ -153,7 +179,7 @@ export async function findProjectsWithPromptFiles(
       if (depth + 1 < MAX_DEPTH) queue.push({ dir: real, depth: depth + 1 });
     }
   }
-  return { projects: [...projects], completed: true };
+  return new FoundProjects([...projects], true);
 }
 
 async function hasPromptFile(projectDir: string): Promise<boolean> {
@@ -170,13 +196,15 @@ async function hasPromptFile(projectDir: string): Promise<boolean> {
  * The shared data is moved first. Answers without doing anything when a finished
  * pass is already recorded.
  */
-export async function sweepHomeForPromptFiles(options: SweepOptions = {}): Promise<SweepSummary> {
+export async function sweepHomeForPromptFiles(
+  options: SweepOptions = new SweepOptions(),
+): Promise<SweepSummary> {
   const home = options.home ?? homedir();
   await ensureGlobalMigrated(options);
 
   const migrations = new SystemMigrationCollection();
   if (await migrations.hasRun(PROMPTS_HOME_SWEEP, null)) {
-    return { visited: 0, found: 0, moved: 0, failed: 0, completed: true };
+    return new SweepSummary(0, 0, 0, 0, true);
   }
 
   let visited = 0;
@@ -184,19 +212,19 @@ export async function sweepHomeForPromptFiles(options: SweepOptions = {}): Promi
     visited += 1;
   });
 
-  const summary: SweepSummary = { visited, found: projects.length, moved: 0, failed: 0, completed };
+  const summary = new SweepSummary(visited, projects.length, 0, 0, completed);
   let promptCount = 0;
   let linkCount = 0;
   let skippedCount = 0;
   for (const project of projects) {
-    if (options.shouldStop?.()) return { ...summary, completed: false };
+    if (options.shouldStop?.()) return summary.withCompleted(false);
     try {
       const outcome = await ensureProjectMigrated(project, options);
       if (outcome.status === 'moved') {
         summary.moved += 1;
-        promptCount += outcome.promptCount;
-        linkCount += outcome.linkCount;
-        skippedCount += outcome.skippedCount;
+        promptCount += outcome.promptCount ?? 0;
+        linkCount += outcome.linkCount ?? 0;
+        skippedCount += outcome.skippedCount ?? 0;
       }
     } catch (err) {
       summary.failed += 1;
@@ -207,18 +235,11 @@ export async function sweepHomeForPromptFiles(options: SweepOptions = {}): Promi
   // Recorded only when the walk covered everything and nothing was left behind,
   // so a project that failed is found again by the next pass.
   if (completed && summary.failed === 0) {
-    await migrations.create({
-      cwd: null,
-      name: PROMPTS_HOME_SWEEP,
-      sourceFile: home,
-      promptCount,
-      categoryCount: 0,
-      linkCount,
-      skippedCount,
-      ranAt: Date.now(),
-    });
+    await migrations.insert(
+      SystemMigration.draft(null, PROMPTS_HOME_SWEEP, home, promptCount, 0, linkCount, skippedCount, Date.now()),
+    );
   }
-  return { ...summary, completed: completed && summary.failed === 0 };
+  return summary.withCompleted(completed && summary.failed === 0);
 }
 
 let started = false;
@@ -246,7 +267,7 @@ export function stopBackgroundMigration(): void {
  */
 export function startBackgroundMigration(
   listProjectPaths: () => Promise<string[]>,
-  options: SweepOptions = {},
+  options: SweepOptions = new SweepOptions(),
 ): void {
   if (started) return;
   started = true;
@@ -258,10 +279,9 @@ export function startBackgroundMigration(
         '[node-backend]',
         `Checked ${known.checked} known projects for old prompt files: ${known.moved} moved, ${known.failed} failed`,
       );
-      const swept = await sweepHomeForPromptFiles({
-        ...options,
-        shouldStop: () => stopRequested || (options.shouldStop?.() ?? false),
-      });
+      const swept = await sweepHomeForPromptFiles(
+        options.withStop(() => stopRequested || (options.shouldStop?.() ?? false)),
+      );
       console.log(
         '[node-backend]',
         `Looked through ${swept.visited} folders for old prompt files: ${swept.found} found, ${swept.moved} moved, ${swept.failed} failed${swept.completed ? '' : ' (not finished)'}`,

@@ -4,6 +4,7 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import {
   PROMPTS_HOME_SWEEP,
+  SweepOptions,
   findProjectsWithPromptFiles,
   resetBackgroundMigration,
   startBackgroundMigration,
@@ -54,7 +55,7 @@ describe('prompt migration sweep', () => {
     return project;
   };
   const found = async (platform: NodeJS.Platform = 'linux') =>
-    (await findProjectsWithPromptFiles(home, { platform })).projects.sort();
+    (await findProjectsWithPromptFiles(home, new SweepOptions(undefined, platform))).projects.sort();
 
   describe('finding project files', () => {
     it('finds a project at any depth', async () => {
@@ -118,7 +119,7 @@ describe('prompt migration sweep', () => {
     // folders were looked into: a second way into a folder must not cost a second look.
     const visits = async () => {
       let count = 0;
-      await findProjectsWithPromptFiles(home, { platform: 'linux' }, () => {
+      await findProjectsWithPromptFiles(home, new SweepOptions(undefined, 'linux'), () => {
         count += 1;
       });
       return count;
@@ -169,10 +170,7 @@ describe('prompt migration sweep', () => {
       plant('a/proj');
       let polls = 0;
 
-      const result = await findProjectsWithPromptFiles(home, {
-        platform: 'linux',
-        shouldStop: () => ++polls > 1,
-      });
+      const result = await findProjectsWithPromptFiles(home, new SweepOptions(undefined, 'linux', () => ++polls > 1));
 
       expect(result.completed).toBe(false);
     });
@@ -183,7 +181,7 @@ describe('prompt migration sweep', () => {
       plant('one', 'p1');
       plant('two/three', 'p2');
 
-      const summary = await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      const summary = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
 
       expect(summary).toMatchObject({ found: 2, moved: 2, failed: 0, completed: true });
       const [record] = (await new SystemMigrationCollection().all()).filter(
@@ -211,17 +209,17 @@ describe('prompt migration sweep', () => {
         'utf-8',
       );
 
-      await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
 
       expect((await readPrompts('project', project))[0]?.categories).toEqual(['cat']);
     });
 
     it('does nothing the second time, because a finished pass is on record', async () => {
       plant('one');
-      await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
       resetMigrationMemory();
 
-      const again = await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      const again = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
 
       expect(again).toEqual({ visited: 0, found: 0, moved: 0, failed: 0, completed: true });
     });
@@ -229,7 +227,7 @@ describe('prompt migration sweep', () => {
     it('leaves no record when it was stopped, so the next pass starts over', async () => {
       plant('one');
 
-      const summary = await sweepHomeForPromptFiles({ home, platform: 'linux', shouldStop: () => true });
+      const summary = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux', () => true));
 
       expect(summary.completed).toBe(false);
       const sweeps = (await new SystemMigrationCollection().all()).filter(
@@ -237,7 +235,7 @@ describe('prompt migration sweep', () => {
       );
       expect(sweeps).toEqual([]);
 
-      const next = await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      const next = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
       expect(next).toMatchObject({ moved: 1, completed: true });
     });
 
@@ -247,7 +245,7 @@ describe('prompt migration sweep', () => {
       mkdirSync(join(broken, '.claude-code-gui'), { recursive: true });
       writeFileSync(join(broken, '.claude-code-gui', 'prompts.json'), '{"prompts": [', 'utf-8');
 
-      const summary = await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      const summary = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
 
       expect(summary).toMatchObject({ found: 2, moved: 1, failed: 1, completed: false });
       expect(
@@ -262,7 +260,7 @@ describe('prompt migration sweep', () => {
       await ensureProjectMigrated(project, { home });
       resetMigrationMemory();
 
-      const summary = await sweepHomeForPromptFiles({ home, platform: 'linux' });
+      const summary = await sweepHomeForPromptFiles(new SweepOptions(home, 'linux'));
 
       expect(summary).toMatchObject({ found: 1, moved: 0, failed: 0, completed: true });
       expect((await readPrompts('project', project)).map((p) => p.id)).toEqual(['p1']);
@@ -284,7 +282,7 @@ describe('prompt migration sweep', () => {
       const known = plant('known', 'k');
       plant('unknown', 'u');
 
-      startBackgroundMigration(async () => [known], { home, platform: 'linux' });
+      startBackgroundMigration(async () => [known], new SweepOptions(home, 'linux'));
       await settle();
 
       expect((await readPrompts('project', known)).map((p) => p.id)).toEqual(['k']);
@@ -298,8 +296,8 @@ describe('prompt migration sweep', () => {
         return [];
       };
 
-      startBackgroundMigration(list, { home, platform: 'linux' });
-      startBackgroundMigration(list, { home, platform: 'linux' });
+      startBackgroundMigration(list, new SweepOptions(home, 'linux'));
+      startBackgroundMigration(list, new SweepOptions(home, 'linux'));
       await settle();
 
       expect(asked).toBe(1);
@@ -309,7 +307,7 @@ describe('prompt migration sweep', () => {
       plant('a/b/c/proj');
       stopBackgroundMigration();
 
-      startBackgroundMigration(async () => [], { home, platform: 'linux' });
+      startBackgroundMigration(async () => [], new SweepOptions(home, 'linux'));
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(
@@ -322,7 +320,7 @@ describe('prompt migration sweep', () => {
         async () => {
           throw new Error('no projects directory');
         },
-        { home, platform: 'linux' },
+        new SweepOptions(home, 'linux'),
       );
       await new Promise((resolve) => setTimeout(resolve, 50));
 

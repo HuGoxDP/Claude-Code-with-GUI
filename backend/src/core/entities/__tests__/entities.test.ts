@@ -3,7 +3,9 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, realpathSy
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { EntityFileUnreadableError } from '../AbstractEntityCollection';
-import { PromptItem, type PromptItemRow } from '../prompt/PromptItem.entity';
+import { PromptItem } from '../prompt/PromptItem.entity';
+import { PromptCategory } from '../prompt/PromptCategory.entity';
+import { SystemMigration } from '../system/SystemMigration.entity';
 import { PromptItemCollection } from '../prompt/PromptItem.collection';
 import { PromptCategoryCollection } from '../prompt/PromptCategory.collection';
 import { PromptCategoryItemLinkCollection } from '../prompt/PromptCategoryItemLink.collection';
@@ -12,9 +14,8 @@ import { SystemMigrationCollection } from '../system/SystemMigration.collection'
 
 const NOW = 1_700_000_000_000;
 
-const itemAttributes = (
-  overrides: Partial<Omit<PromptItemRow, 'id'>> = {},
-): Omit<PromptItemRow, 'id'> => ({
+/** What a row of `prompt_items` looks like in its file. A fixture for planting files by hand. */
+const itemAttributes = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
   cwd: null,
   uuid: 'uuid-1',
   name: 'review',
@@ -24,6 +25,20 @@ const itemAttributes = (
   updatedAt: NOW,
   ...overrides,
 });
+
+/** A prompt that has not been inserted yet. */
+const draftItem = (overrides: Record<string, unknown> = {}): PromptItem => {
+  const a = itemAttributes(overrides);
+  return PromptItem.draft(
+    a.cwd as string | null,
+    a.uuid as string,
+    a.name as string,
+    a.content as string,
+    a.priority as number,
+    a.createdAt as number,
+    a.updatedAt as number,
+  );
+};
 
 describe('entities', () => {
   let home: string;
@@ -79,8 +94,8 @@ describe('entities', () => {
     it('numbers rows from 1 and writes a JSON array', async () => {
       const items = new PromptItemCollection();
 
-      const first = await items.create(itemAttributes({ uuid: 'a', name: 'one' }));
-      const second = await items.create(itemAttributes({ uuid: 'b', name: 'two' }));
+      const first = await items.insert(draftItem({ uuid: 'a', name: 'one' }));
+      const second = await items.insert(draftItem({ uuid: 'b', name: 'two' }));
 
       expect([first.id, second.id]).toEqual([1, 2]);
       const rows = readRows('prompt', 'prompt_items');
@@ -92,11 +107,11 @@ describe('entities', () => {
     // whatever still pointed at the deleted one would point at a stranger.
     it('never gives out an id again after the row was deleted', async () => {
       const items = new PromptItemCollection();
-      await items.create(itemAttributes({ uuid: 'a' }));
-      const second = await items.create(itemAttributes({ uuid: 'b' }));
+      await items.insert(draftItem({ uuid: 'a' }));
+      const second = await items.insert(draftItem({ uuid: 'b' }));
 
       await items.delete(second.id);
-      const third = await items.create(itemAttributes({ uuid: 'c' }));
+      const third = await items.insert(draftItem({ uuid: 'c' }));
 
       expect(third.id).toBe(3);
     });
@@ -104,24 +119,18 @@ describe('entities', () => {
     it('numbers each table on its own', async () => {
       const items = new PromptItemCollection();
       const categories = new PromptCategoryCollection();
-      await items.create(itemAttributes());
-      await items.create(itemAttributes({ uuid: 'b' }));
+      await items.insert(draftItem());
+      await items.insert(draftItem({ uuid: 'b' }));
 
-      const category = await categories.create({
-        cwd: null,
-        uuid: 'c1',
-        name: 'Review',
-        priority: 1,
-        createdAt: NOW,
-      });
+      const category = await categories.insert(PromptCategory.draft('c1', 'Review', 1, NOW));
 
       expect(category.id).toBe(1);
     });
 
     it('records the last id of each table in the sequence file', async () => {
       const items = new PromptItemCollection();
-      await items.create(itemAttributes());
-      await items.create(itemAttributes({ uuid: 'b' }));
+      await items.insert(draftItem());
+      await items.insert(draftItem({ uuid: 'b' }));
 
       const sequences = readRows('system', 'system_sequences');
       expect(sequences).toHaveLength(1);
@@ -136,7 +145,7 @@ describe('entities', () => {
         JSON.stringify([{ ...itemAttributes({ uuid: 'old' }), id: 7 }]),
       );
 
-      const created = await new PromptItemCollection().create(itemAttributes({ uuid: 'new' }));
+      const created = await new PromptItemCollection().insert(draftItem({ uuid: 'new' }));
 
       expect(created.id).toBe(8);
     });
@@ -145,8 +154,8 @@ describe('entities', () => {
       const project = join(home, 'project');
       mkdirSync(project);
 
-      const created = await new PromptItemCollection().create(
-        itemAttributes({ cwd: `${project}/` }),
+      const created = await new PromptItemCollection().insert(
+        draftItem({ cwd: `${project}/` }),
       );
 
       expect(created.cwd).toBe(project);
@@ -157,7 +166,7 @@ describe('entities', () => {
       const items = new PromptItemCollection();
 
       const created = await Promise.all(
-        Array.from({ length: 10 }, (_, i) => items.create(itemAttributes({ uuid: `u${i}` }))),
+        Array.from({ length: 10 }, (_, i) => items.insert(draftItem({ uuid: `u${i}` }))),
       );
 
       expect(new Set(created.map((item) => item.id)).size).toBe(10);
@@ -166,13 +175,13 @@ describe('entities', () => {
   });
 
   describe('creating several rows at once', () => {
-    const sameUuid = (stored: PromptItemRow, candidate: Omit<PromptItemRow, 'id'>) =>
+    const sameUuid = (stored: PromptItem, candidate: PromptItem) =>
       stored.uuid === candidate.uuid;
 
     it('numbers a block of rows in one run, lowest first', async () => {
       const items = new PromptItemCollection();
-      const added = await items.createMissing(
-        [itemAttributes({ uuid: 'a' }), itemAttributes({ uuid: 'b' }), itemAttributes({ uuid: 'c' })],
+      const added = await items.insertMissing(
+        [draftItem({ uuid: 'a' }), draftItem({ uuid: 'b' }), draftItem({ uuid: 'c' })],
         sameUuid,
       );
 
@@ -186,10 +195,10 @@ describe('entities', () => {
 
     it('adds only the candidates no stored row stands for', async () => {
       const items = new PromptItemCollection();
-      await items.create(itemAttributes({ uuid: 'a' }));
+      await items.insert(draftItem({ uuid: 'a' }));
 
-      const added = await items.createMissing(
-        [itemAttributes({ uuid: 'a' }), itemAttributes({ uuid: 'b' })],
+      const added = await items.insertMissing(
+        [draftItem({ uuid: 'a' }), draftItem({ uuid: 'b' })],
         sameUuid,
       );
 
@@ -199,24 +208,24 @@ describe('entities', () => {
 
     it('never gives a number out twice, even for rows it did not add', async () => {
       const items = new PromptItemCollection();
-      await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid);
-      await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid); // costs number 2
-      const [third] = await items.createMissing([itemAttributes({ uuid: 'c' })], sameUuid);
+      await items.insertMissing([draftItem({ uuid: 'a' })], sameUuid);
+      await items.insertMissing([draftItem({ uuid: 'a' })], sameUuid); // costs number 2
+      const [third] = await items.insertMissing([draftItem({ uuid: 'c' })], sameUuid);
 
       expect(third?.id).toBe(3);
     });
 
     it('writes nothing when every candidate is already there', async () => {
       const items = new PromptItemCollection();
-      await items.create(itemAttributes({ uuid: 'a' }));
+      await items.insert(draftItem({ uuid: 'a' }));
       const before = readFileSync(fileOf('prompt', 'prompt_items'), 'utf-8');
 
-      expect(await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid)).toEqual([]);
+      expect(await items.insertMissing([draftItem({ uuid: 'a' })], sameUuid)).toEqual([]);
       expect(readFileSync(fileOf('prompt', 'prompt_items'), 'utf-8')).toBe(before);
     });
 
     it('answers nothing for no candidates', async () => {
-      expect(await new PromptItemCollection().createMissing([], sameUuid)).toEqual([]);
+      expect(await new PromptItemCollection().insertMissing([], sameUuid)).toEqual([]);
     });
   });
 
@@ -227,7 +236,7 @@ describe('entities', () => {
 
     it('answers an entity instance, not a plain object', async () => {
       const items = new PromptItemCollection();
-      await items.create(itemAttributes());
+      await items.insert(draftItem());
 
       const [item] = await items.all();
 
@@ -237,20 +246,20 @@ describe('entities', () => {
 
     it('finds a row by id, and answers null for one that is not there', async () => {
       const items = new PromptItemCollection();
-      const created = await items.create(itemAttributes());
+      const created = await items.insert(draftItem());
 
       expect((await items.find(created.id))?.uuid).toBe('uuid-1');
       expect(await items.find(99)).toBeNull();
     });
 
     it('serialises an entity as its row', async () => {
-      const created = await new PromptItemCollection().create(itemAttributes());
+      const created = await new PromptItemCollection().insert(draftItem());
 
       expect(JSON.parse(JSON.stringify(created))).toEqual({ ...itemAttributes(), id: 1 });
     });
 
     it('reads a missing cwd as null', async () => {
-      const { cwd: _cwd, ...withoutCwd } = { ...itemAttributes(), id: 1 };
+      const { cwd: _cwd, ...withoutCwd } = { ...itemAttributes(), id: 1 } as Record<string, unknown>;
       plant('prompt', 'prompt_items', JSON.stringify([withoutCwd]));
 
       const [item] = await new PromptItemCollection().all();
@@ -263,9 +272,9 @@ describe('entities', () => {
       const project = join(home, 'project');
       mkdirSync(project);
       const items = new PromptItemCollection();
-      await items.create(itemAttributes({ uuid: 'a', name: 'b-shared', priority: 2 }));
-      await items.create(itemAttributes({ uuid: 'b', name: 'a-shared', priority: 1 }));
-      await items.create(itemAttributes({ uuid: 'c', name: 'project', cwd: project, priority: 1 }));
+      await items.insert(draftItem({ uuid: 'a', name: 'b-shared', priority: 2 }));
+      await items.insert(draftItem({ uuid: 'b', name: 'a-shared', priority: 1 }));
+      await items.insert(draftItem({ uuid: 'c', name: 'project', cwd: project, priority: 1 }));
 
       expect((await items.inScope(null)).map((item) => item.name)).toEqual(['a-shared', 'b-shared']);
       expect((await items.inScope(`${project}/`)).map((item) => item.name)).toEqual(['project']);
@@ -275,31 +284,34 @@ describe('entities', () => {
   describe('changing and removing rows', () => {
     it('changes some columns of one row and leaves the rest', async () => {
       const items = new PromptItemCollection();
-      const created = await items.create(itemAttributes());
+      const created = await items.insert(draftItem());
 
-      const updated = await items.update(created.id, { name: 'renamed', updatedAt: NOW + 5 });
+      created.name = 'renamed';
+      created.updatedAt = NOW + 5;
+      expect(await items.save(created)).toBe(true);
 
-      expect(updated?.name).toBe('renamed');
-      expect(updated?.content).toBe('Review the diff.');
-      expect((await items.find(created.id))?.updatedAt).toBe(NOW + 5);
+      const stored = await items.find(created.id);
+      expect(stored?.name).toBe('renamed');
+      expect(stored?.content).toBe('Review the diff.');
+      expect(stored?.updatedAt).toBe(NOW + 5);
     });
 
-    it('never changes an id', async () => {
-      const items = new PromptItemCollection();
-      const created = await items.create(itemAttributes());
+    it('never changes an id, and refuses to number a row twice', async () => {
+      const created = await new PromptItemCollection().insert(draftItem());
 
-      const updated = await items.update(created.id, { id: 99 } as Partial<Omit<PromptItemRow, 'id'>>);
-
-      expect(updated?.id).toBe(created.id);
+      expect(() => created.assignId(99)).toThrow(/already has its number/);
+      expect(created.id).toBe(1);
     });
 
-    it('answers null for a row that is not there', async () => {
-      expect(await new PromptItemCollection().update(5, { name: 'x' })).toBeNull();
+    it('answers false for a row that is not there', async () => {
+      const stranger = new PromptItem(5, null, 'u', 'n', 'c', 1, NOW, NOW);
+
+      expect(await new PromptItemCollection().save(stranger)).toBe(false);
     });
 
     it('removes one row and says whether there was one', async () => {
       const items = new PromptItemCollection();
-      const created = await items.create(itemAttributes());
+      const created = await items.insert(draftItem());
 
       expect(await items.delete(created.id)).toBe(true);
       expect(await items.delete(created.id)).toBe(false);
@@ -320,7 +332,7 @@ describe('entities', () => {
       const torn = '[{"id":1}{"id":2}]';
       plant('prompt', 'prompt_items', torn);
 
-      await expect(new PromptItemCollection().create(itemAttributes())).rejects.toBeInstanceOf(Error);
+      await expect(new PromptItemCollection().insert(draftItem())).rejects.toBeInstanceOf(Error);
 
       expect(readFileSync(fileOf('prompt', 'prompt_items'), 'utf-8')).toBe(torn);
     });
@@ -353,7 +365,7 @@ describe('entities', () => {
       const mangled = { id: 2, name: 7, note: 'keep me' };
       plant('prompt', 'prompt_items', JSON.stringify([good, mangled]));
 
-      await new PromptItemCollection().create(itemAttributes({ uuid: 'new' }));
+      await new PromptItemCollection().insert(draftItem({ uuid: 'new' }));
 
       const rows = readRows('prompt', 'prompt_items');
       expect(rows).toHaveLength(3);
@@ -367,7 +379,9 @@ describe('entities', () => {
       const items = new PromptItemCollection();
       expect((await items.all()).map((item) => item.uuid)).toEqual(['good']);
 
-      await items.update(1, { name: 'touched' });
+      const [kept] = await items.all();
+      kept.name = 'touched';
+      await items.save(kept);
       expect(readRows('prompt', 'prompt_items')).toContainEqual(clash);
     });
 
@@ -387,16 +401,9 @@ describe('entities', () => {
       const project = join(home, 'project');
       mkdirSync(project);
       const migrations = new SystemMigrationCollection();
-      await migrations.create({
-        cwd: project,
-        name: 'prompts-to-entities',
-        sourceFile: '/old/prompts.json',
-        promptCount: 3,
-        categoryCount: 0,
-        linkCount: 0,
-        skippedCount: 0,
-        ranAt: NOW,
-      });
+      await migrations.insert(
+        SystemMigration.draft(project, 'prompts-to-entities', '/old/prompts.json', 3, 0, 0, 0, NOW),
+      );
 
       expect(await migrations.hasRun('prompts-to-entities', project)).toBe(true);
       expect(await migrations.hasRun('prompts-to-entities', null)).toBe(false);
