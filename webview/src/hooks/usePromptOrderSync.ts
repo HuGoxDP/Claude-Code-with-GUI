@@ -21,6 +21,12 @@ export function usePromptOrderSync(workingDirectory: string | null | undefined):
   useEffect(() => {
     const report = (what: string) => (err: unknown) =>
       console.error(`[prompt-order] saving the ${what} failed`, err);
+    // The backend answers a refused save with an ack that says so, not with a
+    // rejection, so a save that did not happen is told from one that did here.
+    const checked = (what: string) => (ack: unknown) => {
+      const refusal = ack as { status?: string; error?: string } | undefined;
+      if (refusal?.status === 'error') report(what)(refusal.error);
+    };
 
     return setPromptOrderSink({
       persistPromptOrder: (scope, ids, categoryId) => {
@@ -33,10 +39,11 @@ export function usePromptOrderSync(workingDirectory: string | null | undefined):
             ids,
             ...(categoryId === undefined ? {} : { categoryId }),
           }),
-        ).catch(report('prompt order'));
+        ).then(checked('prompt order'), report('prompt order'));
       },
       persistCategoryOrder: (ids) => {
-        void Promise.resolve(bridge.send(MessageType.REORDER_PROMPT_CATEGORIES, { ids })).catch(
+        void Promise.resolve(bridge.send(MessageType.REORDER_PROMPT_CATEGORIES, { ids })).then(
+          checked('category order'),
           report('category order'),
         );
       },

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDiscardOpeningKey } from '@/hooks/useDiscardOpeningKey';
+import { useIMEComposition } from '@/pages/ChatPage/ChatInput/RichInput/useIMEComposition';
 import { useDroppable, useDragOperation } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -126,6 +128,13 @@ export function PromptCategorySidebar(props: Props) {
    * list uses for the same reason.
    */
   const skipCommitRef = useRef(false);
+  // The IME's own Enter ends a composition; only the next one is ours.
+  const ime = useIMEComposition();
+  // The key that put the field into edit mode (`e`, or `ㄷ` on a Korean layout)
+  // must not end up typed into it.
+  const discardingOpeningKey = useDiscardOpeningKey(inputRef, editingKey, () =>
+    setDraft(rows.find((row) => row.key === editingKey)?.category?.name ?? ''),
+  );
 
   useEffect(() => {
     onEditingChange?.(editingKey !== null);
@@ -187,6 +196,10 @@ export function PromptCategorySidebar(props: Props) {
     // Held inside the field so the sidebar's own arrow handling never moves the
     // selection out from under a name being typed.
     e.stopPropagation();
+    ime.noteKeyDown(e.keyCode);
+    // An Enter or Escape that is the IME finishing a syllable is not ours: acting
+    // on it would save half a name, and the same key would go on to the composer.
+    if (ime.isComposing() || e.nativeEvent.isComposing) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       void commit();
@@ -214,7 +227,11 @@ export function PromptCategorySidebar(props: Props) {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={handleDraftKeyDown}
-              onBlur={() => void commit()}
+              onCompositionStart={ime.handleCompositionStart}
+              onCompositionEnd={ime.handleCompositionEnd}
+              onBlur={() => {
+                if (!discardingOpeningKey.current) void commit();
+              }}
               className="w-full min-w-0 border-b border-text-tertiary/40 bg-transparent text-xs text-text-primary outline-none"
             />
           </div>

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDiscardOpeningKey } from '@/hooks/useDiscardOpeningKey';
+import { useIMEComposition } from './RichInput/useIMEComposition';
 import { DragDropProvider, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useCategoryReorder } from '@/hooks/useCategoryReorder';
@@ -347,6 +349,11 @@ function PanelCategoryNameField(props: PanelCategoryNameFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   /** Escape unmounts the field, which can fire a trailing blur that must not save. */
   const settled = useRef(false);
+  // The IME's own Enter ends a composition; only the next one is ours.
+  const ime = useIMEComposition();
+  // The key that put the field into edit mode (`e`, or `ㄷ` on a Korean layout)
+  // must not end up typed into it.
+  const discardingOpeningKey = useDiscardOpeningKey(inputRef, initialName, () => setDraft(initialName));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -366,8 +373,14 @@ function PanelCategoryNameField(props: PanelCategoryNameFieldProps) {
         ref={inputRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
+        onCompositionStart={ime.handleCompositionStart}
+        onCompositionEnd={ime.handleCompositionEnd}
         onKeyDown={(e) => {
           e.stopPropagation();
+          ime.noteKeyDown(e.keyCode);
+          // An Enter or Escape that is the IME finishing a syllable is not ours:
+          // acting on it would save half a name and send the composer's text.
+          if (ime.isComposing() || e.nativeEvent.isComposing) return;
           if (e.key === 'Enter') {
             e.preventDefault();
             finish(true);
@@ -376,7 +389,9 @@ function PanelCategoryNameField(props: PanelCategoryNameFieldProps) {
             finish(false);
           }
         }}
-        onBlur={() => finish(true)}
+        onBlur={() => {
+          if (!discardingOpeningKey.current) finish(true);
+        }}
         className="w-full min-w-0 border-b border-text-tertiary/40 bg-transparent text-xs text-text-primary outline-none"
       />
     </div>

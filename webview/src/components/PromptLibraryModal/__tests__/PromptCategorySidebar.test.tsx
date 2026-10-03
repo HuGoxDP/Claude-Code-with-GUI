@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { PromptCategorySidebar, buildSidebarRows } from '../PromptCategorySidebar';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { PromptCategorySidebar, RenameRequest, buildSidebarRows } from '../PromptCategorySidebar';
 import { ALL_CATEGORIES, UNCATEGORISED } from '@/utils/promptCategories';
 import { PROMPT_NO_DRAG_ATTRIBUTE } from '@/utils/promptDrag';
 import type { PromptCategory } from '@/types/prompt';
@@ -183,5 +183,69 @@ describe('the row does not change height on hover', () => {
 
     expect(screen.getByText('(5)').className ?? '').not.toContain('group-hover/cat:invisible');
     expect(screen.getByText('(2)').className ?? '').not.toContain('group-hover/cat:invisible');
+  });
+});
+
+
+describe('a category name being edited from the keyboard', () => {
+  const edit = (overrides: Partial<React.ComponentProps<typeof PromptCategorySidebar>> = {}) => {
+    const rendered = renderSidebar({ renameRequest: new RenameRequest('c1'), ...overrides });
+    return { ...rendered, field: screen.getByDisplayValue('리뷰') as HTMLInputElement };
+  };
+
+  it('opens on the name, selected', () => {
+    const { field } = edit();
+
+    expect(document.activeElement).toBe(field);
+    expect(field.selectionEnd).toBe('리뷰'.length);
+  });
+
+  it('puts the name back when the key that opened it arrives as a composition', () => {
+    const { field } = edit();
+
+    field.addEventListener('blur', () => fireEvent.change(field, { target: { value: '리뷰ㄷ' } }), { once: true });
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(field.value).toBe('리뷰');
+  });
+
+  it('does not save, or close, when that happens', () => {
+    const onRename = vi.fn();
+    const { field } = edit({ onRename });
+
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('리뷰')).toBeInTheDocument();
+  });
+
+  it('does not take the Enter that ends an IME composition for a save', () => {
+    const onRename = vi.fn();
+    const { field } = edit({ onRename });
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('개발')).toBeInTheDocument();
+  });
+
+  it('saves on the Enter after the composition has ended', async () => {
+    const onRename = vi.fn(async () => {});
+    const { field } = edit({ onRename });
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.compositionEnd(field);
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter', keyCode: 13 });
+    });
+
+    expect(onRename).toHaveBeenCalledWith('c1', '개발');
   });
 });

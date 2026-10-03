@@ -502,6 +502,60 @@ describe('PromptDropdown category name editing', () => {
     expect(heard).not.toHaveBeenCalled();
   });
 
+  // The Enter that finishes a Hangul syllable is the IME's, not an answer to the
+  // field. Taking it as one saved half a name and let the key go on to send the
+  // composer's text.
+  it('does not take the Enter that ends an IME composition for a save', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+
+    expect(onRenameCategory).not.toHaveBeenCalled();
+  });
+
+  it('saves on the Enter that comes after the composition has ended', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.compositionEnd(field);
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 13 });
+
+    expect(onRenameCategory).toHaveBeenCalledWith('c1', '개발');
+  });
+
+  it('keeps the Enter that ends a composition from travelling on', () => {
+    edit();
+    const field = screen.getByDisplayValue('review');
+    const heard = vi.fn();
+    document.addEventListener('keydown', heard);
+
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+    document.removeEventListener('keydown', heard);
+
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it('puts the name back when a composition starts right after the field opened', () => {
+    edit();
+    const field = screen.getByDisplayValue('review') as HTMLInputElement;
+
+    // The key that opened the field arrives as a composition, and its text is
+    // committed when the guard ends it.
+    field.addEventListener('blur', () => fireEvent.change(field, { target: { value: 'reviewㄷ' } }), { once: true });
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(field.value).toBe('review');
+  });
+
   it('saves when the field loses the focus, once', () => {
     const onRenameCategory = vi.fn();
     edit({ onRenameCategory });

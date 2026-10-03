@@ -343,18 +343,28 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     [bridge, workingDirectory, load],
   );
 
+  /**
+   * The name field had the focus; the composer gets it back so typing goes on.
+   *
+   * Not in the same breath as the key that ended the edit: that key (an Enter,
+   * above all) is still being delivered, and landing it on the composer is how a
+   * category rename sent the message. A tick later it has finished.
+   */
+  const returnFocusToComposer = useCallback(() => {
+    setTimeout(() => inputRef?.current?.focus(), 0);
+  }, [inputRef]);
+
   const cancelCategoryEdit = useCallback(() => {
     setState(prev => ({ ...prev, editingCategory: null }));
-    // The name field had the focus; the composer gets it back so typing goes on.
-    inputRef?.current?.focus();
-  }, [inputRef]);
+    returnFocusToComposer();
+  }, [returnFocusToComposer]);
 
   const renameCategory = useCallback(
     async (id: string, name: string) => {
       const trimmed = name.trim();
       const current = state.categories.find(category => category.id === id);
       setState(prev => ({ ...prev, editingCategory: null }));
-      inputRef?.current?.focus();
+      returnFocusToComposer();
       if (trimmed === '' || current?.name === trimmed) return;
 
       const ack = (await bridge.send(MessageType.RENAME_PROMPT_CATEGORY, {
@@ -366,7 +376,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       hydrateCategoryOrder(categoryOrderFromPriorities(renamed));
       setState(prev => ({ ...prev, categories: renamed }));
     },
-    [bridge, inputRef, state.categories],
+    [bridge, returnFocusToComposer, state.categories],
   );
 
   const deleteCategory = useCallback(

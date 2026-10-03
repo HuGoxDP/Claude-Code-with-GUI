@@ -134,6 +134,39 @@ describe('promptOrderStore saving and hydration', () => {
     expect(persistPromptOrder).not.toHaveBeenCalled();
   });
 
+  // The `!!` panel registers when the chat opens and the library modal registers
+  // on top of it. The modal going away must hand saving back to the panel, or
+  // every order made in the panel afterwards is shown and never kept.
+  it('hands saving back to the earlier screen when the newer one goes away', () => {
+    const panel = vi.fn();
+    const modal = vi.fn();
+    const releasePanel = setPromptOrderSink({ persistPromptOrder: panel, persistCategoryOrder: vi.fn() });
+    const releaseModal = setPromptOrderSink({ persistPromptOrder: modal, persistCategoryOrder: vi.fn() });
+
+    updatePromptOrder(() => ({ global: ['a'], project: [] }));
+    expect(modal).toHaveBeenCalledTimes(1);
+    expect(panel).not.toHaveBeenCalled();
+
+    releaseModal();
+    updatePromptOrder(() => ({ global: ['b'], project: [] }));
+
+    expect(panel).toHaveBeenCalledWith('global', ['b']);
+    releasePanel();
+  });
+
+  it('keeps saving through the screen that is left when an older one goes away first', () => {
+    const older = vi.fn();
+    const newer = vi.fn();
+    const releaseOlder = setPromptOrderSink({ persistPromptOrder: older, persistCategoryOrder: vi.fn() });
+    const releaseNewer = setPromptOrderSink({ persistPromptOrder: newer, persistCategoryOrder: vi.fn() });
+
+    releaseOlder();
+    updatePromptOrder(() => ({ global: ['x'], project: [] }));
+
+    expect(newer).toHaveBeenCalledWith('global', ['x']);
+    releaseNewer();
+  });
+
   it('does not let an old registration release a newer one', () => {
     const newer = vi.fn();
     const releaseNewer = setPromptOrderSink({ persistPromptOrder: newer, persistCategoryOrder: vi.fn() });

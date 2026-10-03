@@ -24,14 +24,29 @@ export interface PromptOrderSink {
   persistCategoryOrder: (ids: string[]) => void;
 }
 
-let sink: PromptOrderSink | null = null;
+/**
+ * Every screen that can save an order, oldest first. The newest one saves.
+ *
+ * A stack and not a single slot: the `!!` panel registers when the chat opens and
+ * stays for as long as it lives, and the library modal registers on top of it
+ * while it is open. When the modal closes, the panel has to be the one that
+ * saves again. With one slot the modal's leaving emptied it, and every order
+ * made in the panel afterwards was shown but never saved.
+ */
+const sinks: PromptOrderSink[] = [];
 
-/** Where changes are saved. Pass null to stop saving. Answers a function that clears only this registration. */
-export function setPromptOrderSink(next: PromptOrderSink | null): () => void {
-  sink = next;
+/** Where changes are saved. Answers a function that takes back only this registration. */
+export function setPromptOrderSink(next: PromptOrderSink): () => void {
+  sinks.push(next);
   return () => {
-    if (sink === next) sink = null;
+    const at = sinks.indexOf(next);
+    if (at !== -1) sinks.splice(at, 1);
   };
+}
+
+/** The sink that saves right now, if any screen has registered one. */
+function currentSink(): PromptOrderSink | null {
+  return sinks[sinks.length - 1] ?? null;
 }
 
 function sameIds(a: string[] | undefined, b: string[] | undefined): boolean {
@@ -80,7 +95,7 @@ export function updatePromptOrder(update: (order: PromptOrder) => PromptOrder): 
   current = update(current);
   notify();
   for (const scope of ['global', 'project'] as const) {
-    if (!sameIds(before[scope], current[scope])) sink?.persistPromptOrder(scope, current[scope]);
+    if (!sameIds(before[scope], current[scope])) currentSink()?.persistPromptOrder(scope, current[scope]);
   }
 }
 
@@ -93,7 +108,7 @@ export function updateCategoryOrder(update: (order: string[]) => string[]): void
   const before = categoryOrder;
   categoryOrder = update(categoryOrder);
   notify();
-  if (!sameIds(before, categoryOrder)) sink?.persistCategoryOrder(categoryOrder);
+  if (!sameIds(before, categoryOrder)) currentSink()?.persistCategoryOrder(categoryOrder);
 }
 
 export function getPromptOrderByCategory(): Record<string, PromptOrder> {
@@ -110,7 +125,7 @@ export function updatePromptOrderByCategory(
   for (const [categoryId, order] of Object.entries(promptOrderByCategory)) {
     for (const scope of ['global', 'project'] as const) {
       if (!sameIds(before[categoryId]?.[scope], order[scope])) {
-        sink?.persistPromptOrder(scope, order[scope], categoryId);
+        currentSink()?.persistPromptOrder(scope, order[scope], categoryId);
       }
     }
   }
