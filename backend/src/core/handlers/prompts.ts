@@ -6,6 +6,8 @@ import { resolveWslCwd } from '../wsl-path';
 import { readFile } from 'fs/promises';
 import {
   readPrompts,
+  readPromptOrderByCategory,
+  reorderPrompts,
   createPrompt,
   updatePrompt,
   deletePrompt,
@@ -17,6 +19,7 @@ import {
   createCategory,
   renameCategory,
   deleteCategory,
+  reorderCategories,
 } from '../features/prompt-category-registry';
 import {
   buildExportFile,
@@ -98,8 +101,41 @@ export async function getPromptsHandler(
     return;
   }
 
-  const prompts = await readPrompts(scope, projectPath);
-  sendOk(connections, connectionId, message, { scope, prompts });
+  try {
+    const prompts = await readPrompts(scope, projectPath);
+    const orderByCategory = await readPromptOrderByCategory(scope, projectPath);
+    sendOk(connections, connectionId, message, { scope, prompts, orderByCategory });
+  } catch (err) {
+    // An entity file that exists but cannot be read is not an empty library: the
+    // webview shows its "could not load" screen instead of a list that looks wiped.
+    console.error('[node-backend]', 'Failed to read prompts:', err);
+    sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
+  }
+}
+
+function readIdList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+/** Save a new order for one scope's prompts, or for the prompts inside one category. */
+export async function reorderPromptsHandler(
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  _bridge: Bridge,
+): Promise<void> {
+  const scope = readScope(message);
+  const projectPath = readProjectPath(message);
+  const ids = readIdList(message.payload?.ids);
+  const categoryId =
+    typeof message.payload?.categoryId === 'string' ? message.payload.categoryId : undefined;
+
+  const result = await reorderPrompts(scope, projectPath, ids, categoryId);
+  if (result.status === 'error') {
+    sendError(connections, connectionId, message, result.error);
+    return;
+  }
+  sendOk(connections, connectionId, message, { scope });
 }
 
 export async function createPromptHandler(
@@ -305,8 +341,27 @@ export async function getPromptCategoriesHandler(
   connections: ConnectionManager,
   _bridge: Bridge,
 ): Promise<void> {
-  const categories = await listCategories();
-  sendOk(connections, connectionId, message, { categories });
+  try {
+    sendOk(connections, connectionId, message, { categories: await listCategories() });
+  } catch (err) {
+    console.error('[node-backend]', 'Failed to read prompt categories:', err);
+    sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/** Save a new order for the category column. */
+export async function reorderPromptCategoriesHandler(
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  _bridge: Bridge,
+): Promise<void> {
+  const result = await reorderCategories(readIdList(message.payload?.ids));
+  if (result.status === 'error') {
+    sendError(connections, connectionId, message, result.error);
+    return;
+  }
+  sendOk(connections, connectionId, message, { categories: result.categories });
 }
 
 export async function createPromptCategoryHandler(

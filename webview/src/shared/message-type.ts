@@ -606,7 +606,7 @@ export enum MessageType {
   ASSET_ACTIVITY = 'ASSET_ACTIVITY',
 
   // -- Prompt library --
-  /** Ask for the saved prompts of one scope, as {scope, workingDir}. `scope` is 'global' (~/.claude-code-gui/prompts.json) or 'project' ({workingDir}/.claude-code-gui/prompts.json). The reply carries the stored entries unedited. inbound webview→backend */
+  /** Ask for the saved prompts of one scope, as {scope, workingDir}. `scope` is 'global' (rows with no cwd) or 'project' (rows whose cwd is {workingDir}). The reply carries {scope, prompts, orderByCategory}: the prompts in the library's own ("All") order, each with its uuid as `id` and its category uuids as `categories`, and `orderByCategory` mapping a category uuid to the uuids of this scope's prompts in that category's own order. inbound webview→backend */
   GET_PROMPTS = 'GET_PROMPTS',
   /** Create one saved prompt, as {scope, workingDir, name, content}. The backend assigns the id and timestamps and replies with the created entry. inbound webview→backend */
   CREATE_PROMPT = 'CREATE_PROMPT',
@@ -628,6 +628,10 @@ export enum MessageType {
   RENAME_PROMPT_CATEGORY = 'RENAME_PROMPT_CATEGORY',
   /** Remove a category, as {workingDir, name}. Its prompts are kept and fall back to uncategorised. inbound webview→backend */
   DELETE_PROMPT_CATEGORY = 'DELETE_PROMPT_CATEGORY',
+  /** Save a new order for the prompts of one scope, as {scope, workingDir, ids, categoryId?}. `ids` are prompt uuids, top first. Without `categoryId` the order is the library's own ("All") order; with it, only that category's own order changes. Prompts the list leaves out keep their relative places below the named ones. The reply carries {scope}. inbound webview→backend */
+  REORDER_PROMPTS = 'REORDER_PROMPTS',
+  /** Save a new order for the category column, as {ids}, category uuids top first. Categories the list leaves out keep their relative places below the named ones. The reply carries the full {categories} list in the new order. inbound webview→backend */
+  REORDER_PROMPT_CATEGORIES = 'REORDER_PROMPT_CATEGORIES',
 
   // -- Attachments --
   /** The webview reports that the user attached an image, carrying { source, mimeType, size }. Purely a telemetry signal: the image itself still travels inline with SEND_MESSAGE, so the backend does nothing but record it. All three attach paths (button / paste / drop) are handled in the webview and never reach the backend otherwise, which is why attaching was invisible to telemetry until this. Never carries the file NAME. inbound webview→backend */

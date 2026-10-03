@@ -166,6 +166,8 @@ import {
   createPromptCategoryHandler,
   renamePromptCategoryHandler,
   deletePromptCategoryHandler,
+  reorderPromptsHandler,
+  reorderPromptCategoriesHandler,
 } from './prompts';
 import { getSessionAssetsHandler } from './getSessionAssets';
 import { getSessionSendsHandler } from './getSessionSends';
@@ -680,6 +682,12 @@ export async function handleMessage(
       break;
     case MessageType.DELETE_PROMPT_CATEGORY:
       await deletePromptCategoryHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.REORDER_PROMPTS:
+      await reorderPromptsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.REORDER_PROMPT_CATEGORIES:
+      await reorderPromptCategoriesHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SESSION_ASSETS:
       await getSessionAssetsHandler(connectionId, message, connections, bridge);

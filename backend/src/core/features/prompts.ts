@@ -1,9 +1,9 @@
-import { readFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import { randomUUID } from 'crypto';
-import { updateJsonFile } from './atomic-json';
+import { normalizeCwd } from '../entities/normalizeCwd';
+import { PromptCategoryCollection } from '../entities/prompt/PromptCategory.collection';
+import { PromptCategoryItemLinkCollection } from '../entities/prompt/PromptCategoryItemLink.collection';
+import { PromptItemCollection } from '../entities/prompt/PromptItem.collection';
+import type { PromptItem } from '../entities/prompt/PromptItem.entity';
 
 /**
  * The prompt library: phrases the user saves once and pastes into the composer
@@ -16,16 +16,22 @@ import { updateJsonFile } from './atomic-json';
  * into `.claude/commands/` would make every one of them an executable command
  * in the CLI's `/` list, which is not what the user asked the library to be.
  *
- * The layout mirrors the app settings exactly (see features/settings.ts):
- * global lives under the user data directory, project lives beside the project.
+ * Rows live in the entity files under the user data directory (see
+ * core/entities): prompts in `prompt_items`, categories in `prompt_categories`
+ * and the many-to-many between them in `prompt_category_item_links`. A prompt of
+ * the global scope has no `cwd`; a project prompt carries its project's.
+ *
+ * Everything this module hands out is the WIRE shape the webview has always been
+ * given: ids are the `uuid` column, and a prompt's `categories` are category
+ * uuids. The integer `id` never leaves the backend.
  */
 
-/** Where one prompt is stored. Independent of any category it may carry later. */
+/** Where one prompt is stored. Independent of any category it may carry. */
 export type PromptScope = 'global' | 'project';
 
-/** One saved prompt, exactly as it is stored on disk. */
+/** One saved prompt, in the shape the webview receives. */
 export interface SavedPrompt {
-  /** Stable identifier, assigned on creation and never rewritten. */
+  /** Stable identifier (the `uuid` column), assigned on creation and never rewritten. */
   id: string;
   /** Display name, shown in the `!!` panel and on the settings card. */
   name: string;
@@ -36,34 +42,23 @@ export interface SavedPrompt {
   /** Last edit time in epoch milliseconds. Equals createdAt until first edit. */
   updatedAt: number;
   /**
-   * The ids of the categories this prompt belongs to, or absent for the
+   * The uuids of the categories this prompt belongs to, or absent for the
    * uncategorised group.
-   *
-   * Ids, not names: a name written here would have to be rewritten on every
-   * prompt that carries it whenever the user renames the category, across both
-   * scopes, and a rewrite that fails halfway leaves the two disagreeing. The
-   * name lives in one {@link PromptCategory} record instead.
    *
    * A list rather than one id: "review this diff" is both a review prompt and a
    * git prompt, and making the user pick one would push them into inventing a
    * category that means both.
-   *
-   * Optional, so a store written before categories existed reads back unchanged
-   * and needs no migration. An id with no record behind it is ignored rather
-   * than shown, which is what makes reading a store safe to do without writing.
    */
   categories?: string[];
 }
 
 /**
- * One category, named once and referenced by id.
+ * One category, named once and referenced by its uuid.
  *
- * Stored in the GLOBAL store even when only project prompts use it: a category
- * is a dimension of its own, independent of scope, so one taxonomy spans both
- * and the global store is the one that exists whether or not a project is open.
+ * Categories belong to no project: one set spans both scopes.
  */
 export interface PromptCategory {
-  /** Ours to generate; the same shape as a prompt id. */
+  /** The `uuid` column. */
   id: string;
   /** What the user called it. The only place this name is written. */
   name: string;
@@ -99,58 +94,14 @@ export const PROMPT_CATEGORY_MAX_LENGTH = 60;
 export const PROMPT_CATEGORIES_MAX_COUNT = 20;
 export const PROMPT_CONTENT_MAX_LENGTH = 100000;
 
-/** Ids are ours to generate, so reject anything that did not come from us. */
+/** Ids on the wire are uuids we generated, so reject anything that did not come from us. */
 const VALID_ID_PATTERN = /^[a-zA-Z0-9-]{1,64}$/;
 
-const STORE_FILE_NAME = 'prompts.json';
-const DATA_DIR_NAME = '.claude-code-gui';
-
-function globalStoreFile(): string {
-  return join(homedir(), DATA_DIR_NAME, STORE_FILE_NAME);
-}
-
-function projectStoreFile(projectPath: string): string {
-  return join(projectPath, DATA_DIR_NAME, STORE_FILE_NAME);
-}
-
-function storeDirectory(scope: PromptScope, projectPath?: string): string {
-  return scope === 'project'
-    ? join(projectPath as string, DATA_DIR_NAME)
-    : join(homedir(), DATA_DIR_NAME);
-}
-
-/**
- * Resolve the file one scope reads and writes, or an error when the caller asked
- * for project scope without naming a project.
- */
-export function resolvePromptStoreFile(
-  scope: PromptScope,
-  projectPath?: string,
-): { status: 'ok'; filePath: string } | { status: 'error'; error: string } {
-  if (scope === 'project') {
-    if (!projectPath) return { status: 'error', error: 'projectPath required for project scope' };
-    return { status: 'ok', filePath: projectStoreFile(projectPath) };
-  }
-  return { status: 'ok', filePath: globalStoreFile() };
-}
-
-/**
- * Keep only the entries that are actually prompts, dropping anything a hand edit
- * or a future field rename left behind. A malformed entry must not take the
- * whole list down with it: the user would see an empty library and assume every
- * prompt was lost.
- */
 /**
  * Read the category ids written on a prompt.
  *
- * Only well-formed ids are kept. An id with no record behind it is left in the
- * list and ignored when the name is looked up, rather than being dropped here:
- * reading must not quietly edit a store, and a record that is merely missing
- * today may be back tomorrow (a project opened without its global store, a file
- * mid-sync).
- *
- * Duplicates are collapsed, because one category twice on one prompt would file
- * it under the same heading twice.
+ * Only well-formed ids are kept. Duplicates are collapsed, because one category
+ * twice on one prompt would file it under the same heading twice.
  */
 export function parseCategoryIds(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -168,7 +119,7 @@ export function parseCategoryIds(value: unknown): string[] {
   return ids;
 }
 
-/** Read the stored category records, dropping anything that is not one. */
+/** Read the category records of an export file, dropping anything that is not one. */
 export function parseCategoryRecords(value: unknown): PromptCategory[] {
   if (!Array.isArray(value)) return [];
 
@@ -192,50 +143,104 @@ export function parseCategoryRecords(value: unknown): PromptCategory[] {
   return categories;
 }
 
-function parseStoredPrompts(value: unknown): SavedPrompt[] {
-  if (!Array.isArray(value)) return [];
-  const prompts: SavedPrompt[] = [];
-  for (const entry of value) {
-    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) continue;
-    const candidate = entry as Record<string, unknown>;
-    const { id, name, content, createdAt, updatedAt } = candidate;
-    if (typeof id !== 'string' || !VALID_ID_PATTERN.test(id)) continue;
-    if (typeof name !== 'string' || typeof content !== 'string') continue;
-    const categories = parseCategoryIds(candidate.categories);
-    prompts.push({
-      id,
-      name,
-      content,
-      createdAt: typeof createdAt === 'number' ? createdAt : 0,
-      updatedAt: typeof updatedAt === 'number' ? updatedAt : 0,
-      ...(categories.length === 0 ? {} : { categories }),
-    });
+type ScopeCwd = { status: 'ok'; cwd: string | null } | { status: 'error'; error: string };
+
+/**
+ * The `cwd` a scope's rows carry: null for global, the normalized project
+ * directory for project scope, or an error when project scope names no project.
+ */
+export function resolveScopeCwd(scope: PromptScope, projectPath?: string): ScopeCwd {
+  if (scope === 'global') return { status: 'ok', cwd: null };
+  if (!projectPath) return { status: 'error', error: 'projectPath required for project scope' };
+  try {
+    return { status: 'ok', cwd: normalizeCwd(projectPath) };
+  } catch (err) {
+    return { status: 'error', error: err instanceof Error ? err.message : String(err) };
   }
-  return prompts;
+}
+
+/** The prompts of one scope in wire shape, in the library's order, and what they are filed under. */
+interface ScopeSnapshot {
+  items: PromptItem[];
+  /** Category internal id → uuid, for every category that exists. */
+  categoryUuidById: Map<number, string>;
+  /** Item internal id → category uuids, in the order the item was filed. */
+  categoriesOfItem: Map<number, string[]>;
+}
+
+async function snapshotScope(cwd: string | null): Promise<ScopeSnapshot> {
+  const [items, categories, links] = await Promise.all([
+    new PromptItemCollection().inScope(cwd),
+    new PromptCategoryCollection().all(),
+    new PromptCategoryItemLinkCollection().where((link) => link.belongsTo(cwd)),
+  ]);
+
+  const categoryUuidById = new Map(categories.map((category) => [category.id, category.uuid]));
+  const categoriesOfItem = new Map<number, string[]>();
+  for (const link of [...links].sort((a, b) => a.id - b.id)) {
+    const uuid = categoryUuidById.get(link.categoryId);
+    if (uuid === undefined) continue;
+    const filed = categoriesOfItem.get(link.itemId) ?? [];
+    filed.push(uuid);
+    categoriesOfItem.set(link.itemId, filed);
+  }
+  return { items, categoryUuidById, categoriesOfItem };
+}
+
+function toWire(item: PromptItem, snapshot: ScopeSnapshot): SavedPrompt {
+  const categories = snapshot.categoriesOfItem.get(item.id) ?? [];
+  return {
+    id: item.uuid,
+    name: item.name,
+    content: item.content,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    ...(categories.length === 0 ? {} : { categories }),
+  };
 }
 
 /**
- * Read one scope's prompts, newest first.
+ * Read one scope's prompts in the library's own order ("All" order).
  *
- * An absent file and an unreadable one both read as an empty list, because a
- * READ has nothing to lose — the write path is where an unreadable file must
- * refuse rather than replace (see atomic-json).
+ * Unlike a missing project, an entity file that exists and cannot be read throws:
+ * an empty list would look like every prompt was lost, and the caller must say
+ * that the library could not be loaded instead.
  */
 export async function readPrompts(scope: PromptScope, projectPath?: string): Promise<SavedPrompt[]> {
-  const resolved = resolvePromptStoreFile(scope, projectPath);
+  const resolved = resolveScopeCwd(scope, projectPath);
   if (resolved.status === 'error') return [];
+  const snapshot = await snapshotScope(resolved.cwd);
+  return snapshot.items.map((item) => toWire(item, snapshot));
+}
 
-  try {
-    if (!existsSync(resolved.filePath)) return [];
-    const raw = await readFile(resolved.filePath, 'utf-8');
-    if (raw.trim() === '') return [];
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const prompts = parseStoredPrompts(parsed?.prompts);
-    return [...prompts].sort((a, b) => b.createdAt - a.createdAt);
-  } catch (err) {
-    console.error('[node-backend]', 'Failed to read prompts:', err);
-    return [];
+/**
+ * The order of the prompts inside each category, for one scope: category uuid to
+ * the prompt uuids filed under it, top first.
+ */
+export async function readPromptOrderByCategory(
+  scope: PromptScope,
+  projectPath?: string,
+): Promise<Record<string, string[]>> {
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return {};
+
+  const [items, categories, links] = await Promise.all([
+    new PromptItemCollection().inScope(resolved.cwd),
+    new PromptCategoryCollection().all(),
+    new PromptCategoryItemLinkCollection().where((link) => link.belongsTo(resolved.cwd)),
+  ]);
+  const itemUuidById = new Map(items.map((item) => [item.id, item.uuid]));
+
+  const order: Record<string, string[]> = {};
+  for (const category of categories) {
+    const uuids = links
+      .filter((link) => link.categoryId === category.id)
+      .sort((a, b) => a.priority - b.priority)
+      .map((link) => itemUuidById.get(link.itemId))
+      .filter((uuid): uuid is string => uuid !== undefined);
+    if (uuids.length > 0) order[category.uuid] = uuids;
   }
+  return order;
 }
 
 function validateNameAndContent(name: string, content: string): string | null {
@@ -251,42 +256,64 @@ function validateNameAndContent(name: string, content: string): string | null {
   return null;
 }
 
-/**
- * Run a read-modify-write over one scope's store through {@link updateJsonFile},
- * so an unreadable file aborts the save instead of being overwritten by the one
- * entry being written.
- *
- * Exported so prompt-transfer.ts can fold an imported set in through the same
- * path every other write uses. The dependency runs one way: this module owns the
- * store and knows nothing about files being carried in or out.
- */
-export async function mutatePromptStore(
-  scope: PromptScope,
-  projectPath: string | undefined,
-  mutate: (prompts: SavedPrompt[]) => SavedPrompt[] | string,
-): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
-  const resolved = resolvePromptStoreFile(scope, projectPath);
-  if (resolved.status === 'error') return resolved;
+/** Move every item of [cwd] down [by] places, making room at the top. */
+async function makeRoomAtTop(items: PromptItemCollection, cwd: string | null, by: number): Promise<void> {
+  await items.mutate((rows) => {
+    if (!rows.some((row) => row.cwd === cwd)) return { rows, result: undefined };
+    return {
+      rows: rows.map((row) => (row.cwd === cwd ? { ...row, priority: row.priority + by } : row)),
+      result: undefined,
+    };
+  });
+}
 
-  let mutationError: string | null = null;
-  try {
-    await mkdir(storeDirectory(scope, projectPath), { recursive: true });
-    const result = await updateJsonFile(resolved.filePath, (current) => {
-      const next = mutate(parseStoredPrompts(current.prompts));
-      if (typeof next === 'string') {
-        mutationError = next;
-        return null;
-      }
-      current.prompts = next;
-      return current;
-    });
-    if (mutationError !== null) return { status: 'error', error: mutationError };
-    return result.status === 'ok' ? { status: 'ok' } : { status: 'error', error: result.error };
-  } catch (err) {
-    const error = err instanceof Error ? err.message : String(err);
-    console.error('[node-backend]', 'Failed to write prompts:', err);
-    return { status: 'error', error };
+/** File [itemId] under [categoryId] at the top of that category's own order. */
+async function fileOnTop(
+  links: PromptCategoryItemLinkCollection,
+  cwd: string | null,
+  categoryId: number,
+  itemId: number,
+): Promise<void> {
+  await links.mutate((rows) => {
+    const shifted = rows.map((row) =>
+      row.cwd === cwd && row.categoryId === categoryId ? { ...row, priority: row.priority + 1 } : row,
+    );
+    return { rows: shifted, result: undefined };
+  });
+  await links.create({ cwd, categoryId, itemId, priority: 1 });
+}
+
+/** The internal ids of the categories among [uuids] that exist, in the order given. */
+async function existingCategoryIds(uuids: string[]): Promise<number[]> {
+  if (uuids.length === 0) return [];
+  const categories = await new PromptCategoryCollection().all();
+  const idByUuid = new Map(categories.map((category) => [category.uuid, category.id]));
+  return uuids.map((uuid) => idByUuid.get(uuid)).filter((id): id is number => id !== undefined);
+}
+
+interface NewPromptFields {
+  name: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+  uuid: string;
+}
+
+/** Add one prompt at the top of its scope, filed at the top of each category it names. */
+async function addAtTop(
+  cwd: string | null,
+  fields: NewPromptFields,
+  categoryUuids: string[],
+): Promise<PromptItem> {
+  const items = new PromptItemCollection();
+  const links = new PromptCategoryItemLinkCollection();
+
+  await makeRoomAtTop(items, cwd, 1);
+  const item = await items.create({ cwd, priority: 1, ...fields });
+  for (const categoryId of await existingCategoryIds(categoryUuids)) {
+    await fileOnTop(links, cwd, categoryId, item.id);
   }
+  return item;
 }
 
 /** Add one prompt to a scope. The backend owns the id and both timestamps. */
@@ -299,29 +326,26 @@ export async function createPrompt(
 ): Promise<PromptResult> {
   const validationError = validateNameAndContent(name, content);
   if (validationError) return { status: 'error', error: validationError };
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return resolved;
 
-  const now = Date.now();
-  const parsed = parseCategoryIds(categories);
-  const prompt: SavedPrompt = {
-    id: randomUUID(),
-    name: name.trim(),
-    content,
-    createdAt: now,
-    updatedAt: now,
-    // Absent rather than empty, so "no category" is one value on disk.
-    ...(parsed.length === 0 ? {} : { categories: parsed }),
-  };
-
-  const written = await mutatePromptStore(scope, projectPath, (prompts) => [...prompts, prompt]);
-  if (written.status === 'error') return written;
-  return { status: 'ok', prompt };
+  try {
+    const now = Date.now();
+    const item = await addAtTop(
+      resolved.cwd,
+      { uuid: randomUUID(), name: name.trim(), content, createdAt: now, updatedAt: now },
+      parseCategoryIds(categories),
+    );
+    const snapshot = await snapshotScope(resolved.cwd);
+    return { status: 'ok', prompt: toWire(item, snapshot) };
+  } catch (err) {
+    return failure('Failed to write prompts:', err);
+  }
 }
 
 /**
  * Edit one prompt's name, content and categories. `id` and `createdAt` are not
- * editable:
- * the id is what the webview's cached rows are keyed by, and a creation time
- * that moves would reshuffle the newest-first order the user just looked at.
+ * editable: the id is what the webview's cached rows are keyed by.
  */
 export async function updatePrompt(
   scope: PromptScope,
@@ -334,25 +358,47 @@ export async function updatePrompt(
   if (!VALID_ID_PATTERN.test(id)) return { status: 'error', error: `Invalid prompt id: ${id}` };
   const validationError = validateNameAndContent(name, content);
   if (validationError) return { status: 'error', error: validationError };
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return resolved;
 
-  let updated: SavedPrompt | null = null;
-  const written = await mutatePromptStore(scope, projectPath, (prompts) => {
-    const index = prompts.findIndex((prompt) => prompt.id === id);
-    if (index === -1) return `Prompt not found: ${id}`;
-    const existing = prompts[index] as SavedPrompt;
-    const parsed = parseCategoryIds(categories);
-    // Spread first, then drop the key when the list came back empty: leaving
-    // the old value in place would make a category impossible to remove.
-    updated = { ...existing, name: name.trim(), content, updatedAt: Date.now() };
-    if (parsed.length === 0) delete updated.categories;
-    else updated.categories = parsed;
-    const next = [...prompts];
-    next[index] = updated;
-    return next;
-  });
-  if (written.status === 'error') return written;
-  if (updated === null) return { status: 'error', error: `Prompt not found: ${id}` };
-  return { status: 'ok', prompt: updated };
+  try {
+    const items = new PromptItemCollection();
+    const existing = (await items.inScope(resolved.cwd)).find((item) => item.uuid === id);
+    if (!existing) return { status: 'error', error: `Prompt not found: ${id}` };
+
+    const updated = await items.update(existing.id, {
+      name: name.trim(),
+      content,
+      updatedAt: Date.now(),
+    });
+    await replaceFiling(resolved.cwd, existing.id, parseCategoryIds(categories));
+
+    const snapshot = await snapshotScope(resolved.cwd);
+    return { status: 'ok', prompt: toWire(updated ?? existing, snapshot) };
+  } catch (err) {
+    return failure('Failed to write prompts:', err);
+  }
+}
+
+/** Make [itemId] sit in exactly the categories named by [uuids], keeping the places it already has. */
+async function replaceFiling(cwd: string | null, itemId: number, uuids: string[]): Promise<void> {
+  const links = new PromptCategoryItemLinkCollection();
+  const wanted = await existingCategoryIds(uuids);
+  const current = await links.ofItem(itemId);
+
+  const staleIds = new Set(
+    current.filter((link) => !wanted.includes(link.categoryId)).map((link) => link.id),
+  );
+  if (staleIds.size > 0) {
+    await links.mutate((rows) => ({
+      rows: rows.filter((row) => !staleIds.has(row.id)),
+      result: undefined,
+    }));
+  }
+  const filed = new Set(current.map((link) => link.categoryId));
+  for (const categoryId of wanted) {
+    if (!filed.has(categoryId)) await fileOnTop(links, cwd, categoryId, itemId);
+  }
 }
 
 /** Remove one prompt from a scope. Deleting an absent id is an error, not a no-op. */
@@ -362,10 +408,188 @@ export async function deletePrompt(
   id: string,
 ): Promise<PromptDeleteResult> {
   if (!VALID_ID_PATTERN.test(id)) return { status: 'error', error: `Invalid prompt id: ${id}` };
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return resolved;
 
-  return mutatePromptStore(scope, projectPath, (prompts) => {
-    const next = prompts.filter((prompt) => prompt.id !== id);
-    if (next.length === prompts.length) return `Prompt not found: ${id}`;
-    return next;
-  });
+  try {
+    const items = new PromptItemCollection();
+    const existing = (await items.inScope(resolved.cwd)).find((item) => item.uuid === id);
+    if (!existing) return { status: 'error', error: `Prompt not found: ${id}` };
+    await removeItems(items, new Set([existing.id]));
+    return { status: 'ok' };
+  } catch (err) {
+    return failure('Failed to write prompts:', err);
+  }
+}
+
+/** Remove items and every link out of them. */
+async function removeItems(items: PromptItemCollection, itemIds: Set<number>): Promise<void> {
+  await items.mutate((rows) => ({
+    rows: rows.filter((row) => !itemIds.has(row.id)),
+    result: undefined,
+  }));
+  await new PromptCategoryItemLinkCollection().mutate((rows) => ({
+    rows: rows.filter((row) => !itemIds.has(row.itemId)),
+    result: undefined,
+  }));
+}
+
+/**
+ * Put the prompts of one scope in the order [orderedIds] gives, or the order
+ * inside one category when [categoryId] is named.
+ *
+ * Ids the order does not mention keep their relative places after the named ones,
+ * and ids that are not in the scope are ignored, so a stale drag from a screen
+ * that has not seen a deletion cannot fail the whole move.
+ */
+export async function reorderPrompts(
+  scope: PromptScope,
+  projectPath: string | undefined,
+  orderedIds: string[],
+  categoryId?: string,
+): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return resolved;
+
+  try {
+    const items = new PromptItemCollection();
+    const inScope = await items.inScope(resolved.cwd);
+    const internalIdByUuid = new Map(inScope.map((item) => [item.uuid, item.id]));
+    const named = orderedIds
+      .map((uuid) => internalIdByUuid.get(uuid))
+      .filter((id): id is number => id !== undefined);
+
+    if (categoryId === undefined) {
+      const rest = inScope.map((item) => item.id).filter((id) => !named.includes(id));
+      const rank = new Map([...new Set([...named, ...rest])].map((id, index) => [id, index + 1]));
+      await items.mutate((rows) => ({
+        rows: rows.map((row) =>
+          row.cwd === resolved.cwd && rank.has(row.id) ? { ...row, priority: rank.get(row.id) as number } : row,
+        ),
+        result: undefined,
+      }));
+      return { status: 'ok' };
+    }
+
+    const category = (await new PromptCategoryCollection().all()).find((c) => c.uuid === categoryId);
+    if (!category) return { status: 'error', error: `Category not found: ${categoryId}` };
+
+    const links = new PromptCategoryItemLinkCollection();
+    const inCategory = (await links.inCategory(category.id)).filter((link) => link.belongsTo(resolved.cwd));
+    const linkByItem = new Map(inCategory.map((link) => [link.itemId, link.id]));
+    const namedLinks = named.map((itemId) => linkByItem.get(itemId)).filter((id): id is number => id !== undefined);
+    const restLinks = inCategory.map((link) => link.id).filter((id) => !namedLinks.includes(id));
+    const rank = new Map([...new Set([...namedLinks, ...restLinks])].map((id, index) => [id, index + 1]));
+    await links.mutate((rows) => ({
+      rows: rows.map((row) => (rank.has(row.id) ? { ...row, priority: rank.get(row.id) as number } : row)),
+      result: undefined,
+    }));
+    return { status: 'ok' };
+  } catch (err) {
+    return failure('Failed to write prompts:', err);
+  }
+}
+
+/**
+ * Run a read-modify-write over one scope's prompts: read them in wire shape, let
+ * [mutate] answer the list that should be stored (or a message to refuse), and
+ * bring the entity files in line with that list.
+ *
+ * Exported so prompt-transfer.ts can fold an imported set in through the same
+ * path every other write uses. The dependency runs one way: this module owns the
+ * store and knows nothing about files being carried in or out.
+ */
+export async function mutatePromptStore(
+  scope: PromptScope,
+  projectPath: string | undefined,
+  mutate: (prompts: SavedPrompt[]) => SavedPrompt[] | string,
+): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
+  const resolved = resolveScopeCwd(scope, projectPath);
+  if (resolved.status === 'error') return resolved;
+
+  try {
+    const snapshot = await snapshotScope(resolved.cwd);
+    const current = snapshot.items.map((item) => toWire(item, snapshot));
+    const next = mutate(current);
+    if (typeof next === 'string') return { status: 'error', error: next };
+    await bringInLine(resolved.cwd, snapshot, current, next);
+    return { status: 'ok' };
+  } catch (err) {
+    return failure('Failed to write prompts:', err);
+  }
+}
+
+/**
+ * Make the stored scope equal [next]: delete what is gone, edit what changed,
+ * and add what is new on top in the order [next] lists it.
+ */
+async function bringInLine(
+  cwd: string | null,
+  snapshot: ScopeSnapshot,
+  current: SavedPrompt[],
+  next: SavedPrompt[],
+): Promise<void> {
+  const items = new PromptItemCollection();
+  const itemByUuid = new Map(snapshot.items.map((item) => [item.uuid, item]));
+  const currentByUuid = new Map(current.map((prompt) => [prompt.id, prompt]));
+  const nextIds = new Set(next.map((prompt) => prompt.id));
+
+  const goneIds = new Set(
+    snapshot.items.filter((item) => !nextIds.has(item.uuid)).map((item) => item.id),
+  );
+  if (goneIds.size > 0) await removeItems(items, goneIds);
+
+  const added: SavedPrompt[] = [];
+  for (const prompt of next) {
+    const before = currentByUuid.get(prompt.id);
+    const item = itemByUuid.get(prompt.id);
+    if (!before || !item) {
+      added.push(prompt);
+      continue;
+    }
+    const sameFiling =
+      JSON.stringify([...(before.categories ?? [])].sort()) ===
+      JSON.stringify([...(prompt.categories ?? [])].sort());
+    if (
+      before.name !== prompt.name ||
+      before.content !== prompt.content ||
+      before.createdAt !== prompt.createdAt ||
+      before.updatedAt !== prompt.updatedAt
+    ) {
+      await items.update(item.id, {
+        name: prompt.name,
+        content: prompt.content,
+        createdAt: prompt.createdAt,
+        updatedAt: prompt.updatedAt,
+      });
+    }
+    if (!sameFiling) await replaceFiling(cwd, item.id, prompt.categories ?? []);
+  }
+
+  if (added.length === 0) return;
+
+  // Room for all of them at once, then each takes the place its position in the
+  // incoming list gives it, so the file's order survives the import.
+  await makeRoomAtTop(items, cwd, added.length);
+  const links = new PromptCategoryItemLinkCollection();
+  for (const [index, prompt] of added.entries()) {
+    const item = await items.create({
+      cwd,
+      priority: index + 1,
+      uuid: prompt.id,
+      name: prompt.name,
+      content: prompt.content,
+      createdAt: prompt.createdAt,
+      updatedAt: prompt.updatedAt,
+    });
+    for (const categoryId of await existingCategoryIds(prompt.categories ?? [])) {
+      await fileOnTop(links, cwd, categoryId, item.id);
+    }
+  }
+}
+
+function failure(label: string, err: unknown): { status: 'error'; error: string } {
+  const error = err instanceof Error ? err.message : String(err);
+  console.error('[node-backend]', label, err);
+  return { status: 'error', error };
 }

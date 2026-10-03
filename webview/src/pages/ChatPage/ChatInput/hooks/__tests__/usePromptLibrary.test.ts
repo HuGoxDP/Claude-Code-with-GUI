@@ -2,12 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { MessageType } from '@/shared';
 import { ALL_CATEGORIES } from '@/utils/promptCategories';
-import {
-  resetPromptOrder,
-  updateCategoryOrder,
-  updatePromptOrder,
-  updatePromptOrderByCategory,
-} from '@/utils/promptOrderStore';
+import { resetPromptOrder } from '@/utils/promptOrderStore';
 import type { PromptCategory, SavedPrompt } from '@/types/prompt';
 
 // ---------------------------------------------------------------------------
@@ -26,6 +21,8 @@ const prompt = (id: string, name: string, content: string): SavedPrompt => ({
 let globalPrompts: SavedPrompt[] = [];
 let projectPrompts: SavedPrompt[] = [];
 let categories: PromptCategory[] = [];
+// What the backend says about the order inside each category, per scope.
+let orderByCategory: Record<string, Record<string, string[]>> = {};
 
 const sendMock = vi.fn((type: string, payload?: Record<string, unknown>) => {
   if (type === MessageType.GET_PROMPTS) {
@@ -33,6 +30,7 @@ const sendMock = vi.fn((type: string, payload?: Record<string, unknown>) => {
     return Promise.resolve({
       scope,
       prompts: scope === 'project' ? projectPrompts : globalPrompts,
+      orderByCategory: orderByCategory[scope as string] ?? {},
     });
   }
   if (type === MessageType.GET_PROMPT_CATEGORIES) {
@@ -97,6 +95,7 @@ function makeParams(value: string) {
 
 describe('usePromptLibrary', () => {
   beforeEach(() => {
+    orderByCategory = {};
     // The arranged order is shared with the library modal and outlives a render.
     resetPromptOrder();
     sendMock.mockClear();
@@ -132,11 +131,9 @@ describe('usePromptLibrary', () => {
   // The arrow keys walk `rows`, and the panel draws in the same order, so the
   // arranged order has to be applied here and not only where the rows are drawn.
   it('lists the prompts in the order the user arranged them', async () => {
-    globalPrompts = [prompt('g1', 'one', 'one body'), prompt('g2', 'two', 'two body')];
-    projectPrompts = [prompt('p1', 'uno', 'uno body'), prompt('p2', 'dos', 'dos body')];
-    act(() => {
-      updatePromptOrder(() => ({ global: ['g2', 'g1'], project: ['p2', 'p1'] }));
-    });
+    // The backend lists each scope in the library's own order.
+    globalPrompts = [prompt('g2', 'two', 'two body'), prompt('g1', 'one', 'one body')];
+    projectPrompts = [prompt('p2', 'dos', 'dos body'), prompt('p1', 'uno', 'uno body')];
     const { result } = renderLibrary(makeParams('!!'));
 
     act(() => result.current.detectPrompt('!!', 2));
@@ -343,6 +340,7 @@ describe('reordering from the keyboard', () => {
     rows.map((row) => (row.kind === 'prompt' ? row.prompt.id : 'create'));
 
   beforeEach(() => {
+    orderByCategory = {};
     resetPromptOrder();
     sendMock.mockClear();
     categories = [category('c1', 'review'), category('c2', 'docs')];
@@ -368,6 +366,33 @@ describe('reordering from the keyboard', () => {
     expect(handled).toBe(true);
     expect(ids(result.current.rows)).toEqual(['g2', 'g1', 'g3', 'create']);
     expect(result.current.selectedIndex).toBe(1);
+  });
+
+  // The screen moves first; the move is then saved by the backend, which owns the order.
+  it('saves a moved prompt to the backend, and saves nothing for a plain read', async () => {
+    const { result } = await open();
+    expect(sendMock.mock.calls.some(([type]) => type === MessageType.REORDER_PROMPTS)).toBe(false);
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowDown'));
+    });
+
+    expect(sendMock).toHaveBeenCalledWith(MessageType.REORDER_PROMPTS, {
+      scope: 'global',
+      ids: ['g2', 'g1', 'g3'],
+    });
+  });
+
+  it('saves a moved category column to the backend', async () => {
+    const { result } = await open();
+    await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+    act(() => result.current.selectCategory('c1'));
+
+    act(() => {
+      result.current.handleKeyDown(altKey('ArrowDown'));
+    });
+
+    expect(sendMock).toHaveBeenCalledWith(MessageType.REORDER_PROMPT_CATEGORIES, { ids: ['c2', 'c1'] });
   });
 
   it('moves the highlighted prompt up a step', async () => {
@@ -519,10 +544,7 @@ describe('the category column', () => {
       { ...prompt('g2', 'two', 'two body'), categories: ['c1'] },
     ];
     projectPrompts = [];
-    act(() => {
-      updatePromptOrder(() => ({ global: ['g1', 'g2'], project: [] }));
-      updatePromptOrderByCategory(() => ({ c1: { global: ['g2', 'g1'], project: [] } }));
-    });
+    orderByCategory = { global: { c1: ['g2', 'g1'] } };
     const { result } = await openWithCategories();
 
     // Everything: the library's order.
@@ -547,9 +569,8 @@ describe('the category column', () => {
   // order, so the arranged column has to be applied here and not only where the
   // chips are drawn.
   it('lists the chips in the order the user arranged the column', async () => {
-    act(() => {
-      updateCategoryOrder(() => ['c2', 'c1']);
-    });
+    // The backend lists the column in its own order.
+    categories = [category('c2', 'docs'), category('c1', 'review')];
 
     const { result } = await openWithCategories();
 

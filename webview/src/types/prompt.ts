@@ -45,7 +45,13 @@ export interface ScopedPrompt extends SavedPrompt {
 /** The reply to GET_PROMPTS. */
 export interface GetPromptsAck {
   scope: PromptScope;
+  /** In the library's own ("All") order. */
   prompts: SavedPrompt[];
+  /**
+   * The order inside each category: a category id to the ids of this scope's
+   * prompts filed under it, top first.
+   */
+  orderByCategory?: Record<string, string[]>;
 }
 
 /** The reply to CREATE_PROMPT and UPDATE_PROMPT. */

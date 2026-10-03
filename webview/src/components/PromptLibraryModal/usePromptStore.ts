@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { MessageType } from '@/shared';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { useWorkingDir } from '@/contexts/WorkingDirContext';
+import { usePromptOrderSync } from '@/hooks/usePromptOrderSync';
+import { hydrateCategoryOrder, hydratePromptOrder } from '@/utils/promptOrderStore';
 import type {
   PromptCategory,
   PromptCategoriesAck,
@@ -74,6 +76,7 @@ export interface PromptStore {
 export function usePromptStore(): PromptStore {
   const bridge = useBridgeContext();
   const { workingDirectory } = useWorkingDir();
+  usePromptOrderSync(workingDirectory);
 
   const [globalPrompts, setGlobalPrompts] = useState<SavedPrompt[]>([]);
   const [projectPrompts, setProjectPrompts] = useState<SavedPrompt[]>([]);
@@ -90,7 +93,11 @@ export function usePromptStore(): PromptStore {
     // Categories come back on the same round trip: the sidebar and the lists are
     // drawn together, so reading them apart would show one before the other.
     (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
-      .then((ack) => setCategories(ack?.categories ?? []))
+      .then((ack) => {
+        const read = ack?.categories ?? [];
+        hydrateCategoryOrder(read.map((category) => category.id));
+        setCategories(read);
+      })
       .catch(() => setCategories([]));
 
     const requests: Array<Promise<GetPromptsAck>> = [
@@ -107,6 +114,9 @@ export function usePromptStore(): PromptStore {
 
     Promise.all(requests)
       .then((acks) => {
+        for (const ack of acks) {
+          hydratePromptOrder(ack.scope, (ack.prompts ?? []).map((prompt) => prompt.id), ack.orderByCategory ?? {});
+        }
         setGlobalPrompts(acks[0]?.prompts ?? []);
         setProjectPrompts(acks[1]?.prompts ?? []);
         setLoading(false);
@@ -171,7 +181,10 @@ export function usePromptStore(): PromptStore {
    * it is the thing that must not lag.
    */
   const applyCategoryAck = useCallback((ack: PromptCategoriesAck) => {
-    if (ack?.status !== 'error' && ack?.categories) setCategories(ack.categories);
+    if (ack?.status !== 'error' && ack?.categories) {
+      hydrateCategoryOrder(ack.categories.map((category) => category.id));
+      setCategories(ack.categories);
+    }
     return ack;
   }, []);
 

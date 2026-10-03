@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, type RefObject } from 'react';
 import { useBridgeContext } from '@/contexts/BridgeContext';
+import { usePromptOrderSync } from '@/hooks/usePromptOrderSync';
 import { MessageType } from '@/shared';
 import { findPromptToken, PROMPT_TRIGGER } from '@/utils/findPromptToken';
 import type {
@@ -20,6 +21,8 @@ import {
   useCategoryOrder,
   usePromptOrder,
   usePromptOrderByCategory,
+  hydrateCategoryOrder,
+  hydratePromptOrder,
 } from '@/utils/promptOrderStore';
 import { moveCategoryBy, movePromptBy } from '@/utils/promptReorderCommands';
 import { replaceRangeWithText } from '../RichInput/replaceRangeWithText';
@@ -175,6 +178,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
   const { workingDirectory, value, onChange, inputRef, onPastePrompt, onCreatePrompt, requestFill } =
     params;
   const bridge = useBridgeContext();
+  usePromptOrderSync(workingDirectory);
 
   const [state, setState] = useState<PromptLibraryState>(EMPTY_STATE);
 
@@ -221,7 +225,11 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     // Read with the prompts, because a category name is only reachable through
     // its record and the panel filters on both in the same keystroke.
     (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
-      .then((ack) => setState(prev => ({ ...prev, categories: ack?.categories ?? [] })))
+      .then((ack) => {
+        const read = ack?.categories ?? [];
+        hydrateCategoryOrder(read.map((category) => category.id));
+        setState(prev => ({ ...prev, categories: read }));
+      })
       .catch(() => setState(prev => ({ ...prev, categories: [] })));
 
     const requests: Array<Promise<GetPromptsAck>> = [
@@ -238,6 +246,9 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
     Promise.all(requests)
       .then((acks) => {
+        for (const ack of acks) {
+          hydratePromptOrder(ack.scope, (ack.prompts ?? []).map((prompt) => prompt.id), ack.orderByCategory ?? {});
+        }
         const global = (acks[0]?.prompts ?? []).map(
           (prompt): ScopedPrompt => ({ ...prompt, scope: 'global' }),
         );
