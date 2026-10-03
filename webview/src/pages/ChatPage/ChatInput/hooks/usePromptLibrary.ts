@@ -15,8 +15,8 @@ import {
   matchesCategorySelection,
   type CategorySelection,
 } from '@/utils/promptCategories';
-import { arrangeByScope } from '@/utils/promptOrder';
-import { usePromptOrder } from '@/utils/promptOrderStore';
+import { arrangeByScope, orderViewOf } from '@/utils/promptOrder';
+import { usePromptOrder, usePromptOrderByCategory } from '@/utils/promptOrderStore';
 import { replaceRangeWithText } from '../RichInput/replaceRangeWithText';
 
 /**
@@ -94,6 +94,10 @@ interface UsePromptLibraryReturn {
   isActive: boolean;
   /** The rows to render, already filtered and with the create row appended. */
   rows: PromptRow[];
+  /** Every prompt of both scopes, which an order always covers whole. */
+  allPrompts: ScopedPrompt[];
+  /** The prompts that belong to the picked category, whatever the typed query says. */
+  memberPrompts: ScopedPrompt[];
   selectedIndex: number;
   isLoading: boolean;
   hasLoaded: boolean;
@@ -311,10 +315,17 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
   // The order the user dragged the prompts into comes first, so that the arrow
   // keys walk the list in the order it is drawn in. The library modal reads the
   // same order, which is why a drag on either screen is the order on both.
+  // Inside a category the category's own order sits on top of the library's.
   const order = usePromptOrder();
+  const orderByCategory = usePromptOrderByCategory();
+  const orderView = orderViewOf(state.selectedCategory);
+  const memberPrompts = arrangeByScope(
+    state.loaded,
+    order,
+    orderView.kind === 'category' ? orderByCategory[orderView.id] : undefined,
+  ).filter(prompt => matchesCategorySelection(prompt, state.selectedCategory, state.categories));
   const rows: PromptRow[] = [
-    ...arrangeByScope(state.loaded, order)
-      .filter(prompt => matchesCategorySelection(prompt, state.selectedCategory, state.categories))
+    ...memberPrompts
       .filter(prompt => matchesQuery(prompt, state.query, state.categories))
       .map((prompt): PromptRow => ({ kind: 'prompt', prompt })),
     { kind: 'create' },
@@ -499,6 +510,8 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
   return {
     isActive: state.isActive,
     rows,
+    allPrompts: state.loaded,
+    memberPrompts,
     selectedIndex,
     isLoading: state.isLoading,
     hasLoaded: state.hasLoaded,

@@ -1247,6 +1247,8 @@ export function ChatInput() {
           <div className="absolute bottom-full start-0 w-full z-20">
             <PromptDropdown
               rows={promptLibrary.rows}
+              allPrompts={promptLibrary.allPrompts}
+              memberPrompts={promptLibrary.memberPrompts}
               selectedIndex={promptLibrary.selectedIndex}
               isLoading={promptLibrary.isLoading}
               hasLoaded={promptLibrary.hasLoaded}

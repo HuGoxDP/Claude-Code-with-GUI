@@ -68,7 +68,7 @@ describe('usePromptReorder', () => {
   });
 
   it('shows the cards in the order they came before anything is dragged', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     expect(idsOf(result.current.lists.global)).toEqual(['a', 'b', 'c']);
   });
@@ -76,7 +76,7 @@ describe('usePromptReorder', () => {
   // The neighbours have to slide aside while the card is still being held, so
   // the order is previewed on every step rather than only at the drop.
   it('previews the order while a card is still held', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     act(() => result.current.onDragOver(dragEvent({ source: 'a', target: 'c' })));
 
@@ -84,7 +84,7 @@ describe('usePromptReorder', () => {
   });
 
   it('keeps the new order after the drop', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     act(() => result.current.onDragOver(dragEvent({ source: 'a', target: 'c' })));
     act(() => result.current.onDragEnd(dragEvent({ source: 'a', target: 'c' })));
@@ -95,7 +95,7 @@ describe('usePromptReorder', () => {
   // Escape or a lost pointer. The arranged order was never touched, so going
   // back needs no undo, which only holds while the preview stays separate.
   it('goes back to the original order when the drag is cancelled', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     act(() => result.current.onDragOver(dragEvent({ source: 'a', target: 'c' })));
     act(() => result.current.onDragEnd(dragEvent({ source: 'a', target: 'c', canceled: true })));
@@ -106,7 +106,7 @@ describe('usePromptReorder', () => {
   // Dropping on a category files the prompt. It must not also leave the card
   // wherever the pointer happened to pass over its neighbours on the way there.
   it('does not reorder when the card is dropped on a category', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     act(() => result.current.onDragOver(dragEvent({ source: 'a', target: 'c' })));
     act(() =>
@@ -120,7 +120,7 @@ describe('usePromptReorder', () => {
 
   it('reorders one section without touching the other', () => {
     const { result } = renderHook(() =>
-      usePromptReorder(sourcesOf(["a", "b"], ["x", "y"]), all),
+      usePromptReorder(sourcesOf(['a', 'b'], ['x', 'y'])),
     );
 
     act(() =>
@@ -140,7 +140,7 @@ describe('usePromptReorder', () => {
     const sources = sourcesOf(['a', 'b', 'c', 'd']);
     const { result, rerender } = renderHook(
       ({ isShown }: { isShown: (p: SavedPrompt) => boolean }) =>
-        usePromptReorder(sources, isShown),
+        usePromptReorder(sources, { isShown }),
       { initialProps: { isShown: (p: SavedPrompt) => p.id !== 'b' } },
     );
 
@@ -157,7 +157,7 @@ describe('usePromptReorder', () => {
   // as a new prompt does everywhere else in the library.
   it('puts a prompt created after the arrangement at the top', () => {
     const { result, rerender } = renderHook(
-      ({ ids }: { ids: string[] }) => usePromptReorder(sourcesOf(ids), all),
+      ({ ids }: { ids: string[] }) => usePromptReorder(sourcesOf(ids)),
       { initialProps: { ids: ['a', 'b', 'c'] } },
     );
 
@@ -169,7 +169,7 @@ describe('usePromptReorder', () => {
   });
 
   it('changes nothing for a drag that never moved over another card', () => {
-    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c']), all));
+    const { result } = renderHook(() => usePromptReorder(sourcesOf(['a', 'b', 'c'])));
 
     act(() => result.current.onDragEnd(dragEvent({ source: 'a', target: null })));
 

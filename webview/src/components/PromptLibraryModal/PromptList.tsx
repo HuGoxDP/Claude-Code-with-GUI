@@ -43,6 +43,12 @@ export function buildPromptRows(
 }
 
 interface Props {
+  /**
+   * False in a view that has no order of its own ("uncategorised"). A card there
+   * can still be picked up and filed under a category, but its neighbours do not
+   * slide aside, because there is nowhere in the list for it to be moved to.
+   */
+  sortable?: boolean;
   globalPrompts: SavedPrompt[];
   projectPrompts: SavedPrompt[];
   /** False when no project is open, so the project section explains itself instead. */
@@ -87,6 +93,7 @@ export function matchesPromptQuery(prompt: SavedPrompt, query: string): boolean 
 }
 
 interface SectionProps {
+  sortable: boolean;
   title: string;
   scope: PromptScope;
   prompts: SavedPrompt[];
@@ -115,6 +122,7 @@ interface SectionProps {
  */
 function PromptSection(props: SectionProps) {
   const {
+    sortable,
     title,
     scope,
     prompts,
@@ -201,6 +209,7 @@ function PromptSection(props: SectionProps) {
               prompt={prompt}
               scope={scope}
               index={index}
+              sortable={sortable}
               isSelected={prompt.id === selectedId}
               isFocusedPane={isFocusedPane}
               onUse={onUse}
@@ -223,6 +232,7 @@ function PromptSection(props: SectionProps) {
  */
 export function PromptList(props: Props) {
   const {
+    sortable = true,
     globalPrompts,
     projectPrompts,
     projectAvailable,
@@ -260,6 +270,7 @@ export function PromptList(props: Props) {
      */
     <div ref={scrollRef} className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto py-2">
       <PromptSection
+        sortable={sortable}
         title={t('promptLibrary.globalSection')}
         scope="global"
         prompts={globalPrompts}
@@ -273,6 +284,7 @@ export function PromptList(props: Props) {
         onCreate={onCreate}
       />
       <PromptSection
+        sortable={sortable}
         title={
           projectName
             ? t('promptLibrary.projectSectionNamed', { projectName })
@@ -299,6 +311,8 @@ interface PromptCardProps {
   scope: PromptScope;
   /** Where the card sits in its section, which is what the drag layer sorts by. */
   index: number;
+  /** False in a view with no order of its own: the card can be filed but not moved. */
+  sortable: boolean;
   isSelected: boolean;
   isFocusedPane: boolean;
   onUse: (prompt: SavedPrompt) => void;
@@ -324,12 +338,15 @@ interface PromptCardProps {
  * the other section would be showing a move that cannot be kept.
  */
 function PromptCard(props: PromptCardProps) {
-  const { prompt, scope, index, isSelected, isFocusedPane, onUse, onEdit, onDelete } = props;
+  const { prompt, scope, index, sortable, isSelected, isFocusedPane, onUse, onEdit, onDelete } = props;
   const { t } = useTranslation('common');
 
   const { ref: dragRef, isDragging } = useSortable({
     id: promptSortableId(scope, prompt.id),
     index,
+    // Still draggable, so it can be filed under a category, but no longer a place
+    // another card can be dropped, so nothing slides aside for it.
+    disabled: sortable ? false : { droppable: true },
     group: scope,
     type: PROMPT_DRAG_TYPE,
     accept: (source) => readPromptDrag(source.data)?.scope === scope,

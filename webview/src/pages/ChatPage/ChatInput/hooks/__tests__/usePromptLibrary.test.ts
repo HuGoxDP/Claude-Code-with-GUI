@@ -5,6 +5,7 @@ import { ALL_CATEGORIES } from '@/utils/promptCategories';
 import {
   resetPromptOrder,
   updatePromptOrder,
+  updatePromptOrderByCategory,
 } from '@/utils/promptOrderStore';
 import type { PromptCategory, SavedPrompt } from '@/types/prompt';
 
@@ -403,6 +404,38 @@ describe('the category column', () => {
       ['c1', 1],
       ['c2', 1],
     ]);
+  });
+
+  // A category has an order of its own on top of the library's, so the arrow keys
+  // and the drawn list must follow it while that category is picked.
+  it('lists a picked category in the category\'s own order', async () => {
+    globalPrompts = [
+      { ...prompt('g1', 'one', 'one body'), categories: ['c1'] },
+      { ...prompt('g2', 'two', 'two body'), categories: ['c1'] },
+    ];
+    projectPrompts = [];
+    act(() => {
+      updatePromptOrder(() => ({ global: ['g1', 'g2'], project: [] }));
+      updatePromptOrderByCategory(() => ({ c1: { global: ['g2', 'g1'], project: [] } }));
+    });
+    const { result } = await openWithCategories();
+
+    // Everything: the library's order.
+    expect(result.current.rows.map((row) => (row.kind === 'prompt' ? row.prompt.id : 'create'))).toEqual([
+      'g1',
+      'g2',
+      'create',
+    ]);
+
+    act(() => result.current.selectCategory('c1'));
+
+    expect(result.current.rows.map((row) => (row.kind === 'prompt' ? row.prompt.id : 'create'))).toEqual([
+      'g2',
+      'g1',
+      'create',
+    ]);
+    expect(result.current.memberPrompts.map((p) => p.id)).toEqual(['g2', 'g1']);
+    expect(result.current.allPrompts.map((p) => p.id).sort()).toEqual(['g1', 'g2']);
   });
 
   it('opens on "everything", so nothing is hidden until the user asks', async () => {

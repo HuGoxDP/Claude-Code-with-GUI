@@ -23,6 +23,14 @@ let current: PromptOrder = emptyPromptOrder();
  * the categories are global and both scopes file their prompts under them.
  */
 let categoryOrder: string[] = [];
+/**
+ * The order of the prompts INSIDE each category, by category id.
+ *
+ * A category has an order of its own on top of the library's, so the same prompt
+ * can sit in different places in different categories. Nothing here for a
+ * category nobody has arranged: it shows the library's order narrowed.
+ */
+let promptOrderByCategory: Record<string, PromptOrder> = {};
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -56,11 +64,29 @@ export function updateCategoryOrder(update: (order: string[]) => string[]): void
   notify();
 }
 
+export function getPromptOrderByCategory(): Record<string, PromptOrder> {
+  return promptOrderByCategory;
+}
+
+/** Replace the per-category orders. The updater gets all of them. */
+export function updatePromptOrderByCategory(
+  update: (orders: Record<string, PromptOrder>) => Record<string, PromptOrder>,
+): void {
+  promptOrderByCategory = update(promptOrderByCategory);
+  notify();
+}
+
 /** Forget every arrangement. For tests, which must not inherit each other's order. */
 export function resetPromptOrder(): void {
   current = emptyPromptOrder();
   categoryOrder = [];
+  promptOrderByCategory = {};
   notify();
+}
+
+/** The order of the prompts inside each category, re-read when either screen changes it. */
+export function usePromptOrderByCategory(): Record<string, PromptOrder> {
+  return useSyncExternalStore(subscribe, getPromptOrderByCategory);
 }
 
 /** The order, re-read whenever either screen changes it. */

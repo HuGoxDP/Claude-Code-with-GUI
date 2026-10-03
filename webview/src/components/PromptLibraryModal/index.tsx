@@ -17,6 +17,7 @@ import { PromptExportDialog, PromptImportDialog } from './PromptTransferDialog';
 import { usePromptReorder } from '@/hooks/usePromptReorder';
 import { useCategoryReorder } from '@/hooks/useCategoryReorder';
 import { categoriesAfterDrop, readCategoryDrop, readPromptDrag } from '@/utils/promptDrag';
+import { orderViewOf } from '@/utils/promptOrder';
 import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PromptCategorySidebar, buildSidebarRows } from './PromptCategorySidebar';
 import {
@@ -131,7 +132,11 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   // the arrow keys and the screen both walk the same list.
   const reorder = usePromptReorder(
     { global: store.globalPrompts, project: store.projectPrompts },
-    inCategory,
+    {
+      isShown: inCategory,
+      isMember: (prompt) => matchesCategorySelection(prompt, selectedCategory, store.categories),
+      view: orderViewOf(selectedCategory),
+    },
   );
   const globalPrompts = reorder.lists.global;
   const projectPrompts = reorder.lists.project;
@@ -550,6 +555,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                   onEditingChange={setRenamingCategory}
                 />
                 <PromptList
+                sortable={reorder.sortable}
                 globalPrompts={globalPrompts}
                 projectPrompts={projectPrompts}
                 projectAvailable={store.projectAvailable}

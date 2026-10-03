@@ -15,7 +15,6 @@ const prompt = (id: string): SavedPrompt => ({
 });
 
 const sources = (ids: string[]) => ({ global: ids.map(prompt), project: [] });
-const all = () => true;
 const idsOf = (prompts: SavedPrompt[]) => prompts.map((p) => p.id);
 
 /** The part of a drag event the hook and dnd-kit's `move` read. */
@@ -43,8 +42,8 @@ describe('usePromptReorder shared between two screens', () => {
   });
 
   it('shows on the other screen the order dragged on this one', () => {
-    const modal = renderHook(() => usePromptReorder(sources(['a', 'b', 'c']), all));
-    const panel = renderHook(() => usePromptReorder(sources(['a', 'b', 'c']), all));
+    const modal = renderHook(() => usePromptReorder(sources(['a', 'b', 'c'])));
+    const panel = renderHook(() => usePromptReorder(sources(['a', 'b', 'c'])));
 
     act(() => modal.result.current.onDragOver(dragEvent('a', 'c')));
     act(() => modal.result.current.onDragEnd(dragEvent('a', 'c')));
@@ -56,8 +55,8 @@ describe('usePromptReorder shared between two screens', () => {
   // The drag in flight is one screen's own preview. The other screen must not
   // show a half-made move that may still be cancelled.
   it('does not show the other screen a drag that has not landed', () => {
-    const modal = renderHook(() => usePromptReorder(sources(['a', 'b', 'c']), all));
-    const panel = renderHook(() => usePromptReorder(sources(['a', 'b', 'c']), all));
+    const modal = renderHook(() => usePromptReorder(sources(['a', 'b', 'c'])));
+    const panel = renderHook(() => usePromptReorder(sources(['a', 'b', 'c'])));
 
     act(() => modal.result.current.onDragOver(dragEvent('a', 'c')));
 

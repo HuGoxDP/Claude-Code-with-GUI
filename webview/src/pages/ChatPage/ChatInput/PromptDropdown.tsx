@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { DragDropProvider, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { usePromptReorder } from '@/hooks/usePromptReorder';
-import { promptSortableId } from '@/utils/promptOrder';
+import { orderViewOf, promptSortableId } from '@/utils/promptOrder';
 import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
@@ -22,6 +22,14 @@ import type { PanelCategoryRow, PromptPane, PromptRow } from './hooks/usePromptL
 
 interface Props {
   rows: PromptRow[];
+  /**
+   * Every prompt of both scopes, for the order a drag changes. An order always
+   * covers the whole set it belongs to, so a drag among the rows a search left on
+   * screen can be folded back into it. Defaults to the prompts among `rows`.
+   */
+  allPrompts?: ScopedPrompt[];
+  /** The prompts of the picked category whatever the search says. Defaults to the prompts among `rows`. */
+  memberPrompts?: ScopedPrompt[];
   selectedIndex: number;
   isLoading: boolean;
   /** True once a load has resolved, so "no prompts yet" is only shown when true. */
@@ -68,6 +76,8 @@ function preview(content: string): string {
 export function PromptDropdown(props: Props) {
   const {
     rows,
+    allPrompts,
+    memberPrompts,
     selectedIndex,
     isLoading,
     hasLoaded,
@@ -116,11 +126,19 @@ export function PromptDropdown(props: Props) {
    * its place in it. A drawn row is therefore mapped back to its place in `rows`
    * rather than trusting that the two lists agree.
    */
-  const promptsIn = (scope: ScopedPrompt['scope']) =>
-    rows.flatMap((row) => (row.kind === 'prompt' && row.prompt.scope === scope ? [row.prompt] : []));
+  const rowPrompts = rows.flatMap((row) => (row.kind === 'prompt' ? [row.prompt] : []));
+  const keyOf = (prompt: ScopedPrompt) => `${prompt.scope}:${prompt.id}`;
+  const shownKeys = new Set(rowPrompts.map(keyOf));
+  const memberKeys = new Set((memberPrompts ?? rowPrompts).map(keyOf));
+  const inScope = (scope: ScopedPrompt['scope']) =>
+    (allPrompts ?? rowPrompts).filter((prompt) => prompt.scope === scope);
   const reorder = usePromptReorder(
-    { global: promptsIn('global'), project: promptsIn('project') },
-    () => true,
+    { global: inScope('global'), project: inScope('project') },
+    {
+      isShown: (prompt) => shownKeys.has(keyOf(prompt)),
+      isMember: (prompt) => memberKeys.has(keyOf(prompt)),
+      view: orderViewOf(selectedCategory),
+    },
   );
   const drawn: PromptRow[] = [
     ...[...reorder.lists.project, ...reorder.lists.global].map(

@@ -7,10 +7,13 @@ import {
   categorySortableId,
   isCategorySortableId,
   isPromptSortableId,
+  layeredPromptOrder,
   mergeVisibleOrder,
+  orderViewOf,
   promptIdsOfSortable,
   promptSortableId,
 } from '../promptOrder';
+import { ALL_CATEGORIES, UNCATEGORISED } from '../promptCategories';
 import type { PromptScope, SavedPrompt, ScopedPrompt } from '@/types/prompt';
 
 const prompt = (id: string): SavedPrompt => ({
@@ -56,6 +59,35 @@ describe('applyPromptOrder', () => {
     applyPromptOrder(input, ['b', 'a']);
 
     expect(idsOf(input)).toEqual(['a', 'b']);
+  });
+});
+
+describe('orderViewOf', () => {
+  it('reads "all" as the whole library', () => {
+    expect(orderViewOf(ALL_CATEGORIES)).toEqual({ kind: 'all' });
+  });
+
+  it('reads "uncategorised" as a view with no order of its own', () => {
+    expect(orderViewOf(UNCATEGORISED)).toEqual({ kind: 'uncategorised' });
+  });
+
+  it('reads anything else as a category id', () => {
+    expect(orderViewOf('c1')).toEqual({ kind: 'category', id: 'c1' });
+  });
+});
+
+describe('layeredPromptOrder', () => {
+  it('is just the all-order when there is no category order', () => {
+    expect(idsOf(layeredPromptOrder([prompt('a'), prompt('b')], ['b', 'a'], undefined))).toEqual([
+      'b',
+      'a',
+    ]);
+  });
+
+  it('puts the category\'s order on top of the all-order', () => {
+    expect(
+      idsOf(layeredPromptOrder([prompt('a'), prompt('b'), prompt('c')], ['c', 'b', 'a'], ['a', 'c'])),
+    ).toEqual(['b', 'a', 'c']);
   });
 });
 

@@ -1,4 +1,26 @@
 import type { PromptScope, SavedPrompt } from '@/types/prompt';
+import { ALL_CATEGORIES, UNCATEGORISED, type CategorySelection } from './promptCategories';
+
+/**
+ * Which of the library's orders a screen is showing, and so which one a drag
+ * there may change.
+ *
+ * "All" is not a category but the whole library, and its order is the library's
+ * own. A real category has an order of its own on top of that, so the same prompt
+ * can sit in different places in different categories. "Uncategorised" has none:
+ * it is whatever is left over, listed in the all-order, and there is nothing of
+ * its own to rearrange.
+ */
+export type OrderView =
+  | { kind: 'all' }
+  | { kind: 'category'; id: string }
+  | { kind: 'uncategorised' };
+
+export function orderViewOf(selection: CategorySelection): OrderView {
+  if (selection === ALL_CATEGORIES) return { kind: 'all' };
+  if (selection === UNCATEGORISED) return { kind: 'uncategorised' };
+  return { kind: 'category', id: selection };
+}
 
 /**
  * Putting the prompt cards in the order the user dragged them to.
@@ -97,21 +119,41 @@ export function applyPromptOrder<P extends SavedPrompt>(prompts: P[], ids: strin
 }
 
 /**
+ * [prompts] in the order a view shows them: the all-order first, then, inside a
+ * category, that category's own order on top of it.
+ *
+ * Layered rather than replaced. A category nobody has arranged has no order of
+ * its own, and then it is simply the all-order narrowed. A prompt filed into it
+ * later is one its order has not heard of, and so lands on top, the same as any
+ * new prompt.
+ */
+export function layeredPromptOrder<P extends SavedPrompt>(
+  prompts: P[],
+  allIds: string[],
+  categoryIds: string[] | undefined,
+): P[] {
+  const byAll = applyPromptOrder(prompts, allIds);
+  return categoryIds === undefined ? byAll : applyPromptOrder(byAll, categoryIds);
+}
+
+/**
  * The `!!` panel's single list: project prompts first, then global ones, each
  * scope in the order the user arranged it.
  *
  * Project first because a project-specific phrase is the more specific answer,
  * which is the order the panel has always had. Each scope is arranged on its own
- * because the two are separate stores with no order to share.
+ * because the two are separate stores with no order to share. [categoryOrder] is
+ * the order of the category being viewed, when one is.
  */
 export function arrangeByScope<P extends SavedPrompt & { scope: PromptScope }>(
   prompts: P[],
   order: PromptOrder,
+  categoryOrder?: PromptOrder,
 ): P[] {
   const inScope = (scope: PromptScope) => prompts.filter((prompt) => prompt.scope === scope);
   return [
-    ...applyPromptOrder(inScope('project'), order.project),
-    ...applyPromptOrder(inScope('global'), order.global),
+    ...layeredPromptOrder(inScope('project'), order.project, categoryOrder?.project),
+    ...layeredPromptOrder(inScope('global'), order.global, categoryOrder?.global),
   ];
 }
 
