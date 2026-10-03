@@ -424,3 +424,93 @@ describe('PromptDropdown', () => {
     });
   });
 });
+
+
+describe('PromptDropdown category name editing', () => {
+  const category = { id: 'c1', name: 'review', createdAt: 1 };
+  const categoryRows: PanelCategoryRow[] = [
+    { key: ALL_CATEGORIES, category: null, count: 2 },
+    { key: 'c1', category, count: 1 },
+  ];
+  const prompts = [row('p1', 'one', 'one body', 'global')];
+
+  beforeEach(() => {
+    resetPromptOrder();
+  });
+
+  const edit = (overrides: Partial<React.ComponentProps<typeof PromptDropdown>> = {}) =>
+    renderPanel(prompts, {
+      categoryRows,
+      editingCategory: 'c1',
+      onRenameCategory: vi.fn(),
+      onCancelCategoryEdit: vi.fn(),
+      ...overrides,
+    });
+
+  it('shows the name in a field, selected, in place of the chip', () => {
+    edit();
+
+    const field = screen.getByDisplayValue('review') as HTMLInputElement;
+    expect(field).toBeInTheDocument();
+    expect(document.activeElement).toBe(field);
+    expect(field.selectionStart).toBe(0);
+    expect(field.selectionEnd).toBe('review'.length);
+  });
+
+  it('shows ordinary chips when nothing is being edited', () => {
+    renderPanel(prompts, { categoryRows, editingCategory: null });
+
+    expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+    expect(screen.getByText('review')).toBeInTheDocument();
+  });
+
+  it('saves the typed name with Enter', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.change(field, { target: { value: 'reviews' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(onRenameCategory).toHaveBeenCalledWith('c1', 'reviews');
+  });
+
+  it('puts the old name back with Escape, and saves nothing', () => {
+    const onRenameCategory = vi.fn();
+    const onCancelCategoryEdit = vi.fn();
+    edit({ onRenameCategory, onCancelCategoryEdit });
+    const field = screen.getByDisplayValue('review');
+    fireEvent.change(field, { target: { value: 'something else' } });
+
+    fireEvent.keyDown(field, { key: 'Escape' });
+    fireEvent.blur(field); // the trailing blur an unmounting field can fire
+
+    expect(onCancelCategoryEdit).toHaveBeenCalledTimes(1);
+    expect(onRenameCategory).not.toHaveBeenCalled();
+  });
+
+  it('keeps Escape and every other key from travelling on to the composer', () => {
+    edit();
+    const field = screen.getByDisplayValue('review');
+    const heard = vi.fn();
+    document.addEventListener('keydown', heard);
+
+    fireEvent.keyDown(field, { key: 'Escape' });
+    fireEvent.keyDown(field, { key: 'x' });
+    document.removeEventListener('keydown', heard);
+
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it('saves when the field loses the focus, once', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.change(field, { target: { value: 'reviews' } });
+    fireEvent.blur(field);
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(onRenameCategory).toHaveBeenCalledTimes(1);
+  });
+});

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DragDropProvider, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useCategoryReorder } from '@/hooks/useCategoryReorder';
@@ -49,6 +49,12 @@ interface Props {
   onEdit: (prompt: ScopedPrompt) => void;
   /** Remove this prompt, after asking. */
   onDelete: (prompt: ScopedPrompt) => void;
+  /** The category whose name is being edited in place, or null. */
+  editingCategory?: string | null;
+  /** Save the edited name. Called by Enter, and by the field losing focus. */
+  onRenameCategory?: (id: string, name: string) => void;
+  /** Leave edit mode and keep the old name. Called by Escape. */
+  onCancelCategoryEdit?: () => void;
   onClose: () => void;
 }
 
@@ -91,6 +97,9 @@ export function PromptDropdown(props: Props) {
     onSelect,
     onEdit,
     onDelete,
+    editingCategory = null,
+    onRenameCategory,
+    onCancelCategoryEdit,
     onClose,
   } = props;
   const { t } = useTranslation('chat');
@@ -223,7 +232,15 @@ export function PromptDropdown(props: Props) {
                 ref={categoryListRef}
                 className="flex max-h-14 shrink-0 flex-row gap-1 overflow-x-auto overflow-y-hidden border-b border-border-subtle p-1.5 sm:max-h-[200px] sm:w-32 sm:min-w-24 sm:max-w-40 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:border-b-0 sm:border-e"
               >
-                {drawnCategoryRows.map((row) => (
+                {drawnCategoryRows.map((row) =>
+                  row.category && row.key === editingCategory ? (
+                    <PanelCategoryNameField
+                      key={row.key}
+                      initialName={row.category.name}
+                      onCommit={(name) => onRenameCategory?.(row.category!.id, name)}
+                      onCancel={() => onCancelCategoryEdit?.()}
+                    />
+                  ) : (
                   <PanelCategoryChip
                     key={row.key}
                     row={row}
@@ -235,7 +252,8 @@ export function PromptDropdown(props: Props) {
                     isFocusedPane={focusedPane === 'categories'}
                     onSelect={onSelectCategory}
                   />
-                ))}
+                  ),
+                )}
               </div>
             )}
 
@@ -306,6 +324,62 @@ export function PromptDropdown(props: Props) {
       />
     </div>
     </DragDropProvider>
+  );
+}
+
+interface PanelCategoryNameFieldProps {
+  initialName: string;
+  onCommit: (name: string) => void;
+  onCancel: () => void;
+}
+
+/**
+ * A category's name being edited in place, where its chip was.
+ *
+ * Enter saves and Escape puts the old name back, the same two answers the
+ * library modal's category column gives. Every key stops here: the field has the
+ * focus instead of the composer while it is open, and a key it does not use must
+ * not reach the composer or the key that stops a running response.
+ */
+function PanelCategoryNameField(props: PanelCategoryNameFieldProps) {
+  const { initialName, onCommit, onCancel } = props;
+  const [draft, setDraft] = useState(initialName);
+  const inputRef = useRef<HTMLInputElement>(null);
+  /** Escape unmounts the field, which can fire a trailing blur that must not save. */
+  const settled = useRef(false);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const finish = (save: boolean) => {
+    if (settled.current) return;
+    settled.current = true;
+    if (save) onCommit(draft);
+    else onCancel();
+  };
+
+  return (
+    <div className="flex w-auto max-w-32 flex-shrink-0 items-center rounded bg-surface-selected px-2 py-1 text-xs ring-1 ring-border-focus sm:w-full sm:max-w-none">
+      <input
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            finish(true);
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            finish(false);
+          }
+        }}
+        onBlur={() => finish(true)}
+        className="w-full min-w-0 border-b border-text-tertiary/40 bg-transparent text-xs text-text-primary outline-none"
+      />
+    </div>
   );
 }
 
@@ -386,9 +460,6 @@ function PanelCategoryChipFrame(props: PanelCategoryChipFrameProps) {
     <button
       ref={setRefs}
       type="button"
-      // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
-      // anything it can pick up and sets it to "is this being dragged right now",
-      // so a selection written there would be overwritten.
       // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
       // anything it can pick up and sets it to "is this being dragged right now",
       // so a selection written there would be overwritten.

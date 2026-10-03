@@ -66,10 +66,11 @@ interface HarnessParams {
 
 const fillImmediately = (content: string, onFilled: (filled: string) => void) => onFilled(content);
 
-function renderLibrary(params: HarnessParams) {
+function renderLibrary(params: HarnessParams, extra: Record<string, unknown> = {}) {
   return renderHook(
     (props: HarnessParams) =>
       usePromptLibrary({
+        ...extra,
         workingDirectory: '/work',
         value: props.value,
         onChange: props.onChange,
@@ -81,8 +82,8 @@ function renderLibrary(params: HarnessParams) {
   );
 }
 
-const keyEvent = (key: string) =>
-  ({ key, preventDefault: vi.fn() } as unknown as React.KeyboardEvent<HTMLElement>);
+const keyEvent = (key: string, code = '') =>
+  ({ key, code, preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as React.KeyboardEvent<HTMLElement>);
 
 function makeParams(value: string) {
   return {
@@ -318,9 +319,12 @@ describe('usePromptLibrary', () => {
       await waitFor(() => expect(result.current.rows).toHaveLength(3));
 
       let handled = false;
-      act(() => { handled = result.current.handleKeyDown(keyEvent('Escape')); });
+      const escape = keyEvent('Escape');
+      act(() => { handled = result.current.handleKeyDown(escape); });
       expect(handled).toBe(true);
       expect(result.current.isActive).toBe(false);
+      // Stopped, so the composer's own listener never reads it as "stop the stream".
+      expect(escape.stopPropagation).toHaveBeenCalled();
 
       act(() => { handled = result.current.handleKeyDown(keyEvent('Enter')); });
       expect(handled).toBe(false);
@@ -617,7 +621,8 @@ describe('the category column', () => {
     act(() => { result.current.handleKeyDown(keyEvent('ArrowDown')); });
     expect(result.current.selectedCategory).toBe('c1');
 
-    act(() => { result.current.handleKeyDown(keyEvent('ArrowRight')); });
+    // Right is spent on editing a category, so Enter is the way back in.
+    act(() => { result.current.handleKeyDown(keyEvent('Enter')); });
     act(() => { result.current.handleKeyDown(keyEvent('ArrowDown')); });
 
     expect(result.current.selectedCategory).toBe('c1');
@@ -654,5 +659,249 @@ describe('the category column', () => {
 
     expect(result.current.selectedCategory).toBe(ALL_CATEGORIES);
     expect(result.current.focusedPane).toBe('prompts');
+  });
+});
+
+
+/**
+ * Edit and delete from the keyboard. The composer holds the real focus while the
+ * panel is open, so `e` and Backspace are also the letters of the query; they are
+ * only commands once the user has walked the rows with the arrows.
+ */
+describe('editing and deleting from the keyboard', () => {
+  const category = (id: string, name: string): PromptCategory => ({ id, name, createdAt: 1 });
+  const onEditPrompt = vi.fn();
+  const onDeletePrompt = vi.fn();
+  const onDeleteCategory = vi.fn();
+
+  beforeEach(() => {
+    resetPromptOrder();
+    sendMock.mockClear();
+    for (const fn of [onEditPrompt, onDeletePrompt, onDeleteCategory]) fn.mockClear();
+    categories = [category('c1', 'review'), category('c2', 'docs')];
+    globalPrompts = [
+      { ...prompt('g1', 'one', 'one body'), categories: ['c1'] },
+      prompt('g2', 'two', 'two body'),
+    ];
+    projectPrompts = [];
+  });
+
+  async function open() {
+    const rendered = renderLibrary(makeParams('!!'), { onEditPrompt, onDeletePrompt, onDeleteCategory });
+    act(() => rendered.result.current.detectPrompt('!!', 2));
+    await waitFor(() => expect(rendered.result.current.categoryRows.length).toBeGreaterThan(0));
+    return rendered;
+  }
+  const press = (result: { current: { handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => boolean } }, key: string, code = '') => {
+    let handled = false;
+    const event = keyEvent(key, code);
+    act(() => { handled = result.current.handleKeyDown(event); });
+    return { handled, event };
+  };
+
+  describe('before the user has walked the rows', () => {
+    it('leaves e, Backspace and Right to the query being typed', async () => {
+      const { result } = await open();
+
+      expect(press(result, 'e', 'KeyE').handled).toBe(false);
+      expect(press(result, 'Backspace', 'Backspace').handled).toBe(false);
+      expect(onEditPrompt).not.toHaveBeenCalled();
+      expect(onDeletePrompt).not.toHaveBeenCalled();
+    });
+
+    it('hands them back to the query after the user types again', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'ArrowUp', 'ArrowUp'); // back on the first row, which a prompt is on
+      act(() => result.current.detectPrompt('!!o', 3));
+      // The highlight is still on a prompt, so only the typing can be what decides.
+      expect(result.current.rows[result.current.selectedIndex]?.kind).toBe('prompt');
+
+      expect(press(result, 'e', 'KeyE').handled).toBe(false);
+      expect(onEditPrompt).not.toHaveBeenCalled();
+    });
+
+    it('keeps them as commands while the same query is only being re-read', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown');
+      act(() => result.current.detectPrompt('!!', 2));
+
+      expect(press(result, 'e', 'KeyE').handled).toBe(true);
+    });
+  });
+
+  describe('a highlighted prompt', () => {
+    it('is edited with e, under any layout', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown'); // first prompt -> second
+
+      const { handled, event } = press(result, 'ㄷ', 'KeyE');
+
+      expect(handled).toBe(true);
+      expect(event.preventDefault).toHaveBeenCalled();
+      expect(onEditPrompt).toHaveBeenCalledWith(expect.objectContaining({ id: 'g2' }));
+    });
+
+    it('is edited with the right arrow', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown');
+
+      press(result, 'ArrowRight', 'ArrowRight');
+
+      expect(onEditPrompt).toHaveBeenCalledWith(expect.objectContaining({ id: 'g2' }));
+    });
+
+    it('is deleted with Backspace, which only asks: the panel does the deleting after the answer', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown');
+
+      press(result, 'Backspace', 'Backspace');
+
+      expect(onDeletePrompt).toHaveBeenCalledWith(expect.objectContaining({ id: 'g2' }));
+      expect(sendMock.mock.calls.some(([type]) => type === MessageType.DELETE_PROMPT)).toBe(false);
+    });
+
+    it('is not edited by e with a modifier held', async () => {
+      const { result } = await open();
+      press(result, 'ArrowDown', 'ArrowDown');
+      const event = { ...keyEvent('e', 'KeyE'), metaKey: true } as unknown as React.KeyboardEvent<HTMLElement>;
+      let handled = true;
+      act(() => { handled = result.current.handleKeyDown(event); });
+
+      expect(handled).toBe(false);
+      expect(onEditPrompt).not.toHaveBeenCalled();
+    });
+
+    it('never edits the create row', async () => {
+      const { result } = await open();
+      press(result, 'ArrowUp', 'ArrowUp'); // wraps to the create row
+
+      press(result, 'e', 'KeyE');
+
+      expect(onEditPrompt).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a highlighted category', () => {
+    const intoCategories = (result: Parameters<typeof press>[0]) => {
+      press(result, 'ArrowLeft', 'ArrowLeft');
+      press(result, 'ArrowDown', 'ArrowDown'); // all -> review
+    };
+
+    it('goes into edit mode with e or the right arrow', async () => {
+      const { result } = await open();
+      intoCategories(result);
+
+      press(result, 'ㄷ', 'KeyE');
+
+      expect(result.current.editingCategory).toBe('c1');
+    });
+
+    it('goes into edit mode with the right arrow too', async () => {
+      const { result } = await open();
+      intoCategories(result);
+
+      press(result, 'ArrowRight', 'ArrowRight');
+
+      expect(result.current.editingCategory).toBe('c1');
+    });
+
+    it('is deleted with Backspace, which only asks', async () => {
+      const { result } = await open();
+      intoCategories(result);
+
+      press(result, 'Backspace', 'Backspace');
+
+      expect(onDeleteCategory).toHaveBeenCalledWith(expect.objectContaining({ id: 'c1' }));
+      expect(sendMock.mock.calls.some(([type]) => type === MessageType.DELETE_PROMPT_CATEGORY)).toBe(false);
+    });
+
+    it('cannot edit or delete "All", and Right still crosses into the rows from it', async () => {
+      const { result } = await open();
+      press(result, 'ArrowLeft', 'ArrowLeft');
+
+      press(result, 'e', 'KeyE');
+      press(result, 'Backspace', 'Backspace');
+      expect(result.current.editingCategory).toBeNull();
+      expect(onDeleteCategory).not.toHaveBeenCalled();
+
+      press(result, 'ArrowRight', 'ArrowRight');
+      expect(result.current.focusedPane).toBe('prompts');
+    });
+
+    it('takes Enter as the way back into the rows, and pastes nothing', async () => {
+      const params = makeParams('!!');
+      const { result } = renderLibrary(params, { onEditPrompt });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+      intoCategories(result);
+
+      const { handled } = press(result, 'Enter', 'Enter');
+
+      expect(handled).toBe(true);
+      expect(result.current.focusedPane).toBe('prompts');
+      expect(params.onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('saving a category name', () => {
+    it('sends the new name and shows it, leaving edit mode', async () => {
+      const { result } = await open();
+      press(result, 'ArrowLeft', 'ArrowLeft');
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'e', 'KeyE');
+      sendMock.mockImplementationOnce(() =>
+        Promise.resolve({ status: 'ok', categories: [category('c1', 'reviews'), category('c2', 'docs')] }),
+      );
+
+      await act(async () => {
+        await result.current.renameCategory('c1', '  reviews  ');
+      });
+
+      expect(sendMock).toHaveBeenCalledWith(MessageType.RENAME_PROMPT_CATEGORY, { id: 'c1', name: 'reviews' });
+      expect(result.current.editingCategory).toBeNull();
+      expect(result.current.categoryRows.map((row) => row.category?.name)).toContain('reviews');
+    });
+
+    it('sends nothing for an unchanged or blank name', async () => {
+      const { result } = await open();
+      sendMock.mockClear();
+
+      await act(async () => {
+        await result.current.renameCategory('c1', 'review');
+        await result.current.renameCategory('c1', '   ');
+      });
+
+      expect(sendMock.mock.calls.some(([type]) => type === MessageType.RENAME_PROMPT_CATEGORY)).toBe(false);
+    });
+
+    it('leaves edit mode and keeps the name when the edit is cancelled', async () => {
+      const { result } = await open();
+      press(result, 'ArrowLeft', 'ArrowLeft');
+      press(result, 'ArrowDown', 'ArrowDown');
+      press(result, 'e', 'KeyE');
+      expect(result.current.editingCategory).toBe('c1');
+
+      act(() => result.current.cancelCategoryEdit());
+
+      expect(result.current.editingCategory).toBeNull();
+      expect(sendMock.mock.calls.some(([type]) => type === MessageType.RENAME_PROMPT_CATEGORY)).toBe(false);
+    });
+  });
+
+  it('deletes a category, goes back to everything, and re-reads the library', async () => {
+    const { result } = await open();
+    press(result, 'ArrowLeft', 'ArrowLeft');
+    press(result, 'ArrowDown', 'ArrowDown');
+    expect(result.current.selectedCategory).toBe('c1');
+    sendMock.mockClear();
+
+    await act(async () => {
+      await result.current.deleteCategory(category('c1', 'review'));
+    });
+
+    expect(sendMock).toHaveBeenCalledWith(MessageType.DELETE_PROMPT_CATEGORY, { id: 'c1' });
+    expect(result.current.selectedCategory).toBe(ALL_CATEGORIES);
+    expect(sendMock.mock.calls.some(([type]) => type === MessageType.GET_PROMPTS)).toBe(true);
   });
 });

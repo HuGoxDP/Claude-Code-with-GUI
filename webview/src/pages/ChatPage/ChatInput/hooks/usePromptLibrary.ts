@@ -70,6 +70,18 @@ interface PromptLibraryState {
   /** Which category the list is narrowed to. Every opening starts on "everything". */
   selectedCategory: CategorySelection;
   focusedPane: PromptPane;
+  /**
+   * True once the user has walked the list with the arrow keys since the last
+   * thing they typed.
+   *
+   * The composer keeps the real focus while this panel is open, so `e` and
+   * Backspace are also the letters of the query being typed. They only become
+   * commands after the user has moved off the query into the rows with the
+   * arrows, and typing anything puts them back to being letters.
+   */
+  navigated: boolean;
+  /** The category whose name is being edited in place, or null. */
+  editingCategory: string | null;
 }
 
 interface UsePromptLibraryParams {
@@ -96,6 +108,12 @@ interface UsePromptLibraryParams {
    * back at once, so the ordinary case is unchanged.
    */
   requestFill: (content: string, onFilled: (filled: string) => void) => void;
+  /** Open this prompt's edit screen. Called by `e` and the right arrow on a highlighted prompt. */
+  onEditPrompt?: (prompt: ScopedPrompt) => void;
+  /** Ask to delete this prompt. Called by Backspace on a highlighted prompt. */
+  onDeletePrompt?: (prompt: ScopedPrompt) => void;
+  /** Ask to delete this category. Called by Backspace on a highlighted category. */
+  onDeleteCategory?: (category: PromptCategory) => void;
 }
 
 interface UsePromptLibraryReturn {
@@ -113,7 +131,15 @@ interface UsePromptLibraryReturn {
   categoryRows: PanelCategoryRow[];
   selectedCategory: CategorySelection;
   focusedPane: PromptPane;
+  /** The category whose name is being edited in place, or null. */
+  editingCategory: string | null;
   selectCategory: (key: CategorySelection) => void;
+  /** Save a new name for a category, and leave edit mode. */
+  renameCategory: (id: string, name: string) => Promise<void>;
+  /** Leave edit mode and keep the old name. */
+  cancelCategoryEdit: () => void;
+  /** Remove a category and re-read the library. Its prompts stay. */
+  deleteCategory: (category: PromptCategory) => Promise<void>;
   detectPrompt: (value: string, caretPosition: number) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => boolean;
   selectRow: (index: number) => void;
@@ -172,11 +198,23 @@ const EMPTY_STATE: PromptLibraryState = {
   categories: [],
   selectedCategory: ALL_CATEGORIES,
   focusedPane: 'prompts',
+  navigated: false,
+  editingCategory: null,
 };
 
 export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibraryReturn {
-  const { workingDirectory, value, onChange, inputRef, onPastePrompt, onCreatePrompt, requestFill } =
-    params;
+  const {
+    workingDirectory,
+    value,
+    onChange,
+    inputRef,
+    onPastePrompt,
+    onCreatePrompt,
+    requestFill,
+    onEditPrompt,
+    onDeletePrompt,
+    onDeleteCategory,
+  } = params;
   const bridge = useBridgeContext();
   usePromptOrderSync(workingDirectory);
 
@@ -210,6 +248,8 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       selectedIndex: 0,
       selectedCategory: ALL_CATEGORIES,
       focusedPane: 'prompts',
+      navigated: false,
+      editingCategory: null,
     }));
   }, []);
 
@@ -295,6 +335,45 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     [bridge, workingDirectory, load],
   );
 
+  const cancelCategoryEdit = useCallback(() => {
+    setState(prev => ({ ...prev, editingCategory: null }));
+    // The name field had the focus; the composer gets it back so typing goes on.
+    inputRef?.current?.focus();
+  }, [inputRef]);
+
+  const renameCategory = useCallback(
+    async (id: string, name: string) => {
+      const trimmed = name.trim();
+      const current = state.categories.find(category => category.id === id);
+      setState(prev => ({ ...prev, editingCategory: null }));
+      inputRef?.current?.focus();
+      if (trimmed === '' || current?.name === trimmed) return;
+
+      const ack = (await bridge.send(MessageType.RENAME_PROMPT_CATEGORY, {
+        id,
+        name: trimmed,
+      })) as PromptCategoriesAck;
+      if (ack?.status === 'error' || !ack?.categories) return;
+      const renamed = ack.categories;
+      hydrateCategoryOrder(renamed.map(category => category.id));
+      setState(prev => ({ ...prev, categories: renamed }));
+    },
+    [bridge, inputRef, state.categories],
+  );
+
+  const deleteCategory = useCallback(
+    async (category: PromptCategory) => {
+      await bridge.send(MessageType.DELETE_PROMPT_CATEGORY, { id: category.id });
+      // The row the user stood on is gone; "everything" is where it goes back to.
+      setState(prev => ({
+        ...prev,
+        selectedCategory: prev.selectedCategory === category.id ? ALL_CATEGORIES : prev.selectedCategory,
+      }));
+      load();
+    },
+    [bridge, load],
+  );
+
   const detectPrompt = useCallback(
     (newValue: string, caretPosition: number) => {
       const token = findPromptToken(newValue, caretPosition);
@@ -314,6 +393,8 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         // Keep the user's place while they narrow the same token; reset when a
         // different `!!` opened the panel.
         selectedIndex: isAlreadyActive ? prev.selectedIndex : 0,
+        // Typing hands `e` and Backspace back to the query.
+        navigated: isAlreadyActive && token.query === prev.query ? prev.navigated : false,
       }));
 
       // Read the store on every OPENING, not once per session and not per
@@ -499,13 +580,56 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         return true;
       }
 
+      // Edit and delete act on whichever row the highlight is on, but only once
+      // the user has walked the rows with the arrows: until then the composer has
+      // the focus and `e` and Backspace belong to the query being typed. `e` is
+      // matched by its key position so it works under any layout.
+      const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
+      if (state.navigated && bare) {
+        const wantsEdit = e.code === 'KeyE' || e.key === 'ArrowRight';
+        const wantsDelete = e.key === 'Backspace';
+        if (wantsEdit || wantsDelete) {
+          if (hasCategories && state.focusedPane === 'categories') {
+            // "All" is not a category: it cannot be edited or deleted, and Right
+            // still crosses into the rows from it.
+            const category = categoryRows.find(row => row.key === state.selectedCategory)?.category;
+            if (category && (wantsEdit || onDeleteCategory)) {
+              e.preventDefault();
+              if (wantsEdit) setState(prev => ({ ...prev, editingCategory: category.id }));
+              else onDeleteCategory?.(category);
+              return true;
+            }
+          } else {
+            const row = rows[selectedIndex];
+            const action = wantsEdit ? onEditPrompt : onDeletePrompt;
+            if (row?.kind === 'prompt' && action) {
+              e.preventDefault();
+              action(row.prompt);
+              return true;
+            }
+          }
+        }
+      }
+
       // Left and right cross between the two columns; up and down walk whichever
       // one was crossed into last. Left and right are only taken when there is a
       // second column to reach, so a library with no categories leaves the
       // composer's own caret movement alone.
       if (hasCategories && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         e.preventDefault();
-        setFocusedPane(e.key === 'ArrowLeft' ? 'categories' : 'prompts');
+        setState(prev => ({
+          ...prev,
+          navigated: true,
+          focusedPane: e.key === 'ArrowLeft' ? 'categories' : 'prompts',
+        }));
+        return true;
+      }
+
+      // Right is spent on editing a category, so Enter is the way from a picked
+      // category back into the rows.
+      if (hasCategories && state.focusedPane === 'categories' && e.key === 'Enter') {
+        e.preventDefault();
+        setState(prev => ({ ...prev, navigated: true, focusedPane: 'prompts' }));
         return true;
       }
 
@@ -515,6 +639,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         (e.key === 'ArrowDown' || e.key === 'ArrowUp')
       ) {
         e.preventDefault();
+        setState(prev => (prev.navigated ? prev : { ...prev, navigated: true }));
         const step = e.key === 'ArrowDown' ? 1 : -1;
         const current = Math.max(
           0,
@@ -527,13 +652,13 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setState(prev => ({ ...prev, selectedIndex: stepSelection(rows, selectedIndex, 1) }));
+        setState(prev => ({ ...prev, navigated: true, selectedIndex: stepSelection(rows, selectedIndex, 1) }));
         return true;
       }
 
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setState(prev => ({ ...prev, selectedIndex: stepSelection(rows, selectedIndex, -1) }));
+        setState(prev => ({ ...prev, navigated: true, selectedIndex: stepSelection(rows, selectedIndex, -1) }));
         return true;
       }
 
@@ -546,6 +671,9 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
       if (e.key === 'Escape') {
         e.preventDefault();
+        // Escape closes this panel and nothing else. Stopped here so it never
+        // reaches the composer's listener, which reads it as "stop the stream".
+        e.stopPropagation();
         close();
         return true;
       }
@@ -565,6 +693,10 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       close,
       memberPrompts,
       orderView,
+      state.navigated,
+      onEditPrompt,
+      onDeletePrompt,
+      onDeleteCategory,
     ],
   );
 
@@ -579,7 +711,11 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     categoryRows,
     selectedCategory: state.selectedCategory,
     focusedPane: state.focusedPane,
+    editingCategory: state.editingCategory,
     selectCategory,
+    renameCategory,
+    cancelCategoryEdit,
+    deleteCategory,
     detectPrompt,
     handleKeyDown,
     selectRow,

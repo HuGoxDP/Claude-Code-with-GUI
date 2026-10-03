@@ -36,7 +36,7 @@ import { OPEN_SESSION_DROPDOWN_EVENT, OPEN_SCHEDULE_SEND_EVENT } from '@/command
 import { useClaudeSettings } from '@/contexts/ClaudeSettingsContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { displayShortcut } from '@/utils/shortcut';
-import type { ScopedPrompt } from '@/types/prompt';
+import type { PromptCategory, ScopedPrompt } from '@/types/prompt';
 import { useEffort } from '@/hooks/useEffort';
 import { useMention } from './hooks/useMention';
 import { usePromptLibrary } from './hooks/usePromptLibrary';
@@ -46,6 +46,7 @@ import { usePromptVariableFill } from './hooks/usePromptVariableFill';
 import { PromptVariablesModal } from '@/components/PromptVariablesModal';
 import { useEditorContext } from '@/hooks/useEditorContext';
 import { MentionDropdown } from './MentionDropdown';
+import { escapeMayInterrupt } from '@/utils/escapeMayInterrupt';
 import { PromptDropdown } from './PromptDropdown';
 import {
   OPEN_PROMPT_LIBRARY_EVENT,
@@ -391,12 +392,24 @@ export function ChatInput() {
   const variableFill = usePromptVariableFill();
   const { requestFill } = variableFill;
 
+  const panelActions = useRef({
+    editPrompt: (_prompt: ScopedPrompt) => {},
+    deletePrompt: (_prompt: ScopedPrompt) => {},
+    deleteCategory: (_category: PromptCategory) => {},
+  });
+
   const promptLibrary = usePromptLibrary({
     workingDirectory,
     value,
     onChange,
     inputRef: textareaRef,
     requestFill: variableFill.requestFill,
+    // `e`, the right arrow and Backspace on a highlighted row. The handlers are
+    // made further down, after the hook they call into, so they are reached
+    // through a ref that is filled in on every render.
+    onEditPrompt: (prompt) => panelActions.current.editPrompt(prompt),
+    onDeletePrompt: (prompt) => panelActions.current.deletePrompt(prompt),
+    onDeleteCategory: (category) => panelActions.current.deleteCategory(category),
     // Pasting a saved prompt settles the `!!` token, so hand the shared slot
     // back the same way picking a mention does (issue #236): the pasted text may
     // itself end in a `/command` or an `@file` the other panels should answer.
@@ -674,6 +687,26 @@ export function ChatInput() {
     [confirm, tCommon, promptLibrary],
   );
 
+  /** Remove a category from the panel, after asking. Its prompts stay. */
+  const deleteSavedCategory = useCallback(
+    async (category: PromptCategory) => {
+      const confirmed = await confirm({
+        title: tCommon('promptLibrary.deleteCategoryTitle'),
+        message: tCommon('promptLibrary.deleteCategoryMessage', { name: category.name }),
+        confirmLabel: tCommon('promptLibrary.delete'),
+        variant: 'danger',
+      });
+      if (!confirmed) return;
+      await promptLibrary.deleteCategory(category);
+    },
+    [confirm, tCommon, promptLibrary],
+  );
+  panelActions.current = {
+    editPrompt: editSavedPrompt,
+    deletePrompt: (prompt) => void deleteSavedPrompt(prompt),
+    deleteCategory: (category) => void deleteSavedCategory(category),
+  };
+
   // Backend pushes EDITOR_CONTEXT (the file the user is viewing + selection)
   // → insert `relativePath[#L..]` at the composer caret.
   // shouldFocus is controlled by the focusInputOnEditorContext user setting (default true).
@@ -806,7 +839,9 @@ export function ChatInput() {
   // four-tap run is interrupt + three.
   useEffect(() => {
     const handleEscKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== 'Escape' || showSchedulePopover) return;
+      // Not an Escape something else already used (a panel or dialog closing
+      // itself): that is the user cancelling THAT, not asking to stop the response.
+      if (!escapeMayInterrupt(e, showSchedulePopover)) return;
 
       if (isInterruptible) {
         e.preventDefault();
@@ -1262,6 +1297,9 @@ export function ChatInput() {
               onSelect={promptLibrary.selectRow}
               onEdit={editSavedPrompt}
               onDelete={(prompt) => void deleteSavedPrompt(prompt)}
+              editingCategory={promptLibrary.editingCategory}
+              onRenameCategory={(id, name) => void promptLibrary.renameCategory(id, name)}
+              onCancelCategoryEdit={promptLibrary.cancelCategoryEdit}
               onClose={promptLibrary.close}
             />
           </div>
