@@ -165,6 +165,61 @@ describe('entities', () => {
     });
   });
 
+  describe('creating several rows at once', () => {
+    const sameUuid = (stored: PromptItemRow, candidate: Omit<PromptItemRow, 'id'>) =>
+      stored.uuid === candidate.uuid;
+
+    it('numbers a block of rows in one run, lowest first', async () => {
+      const items = new PromptItemCollection();
+      const added = await items.createMissing(
+        [itemAttributes({ uuid: 'a' }), itemAttributes({ uuid: 'b' }), itemAttributes({ uuid: 'c' })],
+        sameUuid,
+      );
+
+      expect(added.map((item) => [item.uuid, item.id])).toEqual([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+      ]);
+      expect(readRows('prompt', 'prompt_items')).toHaveLength(3);
+    });
+
+    it('adds only the candidates no stored row stands for', async () => {
+      const items = new PromptItemCollection();
+      await items.create(itemAttributes({ uuid: 'a' }));
+
+      const added = await items.createMissing(
+        [itemAttributes({ uuid: 'a' }), itemAttributes({ uuid: 'b' })],
+        sameUuid,
+      );
+
+      expect(added.map((item) => item.uuid)).toEqual(['b']);
+      expect((await items.all()).map((item) => item.uuid)).toEqual(['a', 'b']);
+    });
+
+    it('never gives a number out twice, even for rows it did not add', async () => {
+      const items = new PromptItemCollection();
+      await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid);
+      await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid); // costs number 2
+      const [third] = await items.createMissing([itemAttributes({ uuid: 'c' })], sameUuid);
+
+      expect(third?.id).toBe(3);
+    });
+
+    it('writes nothing when every candidate is already there', async () => {
+      const items = new PromptItemCollection();
+      await items.create(itemAttributes({ uuid: 'a' }));
+      const before = readFileSync(fileOf('prompt', 'prompt_items'), 'utf-8');
+
+      expect(await items.createMissing([itemAttributes({ uuid: 'a' })], sameUuid)).toEqual([]);
+      expect(readFileSync(fileOf('prompt', 'prompt_items'), 'utf-8')).toBe(before);
+    });
+
+    it('answers nothing for no candidates', async () => {
+      expect(await new PromptItemCollection().createMissing([], sameUuid)).toEqual([]);
+    });
+  });
+
   describe('reading rows', () => {
     it('reads an absent file as no rows', async () => {
       expect(await new PromptItemCollection().all()).toEqual([]);

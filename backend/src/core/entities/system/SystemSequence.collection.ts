@@ -24,10 +24,10 @@ export class SystemSequenceCollection
     return new SystemSequence(row);
   }
 
-  async next(table: string, floor: number): Promise<number> {
+  async next(table: string, floor: number, count = 1): Promise<number> {
     return this.mutate((rows) => {
       const existing = rows.find((row) => row.tableName === table);
-      const lastId = Math.max(existing?.lastId ?? 0, floor) + 1;
+      const lastId = Math.max(existing?.lastId ?? 0, floor) + count;
 
       if (existing) {
         return {

@@ -15,8 +15,11 @@ export interface SequenceSource {
    * The next number for [table], greater than every number handed out before and
    * greater than [floor], the highest id already in the table. The floor is what
    * keeps a table someone filled by hand from being given an id that is taken.
+   *
+   * With a [count] above one it hands out a block at once and answers the LAST
+   * number of it: the block is `answer - count + 1` up to `answer`.
    */
-  next(table: string, floor: number): Promise<number>;
+  next(table: string, floor: number, count?: number): Promise<number>;
 }
 
 /**
@@ -101,6 +104,40 @@ export abstract class AbstractEntityCollection<E extends AbstractEntity<Row>, Ro
     return this.hydrate(row);
   }
 
+  /**
+   * Add every candidate that is not already a row, in one write, answering the
+   * rows that were added.
+   *
+   * [isSame] says whether a stored row already stands for a candidate. The check
+   * runs INSIDE the write, so several processes moving the same data at once add
+   * each row once. The numbers are taken before the write, so a candidate that
+   * turns out to be there already costs a number that is never used.
+   */
+  async createMissing(
+    candidates: Array<Omit<Row, 'id'>>,
+    isSame: (stored: Row, candidate: Omit<Row, 'id'>) => boolean,
+  ): Promise<E[]> {
+    if (candidates.length === 0) return [];
+    const ids = await this.allocateIds(candidates.length);
+    const normalized = candidates.map((candidate) => ({
+      ...candidate,
+      cwd: candidate.cwd === null ? null : normalizeCwd(candidate.cwd),
+    }));
+
+    const added = await this.mutate<Row[]>((rows) => {
+      const stored = [...rows];
+      const fresh: Row[] = [];
+      normalized.forEach((candidate, index) => {
+        if (stored.some((row) => isSame(row, candidate))) return;
+        const row = { ...candidate, id: ids[index] } as unknown as Row;
+        stored.push(row);
+        fresh.push(row);
+      });
+      return fresh.length === 0 ? { rows, result: [] } : { rows: stored, result: fresh };
+    });
+    return added.map((row) => this.hydrate(row));
+  }
+
   /** Change columns of one row, answering the new entity, or null if there is no such row. */
   async update(id: number, patch: Partial<Omit<Row, 'id'>>): Promise<E | null> {
     const normalized =
@@ -157,6 +194,17 @@ export abstract class AbstractEntityCollection<E extends AbstractEntity<Row>, Ro
     const { rows } = await this.readRows();
     const floor = rows.reduce((highest, row) => Math.max(highest, row.id), 0);
     return this.sequences.next(this.table, floor);
+  }
+
+  /** A block of [count] ids for this table, lowest first. */
+  protected async allocateIds(count: number): Promise<number[]> {
+    if (this.sequences === null) {
+      throw new Error(`table ${this.table} has no sequence to take an id from`);
+    }
+    const { rows } = await this.readRows();
+    const floor = rows.reduce((highest, row) => Math.max(highest, row.id), 0);
+    const last = await this.sequences.next(this.table, floor, count);
+    return Array.from({ length: count }, (_, index) => last - count + 1 + index);
   }
 
   private async readRows(): Promise<{ rows: Row[]; rejected: unknown[] }> {

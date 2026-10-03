@@ -4,6 +4,12 @@ import type { IPCMessage } from '../types';
 import { MessageType } from '../../shared';
 import { resolveWslCwd } from '../wsl-path';
 import { readFile } from 'fs/promises';
+import { getProjectsList } from '../features/getProjectsList';
+import {
+  ensureGlobalMigrated,
+  ensureProjectMigrated,
+  startKnownProjectsMigration,
+} from '../features/prompt-migration';
 import {
   readPrompts,
   readPromptOrderByCategory,
@@ -84,7 +90,7 @@ function sendError(
   });
 }
 
-export async function getPromptsHandler(
+async function getPromptsHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -118,7 +124,7 @@ function readIdList(value: unknown): string[] {
 }
 
 /** Save a new order for one scope's prompts, or for the prompts inside one category. */
-export async function reorderPromptsHandler(
+async function reorderPromptsHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -138,7 +144,7 @@ export async function reorderPromptsHandler(
   sendOk(connections, connectionId, message, { scope });
 }
 
-export async function createPromptHandler(
+async function createPromptHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -158,7 +164,7 @@ export async function createPromptHandler(
   sendOk(connections, connectionId, message, { scope, prompt: result.prompt });
 }
 
-export async function updatePromptHandler(
+async function updatePromptHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -179,7 +185,7 @@ export async function updatePromptHandler(
   sendOk(connections, connectionId, message, { scope, prompt: result.prompt });
 }
 
-export async function deletePromptHandler(
+async function deletePromptHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -204,7 +210,7 @@ export async function deletePromptHandler(
  * path serves an IDE tab and a browser tab. A cancelled dialog answers with a
  * null path rather than an error: the user saying no is not a failure.
  */
-export async function exportPromptsHandler(
+async function exportPromptsHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -242,7 +248,7 @@ export async function exportPromptsHandler(
  * Nothing is written here. The preview is what lets the user choose a conflict
  * strategy knowing how many prompts it applies to.
  */
-export async function previewPromptImportHandler(
+async function previewPromptImportHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -283,7 +289,7 @@ export async function previewPromptImportHandler(
 }
 
 /** Apply a previewed import with the strategy the user chose. */
-export async function importPromptsHandler(
+async function importPromptsHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -335,7 +341,7 @@ export async function importPromptsHandler(
  * sidebar draws the whole list and a diff would only give it a second way to be
  * wrong.
  */
-export async function getPromptCategoriesHandler(
+async function getPromptCategoriesHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -350,7 +356,7 @@ export async function getPromptCategoriesHandler(
 }
 
 /** Save a new order for the category column. */
-export async function reorderPromptCategoriesHandler(
+async function reorderPromptCategoriesHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -364,7 +370,7 @@ export async function reorderPromptCategoriesHandler(
   sendOk(connections, connectionId, message, { categories: result.categories });
 }
 
-export async function createPromptCategoryHandler(
+async function createPromptCategoryHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -379,7 +385,7 @@ export async function createPromptCategoryHandler(
   sendOk(connections, connectionId, message, { categories: result.categories });
 }
 
-export async function renamePromptCategoryHandler(
+async function renamePromptCategoryHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -395,7 +401,7 @@ export async function renamePromptCategoryHandler(
   sendOk(connections, connectionId, message, { categories: result.categories });
 }
 
-export async function deletePromptCategoryHandler(
+async function deletePromptCategoryHandlerRaw(
   connectionId: string,
   message: IPCMessage,
   connections: ConnectionManager,
@@ -409,3 +415,49 @@ export async function deletePromptCategoryHandler(
   }
   sendOk(connections, connectionId, message, { categories: result.categories });
 }
+
+/**
+ * Every library request first makes sure the old `prompts.json` files have been
+ * moved into the entity files, the shared one before any project's.
+ *
+ * A move that fails answers with the error instead of letting the request run:
+ * reading an unmoved library would show an empty list that looks like every
+ * prompt was lost, and writing to it would bury the old ones. The next request
+ * tries the move again.
+ */
+type Handler = (
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  bridge: Bridge,
+) => Promise<void>;
+
+function afterMigration(handler: Handler): Handler {
+  return async (connectionId, message, connections, bridge) => {
+    try {
+      await ensureGlobalMigrated();
+      const projectPath = readProjectPath(message);
+      if (readScope(message) === 'project' && projectPath) await ensureProjectMigrated(projectPath);
+      startKnownProjectsMigration(async () => (await getProjectsList()).map((project) => project.path));
+    } catch (err) {
+      console.error('[node-backend]', 'Failed to move the prompt library:', err);
+      sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
+      return;
+    }
+    await handler(connectionId, message, connections, bridge);
+  };
+}
+
+export const getPromptsHandler = afterMigration(getPromptsHandlerRaw);
+export const reorderPromptsHandler = afterMigration(reorderPromptsHandlerRaw);
+export const createPromptHandler = afterMigration(createPromptHandlerRaw);
+export const updatePromptHandler = afterMigration(updatePromptHandlerRaw);
+export const deletePromptHandler = afterMigration(deletePromptHandlerRaw);
+export const exportPromptsHandler = afterMigration(exportPromptsHandlerRaw);
+export const previewPromptImportHandler = afterMigration(previewPromptImportHandlerRaw);
+export const importPromptsHandler = afterMigration(importPromptsHandlerRaw);
+export const getPromptCategoriesHandler = afterMigration(getPromptCategoriesHandlerRaw);
+export const reorderPromptCategoriesHandler = afterMigration(reorderPromptCategoriesHandlerRaw);
+export const createPromptCategoryHandler = afterMigration(createPromptCategoryHandlerRaw);
+export const renamePromptCategoryHandler = afterMigration(renamePromptCategoryHandlerRaw);
+export const deletePromptCategoryHandler = afterMigration(deletePromptCategoryHandlerRaw);
