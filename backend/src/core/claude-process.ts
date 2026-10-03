@@ -20,6 +20,9 @@ import { findLiveCliForSession, killRegisteredCli, registerCliProcess, unregiste
 import { settleControlResponse } from './control-response-waiter';
 import { isDebugEnabled, logDebug } from '../logging/log-level';
 import { readRegistry } from './features/account-store';
+import { getProjectSessionsPath } from './features/getProjectSessionsPath';
+import { removeSessionTitleOverride } from './features/sessionTitleOverrides';
+import { renamedSessionTitle } from './features/sessionRenamedReply';
 import { MessageType, SessionActivity } from '../shared';
 import { ingestRateLimitWindows } from './handlers/getUsage';
 
@@ -1264,6 +1267,24 @@ function handleStreamEvent(
   }
 
   // 백엔드 고유 사이드이펙트 (WebView 전달과 무관한 서버 내부 로직)
+  // `/rename` inside the CLI. It only speeds up what the transcript's
+  // custom-title entry already says on the next list read.
+  const renamedTitle = renamedSessionTitle(event);
+  if (renamedTitle !== null) {
+    getProjectSessionsPath(workingDir)
+      .then((sessionsDir) => removeSessionTitleOverride(sessionsDir, targetSessionId))
+      .then(() => {
+        // The CLI rename is newer than any GUI rename, so the GUI override goes.
+        connections.broadcastToAll(MessageType.SESSIONS_UPDATED, {
+          action: 'rename',
+          session: { sessionId: targetSessionId, title: renamedTitle },
+        });
+      })
+      .catch((err) => {
+        console.error('[node-backend]', 'Failed to apply CLI session rename:', err);
+      });
+  }
+
   if (eventType === 'result') {
     sessionsWithResult.add(targetSessionId);
     // The session's activity is NOT set here, though it used to be. A `result`
