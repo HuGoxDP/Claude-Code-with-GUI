@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PromptCategorySidebar, buildSidebarRows } from '../PromptCategorySidebar';
 import { ALL_CATEGORIES, UNCATEGORISED } from '@/utils/promptCategories';
+import { PROMPT_NO_DRAG_ATTRIBUTE } from '@/utils/promptDrag';
 import type { PromptCategory } from '@/types/prompt';
 
 const category = (id: string, name: string): PromptCategory => ({ id, name, createdAt: 1 });
@@ -42,6 +43,51 @@ describe('buildSidebarRows', () => {
       { all: 'All', uncategorised: 'Uncategorised' },
     );
     expect(tidy.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1']);
+  });
+});
+
+/**
+ * A real category row can be dragged to a new place in the column, so the drag
+ * layer takes over `aria-pressed` on it and sets it to "is this being dragged".
+ * The selected category therefore has to be announced some other way, or it
+ * stops being announced at all the moment the row becomes sortable.
+ */
+describe('a category row that can be picked up', () => {
+  it('announces the selected row with aria-current, not aria-pressed', () => {
+    renderSidebar({ selected: 'c1' });
+
+    expect(rowFor('c1')).toHaveAttribute('aria-current', 'true');
+    expect(rowFor('c1')).not.toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('announces no other row as current', () => {
+    renderSidebar({ selected: 'c1' });
+
+    expect(rowFor('c2')).not.toHaveAttribute('aria-current');
+    expect(rowFor(ALL_CATEGORIES)).not.toHaveAttribute('aria-current');
+  });
+
+  it('shows the grab hand on real categories, and not on the two fixed rows', () => {
+    renderSidebar();
+
+    expect(rowFor('c1')?.className).toContain('cursor-grab');
+    expect(rowFor(ALL_CATEGORIES)?.className).not.toContain('cursor-grab');
+    expect(rowFor(UNCATEGORISED)?.className).not.toContain('cursor-grab');
+  });
+
+  // Rename and delete are clicks, and the row around them is a drag handle.
+  it('keeps the rename and delete controls out of the drag', () => {
+    renderSidebar();
+
+    const actions = rowFor('c1')?.querySelectorAll(`[${PROMPT_NO_DRAG_ATTRIBUTE}] [role="button"]`);
+    expect(actions).toHaveLength(2);
+  });
+
+  it('gives the two fixed rows no controls to keep out of a drag', () => {
+    renderSidebar();
+
+    expect(rowFor(ALL_CATEGORIES)?.querySelector(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`)).toBeNull();
+    expect(rowFor(UNCATEGORISED)?.querySelector(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`)).toBeNull();
   });
 });
 

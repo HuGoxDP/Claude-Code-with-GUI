@@ -27,9 +27,47 @@ export function promptSortableId(scope: PromptScope, promptId: string): string {
   return `${SORTABLE_ID_PREFIX}:${scope}:${promptId}`;
 }
 
-/** Whether a drag layer id is a prompt card's. */
+/** Whether a drag layer id is a prompt card's, as opposed to a category row's. */
 export function isPromptSortableId(id: unknown): boolean {
   return typeof id === 'string' && id.startsWith(`${SORTABLE_ID_PREFIX}:`);
+}
+
+const CATEGORY_SORTABLE_ID_PREFIX = 'category-sort';
+
+/** The id a category row registers with the drag layer for being reordered. */
+export function categorySortableId(categoryId: string): string {
+  return `${CATEGORY_SORTABLE_ID_PREFIX}:${categoryId}`;
+}
+
+/** Whether a drag layer id is a category row's, as opposed to a prompt card's. */
+export function isCategorySortableId(id: unknown): boolean {
+  return typeof id === 'string' && id.startsWith(`${CATEGORY_SORTABLE_ID_PREFIX}:`);
+}
+
+/** Take the category ids back out of the column's sortable ids. */
+export function categoryIdsOfSortable(sortableIds: string[]): string[] {
+  const prefix = `${CATEGORY_SORTABLE_ID_PREFIX}:`;
+  return sortableIds
+    .filter((sortableId) => sortableId.startsWith(prefix))
+    .map((sortableId) => sortableId.slice(prefix.length));
+}
+
+/**
+ * [categories] in the order [ids] gives, with any [ids] has never heard of
+ * placed LAST.
+ *
+ * Last, unlike prompts, because the column has always grown downwards: a
+ * category made later has always been the bottom row, and a drag that rearranged
+ * the others should not start putting new ones at the top. A column nobody has
+ * arranged has no ids, so every category is unknown and keeps its natural order.
+ */
+export function applyCategoryOrder<C extends { id: string }>(categories: C[], ids: string[]): C[] {
+  const rank = new Map(ids.map((id, index) => [id, index]));
+  const known = categories
+    .filter((category) => rank.has(category.id))
+    .sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0));
+  const unknown = categories.filter((category) => !rank.has(category.id));
+  return [...known, ...unknown];
 }
 
 /** Take the prompt ids back out of a section's sortable ids, dropping foreign ones. */

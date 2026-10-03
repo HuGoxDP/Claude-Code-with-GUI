@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDroppable, useDragOperation } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
 import { ALL_CATEGORIES, UNCATEGORISED, type CategorySelection } from '@/utils/promptCategories';
 import {
   CATEGORY_DROP_TYPE,
+  CATEGORY_SORT_TYPE,
   PROMPT_DRAG_TYPE,
+  PROMPT_NO_DRAG_ATTRIBUTE,
   acceptsDrop,
   readPromptDrag,
 } from '@/utils/promptDrag';
+import { categorySortableId } from '@/utils/promptOrder';
 import type { PromptCategory } from '@/types/prompt';
 
 /** One row of the sidebar: the two fixed ones, or a category. */
@@ -185,6 +189,9 @@ export function PromptCategorySidebar(props: Props) {
           <CategoryRowButton
             key={row.key}
             row={row}
+            sortIndex={rows
+              .filter((candidate) => candidate.category)
+              .findIndex((candidate) => candidate.key === row.key)}
             className={rowClass(selected === row.key)}
             isSelected={selected === row.key}
             onSelect={onSelect}
@@ -227,6 +234,8 @@ const NEW_CATEGORY_KEY = '__new__';
 
 interface CategoryRowButtonProps {
   row: SidebarRow;
+  /** Where the row sits among the real categories, which the drag layer sorts by. */
+  sortIndex: number;
   className: string;
   isSelected: boolean;
   onSelect: (key: CategorySelection) => void;
@@ -245,7 +254,41 @@ interface CategoryRowButtonProps {
  * as live targets would promise a write that never happens.
  */
 function CategoryRowButton(props: CategoryRowButtonProps) {
-  const { row, className, isSelected, onSelect, onStartRename, onDelete } = props;
+  // "All" and "uncategorised" are not the user's to move, so they take no part in
+  // the sorting at all. They are not merely disabled: a disabled item would still
+  // hold an index, and every real category's index is counted without them.
+  return props.row.category ? (
+    <SortableCategoryRow {...props} />
+  ) : (
+    <CategoryRowFrame {...props} />
+  );
+}
+
+/**
+ * A real category row, which can also be dragged to a new place in the column.
+ *
+ * The whole row is the handle, as it is for a prompt card. It stays a drop target
+ * for prompts at the same time; the two are told apart by drag type.
+ */
+function SortableCategoryRow(props: CategoryRowButtonProps) {
+  const { ref, isDragging } = useSortable({
+    id: categorySortableId(String(props.row.key)),
+    index: props.sortIndex,
+    type: CATEGORY_SORT_TYPE,
+    accept: CATEGORY_SORT_TYPE,
+  });
+  return <CategoryRowFrame {...props} sortRef={ref} isDragging={isDragging} />;
+}
+
+interface CategoryRowFrameProps extends CategoryRowButtonProps {
+  /** Present on a real category: makes the row sortable as well as droppable. */
+  sortRef?: (element: Element | null) => void;
+  isDragging?: boolean;
+}
+
+function CategoryRowFrame(props: CategoryRowFrameProps) {
+  const { row, className, isSelected, onSelect, onStartRename, onDelete, sortRef, isDragging = false } =
+    props;
   const { t } = useTranslation('common');
 
   const { ref: dropRef, isDropTarget } = useDroppable({
@@ -262,16 +305,38 @@ function CategoryRowButton(props: CategoryRowButtonProps) {
   const dragged = readPromptDrag(source?.data);
   const wouldAccept = dragged !== null && acceptsDrop(dragged.categories, row.key);
 
+  // One element, two registrations: a place prompts can be dropped, and (for a
+  // real category) an item in the sortable column. Memoised, because a new ref
+  // function every render would make the drag layer unregister and register the
+  // row again each time.
+  const setRefs = useCallback(
+    (element: HTMLButtonElement | null) => {
+      dropRef(element);
+      sortRef?.(element);
+    },
+    [dropRef, sortRef],
+  );
+
   return (
     <button
-      ref={dropRef}
+      ref={setRefs}
       type="button"
       data-category-key={row.key}
-      aria-pressed={isSelected}
+      // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
+      // anything it can pick up and sets it to "is this being dragged right now",
+      // so a selection written there is overwritten the moment the row becomes
+      // sortable and the selected category stops being announced as selected.
+      aria-current={isSelected ? 'true' : undefined}
       onClick={() => onSelect(row.key)}
       className={`${className} ${
         isDropTarget && wouldAccept ? 'ring-1 ring-accent-primary bg-accent-primary/10' : ''
-      } ${dragged !== null && !wouldAccept ? 'opacity-40' : ''}`}
+      } ${dragged !== null && !wouldAccept ? 'opacity-40' : ''} ${
+        // Only a real category can be picked up, so only it shows the grab hand.
+        row.category ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${
+        // Lifted while held, and above the rows it passes rather than under them.
+        isDragging ? 'relative z-10 bg-surface-overlay shadow-lg' : ''
+      }`}
       title={row.label}
     >
       <span className="min-w-0 flex-1 truncate">{row.label}</span>
@@ -292,7 +357,10 @@ function CategoryRowButton(props: CategoryRowButtonProps) {
           ({row.count})
         </span>
         {row.category && (
-          <span className="absolute inset-y-0 end-0 hidden items-center gap-0.5 group-hover/cat:flex">
+          <span
+            {...{ [PROMPT_NO_DRAG_ATTRIBUTE]: '' }}
+            className="absolute inset-y-0 end-0 hidden items-center gap-0.5 group-hover/cat:flex"
+          >
             {/* Spans, not buttons: this sits inside the row's own button. */}
             <span
               role="button"

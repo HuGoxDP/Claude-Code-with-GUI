@@ -14,6 +14,13 @@ import type { PromptScope } from '@/types/prompt';
 export const PROMPT_DRAG_TYPE = 'prompt';
 /** The dnd-kit `type` a category row accepts. */
 export const CATEGORY_DROP_TYPE = 'prompt-category';
+/**
+ * The dnd-kit `type` of a category row being dragged to a new place in the
+ * column. Distinct from {@link CATEGORY_DROP_TYPE}, which is what a row accepts
+ * from a prompt: one row is two things at once, a place to file prompts and an
+ * item in a sortable column, and the two must never be mistaken for each other.
+ */
+export const CATEGORY_SORT_TYPE = 'prompt-category-sort';
 
 /**
  * Marks the controls on a prompt card that must stay plain click targets.

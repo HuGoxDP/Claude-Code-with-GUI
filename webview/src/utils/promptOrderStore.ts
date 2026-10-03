@@ -16,6 +16,13 @@ import { emptyPromptOrder, type PromptOrder } from './promptOrder';
  * the one place to swap, and neither screen changes.
  */
 let current: PromptOrder = emptyPromptOrder();
+/**
+ * The order of the category column, as category ids.
+ *
+ * Kept apart from the prompts' order because it is one order, not one per scope:
+ * the categories are global and both scopes file their prompts under them.
+ */
+let categoryOrder: string[] = [];
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -39,13 +46,29 @@ export function updatePromptOrder(update: (order: PromptOrder) => PromptOrder): 
   notify();
 }
 
+export function getCategoryOrder(): string[] {
+  return categoryOrder;
+}
+
+/** Replace the category column's order. The updater gets the current one. */
+export function updateCategoryOrder(update: (order: string[]) => string[]): void {
+  categoryOrder = update(categoryOrder);
+  notify();
+}
+
 /** Forget every arrangement. For tests, which must not inherit each other's order. */
 export function resetPromptOrder(): void {
   current = emptyPromptOrder();
+  categoryOrder = [];
   notify();
 }
 
 /** The order, re-read whenever either screen changes it. */
 export function usePromptOrder(): PromptOrder {
   return useSyncExternalStore(subscribe, getPromptOrder);
+}
+
+/** The category column's order, re-read whenever either screen changes it. */
+export function useCategoryOrder(): string[] {
+  return useSyncExternalStore(subscribe, getCategoryOrder);
 }

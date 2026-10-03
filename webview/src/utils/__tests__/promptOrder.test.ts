@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
+  applyCategoryOrder,
   applyPromptOrder,
   arrangeByScope,
+  categoryIdsOfSortable,
+  categorySortableId,
+  isCategorySortableId,
   isPromptSortableId,
   mergeVisibleOrder,
   promptIdsOfSortable,
@@ -114,10 +118,53 @@ describe('mergeVisibleOrder', () => {
   });
 });
 
+describe('applyCategoryOrder', () => {
+  const cat = (id: string) => ({ id });
+  const idsOfCats = (list: { id: string }[]) => list.map((c) => c.id);
+
+  it('follows the order it is given', () => {
+    expect(idsOfCats(applyCategoryOrder(['a', 'b', 'c'].map(cat), ['c', 'a', 'b']))).toEqual([
+      'c',
+      'a',
+      'b',
+    ]);
+  });
+
+  // The column has always grown downwards. A category the order has never heard
+  // of is one made after the user last arranged it, and it goes to the bottom.
+  it('puts a category the order does not know at the bottom', () => {
+    expect(idsOfCats(applyCategoryOrder(['a', 'b', 'new'].map(cat), ['b', 'a']))).toEqual([
+      'b',
+      'a',
+      'new',
+    ]);
+  });
+
+  it('keeps the natural order when nothing has been arranged', () => {
+    expect(idsOfCats(applyCategoryOrder(['a', 'b', 'c'].map(cat), []))).toEqual(['a', 'b', 'c']);
+  });
+
+  it('ignores an id with no category behind it', () => {
+    expect(idsOfCats(applyCategoryOrder(['a', 'b'].map(cat), ['gone', 'b', 'a']))).toEqual([
+      'b',
+      'a',
+    ]);
+  });
+});
+
 describe('sortable ids', () => {
-  it('tells a prompt card from anything else the drag layer carries', () => {
+  it('tells a category row from a prompt card', () => {
+    expect(isCategorySortableId(categorySortableId('c1'))).toBe(true);
+    expect(isCategorySortableId(promptSortableId('global', 'p1'))).toBe(false);
     expect(isPromptSortableId(promptSortableId('global', 'p1'))).toBe(true);
-    expect(isPromptSortableId('category-drop:c1')).toBe(false);
+    expect(isPromptSortableId(categorySortableId('c1'))).toBe(false);
+  });
+
+  it('takes the category ids back out of the column ids', () => {
+    expect(categoryIdsOfSortable([categorySortableId('a'), categorySortableId('b')])).toEqual([
+      'a',
+      'b',
+    ]);
   });
 
   // The two sections are separate stores, so one prompt id can only be promised

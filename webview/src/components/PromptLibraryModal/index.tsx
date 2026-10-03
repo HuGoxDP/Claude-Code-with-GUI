@@ -15,6 +15,7 @@ import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
 import { PromptForm } from './PromptForm';
 import { PromptExportDialog, PromptImportDialog } from './PromptTransferDialog';
 import { usePromptReorder } from '@/hooks/usePromptReorder';
+import { useCategoryReorder } from '@/hooks/useCategoryReorder';
 import { categoriesAfterDrop, readCategoryDrop, readPromptDrag } from '@/utils/promptDrag';
 import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PromptCategorySidebar, buildSidebarRows } from './PromptCategorySidebar';
@@ -139,7 +140,10 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   // Counted over everything, not over what the search left: a count that moved
   // as the user typed would stop meaning "how much is in here".
   const counts = countByCategory([...store.globalPrompts, ...store.projectPrompts], store.categories);
-  const sidebarRows = buildSidebarRows(store.categories, counts, {
+  // The column in the order the user dragged it into, so the arrow keys and the
+  // screen walk the same rows.
+  const categoryReorder = useCategoryReorder(store.categories);
+  const sidebarRows = buildSidebarRows(categoryReorder.categories, counts, {
     all: t('promptLibrary.allCategories'),
     uncategorised: t('promptLibrary.uncategorised'),
   });
@@ -515,12 +519,18 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                  them rather than above the search box that narrows within it. */
               <DragDropProvider
                 sensors={PROMPT_SENSORS}
-                onDragOver={(event) => reorder.onDragOver(event)}
+                onDragOver={(event) => {
+                  // Each handler looks only at its own kind of drag.
+                  reorder.onDragOver(event);
+                  categoryReorder.onDragOver(event);
+                }}
                 onDragEnd={(event) => {
-                  // One drop is one of two things, decided by what was held and where
-                  // it landed: a card among the cards reorders them, a card on a
-                  // category files it.
+                  // One drop is one of three things, decided by what was held and
+                  // where it landed: a card among the cards reorders them, a card
+                  // on a category files it, a category among the categories
+                  // reorders the column.
                   reorder.onDragEnd(event);
+                  categoryReorder.onDragEnd(event);
                   void handlePromptDrop(event);
                 }}
               >
