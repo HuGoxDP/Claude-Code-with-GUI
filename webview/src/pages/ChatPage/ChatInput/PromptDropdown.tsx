@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { DragDropProvider, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
+import { useCategoryReorder } from '@/hooks/useCategoryReorder';
 import { usePromptReorder } from '@/hooks/usePromptReorder';
-import { orderViewOf, promptSortableId } from '@/utils/promptOrder';
+import { categorySortableId, orderViewOf, promptSortableId } from '@/utils/promptOrder';
 import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
@@ -11,6 +12,7 @@ import type { ScopedPrompt } from '@/types/prompt';
 import type { CategorySelection } from '@/utils/promptCategories';
 import {
   CATEGORY_DROP_TYPE,
+  CATEGORY_SORT_TYPE,
   PROMPT_DRAG_TYPE,
   PROMPT_NO_DRAG_ATTRIBUTE,
   acceptsDrop,
@@ -109,7 +111,7 @@ export function PromptDropdown(props: Props) {
   // The same for the category column, which scrolls sideways when narrow: the
   // arrows can walk it past its own edge just as easily as they can the list.
   useEffect(() => {
-    const selected = categoryListRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    const selected = categoryListRef.current?.querySelector<HTMLElement>('[aria-current="true"]');
     selected?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [selectedCategory]);
 
@@ -146,6 +148,20 @@ export function PromptDropdown(props: Props) {
     ),
     ...rows.filter((row) => row.kind === 'create'),
   ];
+  // The category chips as drawn, for the same reason: the column is previewed
+  // sliding aside while a chip is held. "All" is not the user's to move, so it
+  // stays first and takes no part in the sorting.
+  const categoryReorder = useCategoryReorder(
+    categoryRows.flatMap((row) => (row.category ? [row.category] : [])),
+  );
+  const allChip = categoryRows.find((row) => !row.category);
+  const drawnCategoryRows: PanelCategoryRow[] = [
+    ...(allChip ? [allChip] : []),
+    ...categoryReorder.categories.flatMap((category) => {
+      const row = categoryRows.find((candidate) => candidate.category?.id === category.id);
+      return row ? [row] : [];
+    }),
+  ];
   const rowsIndexOf = (drawnRow: PromptRow) =>
     rows.findIndex((row) =>
       row.kind === 'create'
@@ -176,11 +192,17 @@ export function PromptDropdown(props: Props) {
   return (
     <DragDropProvider
       sensors={PROMPT_SENSORS}
-      onDragOver={reorder.onDragOver}
+      onDragOver={(event) => {
+        // Each handler looks only at its own kind of drag.
+        reorder.onDragOver(event);
+        categoryReorder.onDragOver(event);
+      }}
       onDragEnd={(event) => {
-        // One drop is one of two things, decided by where it landed: among the
-        // rows it reorders, on a category chip it files.
+        // One drop is one of three things, decided by what was held and where it
+        // landed: a row among the rows reorders them, a row on a chip files it,
+        // a chip among the chips reorders the column.
         reorder.onDragEnd(event);
+        categoryReorder.onDragEnd(event);
         handleDrop(event);
       }}
     >
@@ -201,10 +223,13 @@ export function PromptDropdown(props: Props) {
                 ref={categoryListRef}
                 className="flex max-h-14 shrink-0 flex-row gap-1 overflow-x-auto overflow-y-hidden border-b border-border-subtle p-1.5 sm:max-h-[200px] sm:w-32 sm:min-w-24 sm:max-w-40 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:border-b-0 sm:border-e"
               >
-                {categoryRows.map((row) => (
+                {drawnCategoryRows.map((row) => (
                   <PanelCategoryChip
                     key={row.key}
                     row={row}
+                    sortIndex={drawnCategoryRows
+                      .filter((candidate) => candidate.category)
+                      .findIndex((candidate) => candidate.key === row.key)}
                     label={row.category?.name ?? tCommon('promptLibrary.allCategories')}
                     isSelected={row.key === selectedCategory}
                     isFocusedPane={focusedPane === 'categories'}
@@ -286,6 +311,8 @@ export function PromptDropdown(props: Props) {
 
 interface PanelCategoryChipProps {
   row: PanelCategoryRow;
+  /** Where the chip sits among the real categories, which the drag layer sorts by. */
+  sortIndex: number;
   label: string;
   isSelected: boolean;
   isFocusedPane: boolean;
@@ -301,7 +328,37 @@ interface PanelCategoryChipProps {
  * stay dim rather than promising a write that never happens.
  */
 function PanelCategoryChip(props: PanelCategoryChipProps) {
-  const { row, label, isSelected, isFocusedPane, onSelect } = props;
+  // "All" is not the user's to move, so it takes no part in the sorting at all.
+  return props.row.category ? (
+    <SortablePanelCategoryChip {...props} />
+  ) : (
+    <PanelCategoryChipFrame {...props} />
+  );
+}
+
+/**
+ * A real category chip, which can also be dragged to a new place in the column.
+ * The whole chip is the handle; it stays a drop target for prompts at the same
+ * time, and the two are told apart by drag type.
+ */
+function SortablePanelCategoryChip(props: PanelCategoryChipProps) {
+  const { ref, isDragging } = useSortable({
+    id: categorySortableId(String(props.row.key)),
+    index: props.sortIndex,
+    type: CATEGORY_SORT_TYPE,
+    accept: CATEGORY_SORT_TYPE,
+  });
+  return <PanelCategoryChipFrame {...props} sortRef={ref} isDragging={isDragging} />;
+}
+
+interface PanelCategoryChipFrameProps extends PanelCategoryChipProps {
+  /** Present on a real category: makes the chip sortable as well as droppable. */
+  sortRef?: (element: Element | null) => void;
+  isDragging?: boolean;
+}
+
+function PanelCategoryChipFrame(props: PanelCategoryChipFrameProps) {
+  const { row, label, isSelected, isFocusedPane, onSelect, sortRef, isDragging = false } = props;
 
   const { ref: dropRef, isDropTarget } = useDroppable({
     id: `panel-category-drop:${row.key}`,
@@ -313,17 +370,36 @@ function PanelCategoryChip(props: PanelCategoryChipProps) {
   const dragged = readPromptDrag(source?.data);
   const wouldAccept = dragged !== null && acceptsDrop(dragged.categories, row.key);
 
+  // One element, two registrations: a place prompts can be dropped, and (for a
+  // real category) an item in the sortable column. Memoised, because a new ref
+  // function every render would make the drag layer unregister and register the
+  // chip again each time.
+  const setRefs = useCallback(
+    (element: HTMLButtonElement | null) => {
+      dropRef(element);
+      sortRef?.(element);
+    },
+    [dropRef, sortRef],
+  );
+
   return (
     <button
-      ref={dropRef}
+      ref={setRefs}
       type="button"
-      aria-pressed={isSelected}
+      // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
+      // anything it can pick up and sets it to "is this being dragged right now",
+      // so a selection written there would be overwritten.
+      // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
+      // anything it can pick up and sets it to "is this being dragged right now",
+      // so a selection written there would be overwritten.
+      aria-current={isSelected ? 'true' : undefined}
       title={label}
       onMouseDown={(e) => {
-        // mousedown, not click: the composer's blur must not fire first.
+        // Keep focus in the composer. Selecting happens on click, below, so that a
+        // press that turns out to be the start of a drag does not select first.
         e.preventDefault();
-        onSelect(row.key);
       }}
+      onClick={() => onSelect(row.key)}
       className={`flex w-auto max-w-32 flex-shrink-0 items-center gap-1 rounded px-2 py-1 text-start text-xs transition-colors sm:w-full sm:max-w-none ${
         isSelected
           ? 'bg-surface-selected text-text-primary'
@@ -334,6 +410,12 @@ function PanelCategoryChip(props: PanelCategoryChipProps) {
         isSelected && isFocusedPane ? 'ring-1 ring-border-focus' : ''
       } ${isDropTarget && wouldAccept ? 'ring-1 ring-accent-primary bg-accent-primary/10' : ''} ${
         dragged !== null && !wouldAccept ? 'opacity-40' : ''
+      } ${
+        // Only a real category can be picked up, so only it shows the grab hand.
+        row.category ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${
+        // Lifted while held, and above the chips it passes rather than under them.
+        isDragging ? 'relative z-10 bg-surface-overlay shadow-lg' : ''
       }`}
     >
       <span className="min-w-0 flex-1 truncate">{label}</span>

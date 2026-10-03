@@ -4,6 +4,7 @@ import { MessageType } from '@/shared';
 import { ALL_CATEGORIES } from '@/utils/promptCategories';
 import {
   resetPromptOrder,
+  updateCategoryOrder,
   updatePromptOrder,
   updatePromptOrderByCategory,
 } from '@/utils/promptOrderStore';
@@ -436,6 +437,19 @@ describe('the category column', () => {
     ]);
     expect(result.current.memberPrompts.map((p) => p.id)).toEqual(['g2', 'g1']);
     expect(result.current.allPrompts.map((p) => p.id).sort()).toEqual(['g1', 'g2']);
+  });
+
+  // The arrow keys walk `categoryRows`, and the panel draws the chips in the same
+  // order, so the arranged column has to be applied here and not only where the
+  // chips are drawn.
+  it('lists the chips in the order the user arranged the column', async () => {
+    act(() => {
+      updateCategoryOrder(() => ['c2', 'c1']);
+    });
+
+    const { result } = await openWithCategories();
+
+    expect(result.current.categoryRows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c2', 'c1']);
   });
 
   it('opens on "everything", so nothing is hidden until the user asks', async () => {

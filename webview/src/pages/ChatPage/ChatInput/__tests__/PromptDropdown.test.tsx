@@ -276,10 +276,59 @@ describe('PromptDropdown', () => {
         onSelect,
       });
 
-      fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }));
+      // Selecting happens when the press is released as a click, not on the
+      // press itself: a press on a chip may turn out to be the start of a drag.
+      fireEvent.click(screen.getByRole('button', { name: '리뷰 (2)' }));
 
       expect(onSelectCategory).toHaveBeenCalledWith('c1');
       expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('does not select a category on the press, which might be the start of a drag', () => {
+      const onSelectCategory = vi.fn();
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows, onSelectCategory });
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }));
+
+      expect(onSelectCategory).not.toHaveBeenCalled();
+    });
+
+    it('keeps focus in the composer by cancelling the press default', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows });
+
+      expect(fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }))).toBe(false);
+    });
+
+    // The drag layer owns `aria-pressed` on anything it can pick up, so the
+    // selected category has to be announced some other way.
+    it('announces the picked chip with aria-current', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows, selectedCategory: 'c1' });
+
+      expect(screen.getByRole('button', { name: '리뷰 (2)' })).toHaveAttribute('aria-current', 'true');
+      expect(screen.getByRole('button', { name: /All/ })).not.toHaveAttribute('aria-current');
+    });
+
+    it('shows the grab hand on a real category chip and not on "All"', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows });
+
+      expect(screen.getByRole('button', { name: '리뷰 (2)' }).className).toContain('cursor-grab');
+      expect(screen.getByRole('button', { name: /All/ }).className).not.toContain('cursor-grab');
+    });
+
+    // The column the user arranged is the column drawn, with "All" still first.
+    it('draws the chips in the order the user arranged them', () => {
+      const three: PanelCategoryRow[] = [
+        { key: ALL_CATEGORIES, category: null, count: 3 },
+        { key: 'c2', category: { id: 'c2', name: '문서', createdAt: 1 }, count: 1 },
+        { key: 'c1', category: { id: 'c1', name: '리뷰', createdAt: 1 }, count: 2 },
+      ];
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows: three });
+
+      const names = Array.from(document.querySelectorAll('button[title]'))
+        .map((button) => button.getAttribute('title'))
+        .filter((title) => title === '문서' || title === '리뷰' || title?.startsWith('All'));
+
+      expect(names).toEqual(['All', '문서', '리뷰']);
     });
 
     /**

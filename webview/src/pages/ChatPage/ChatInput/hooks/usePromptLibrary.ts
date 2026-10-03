@@ -15,8 +15,12 @@ import {
   matchesCategorySelection,
   type CategorySelection,
 } from '@/utils/promptCategories';
-import { arrangeByScope, orderViewOf } from '@/utils/promptOrder';
-import { usePromptOrder, usePromptOrderByCategory } from '@/utils/promptOrderStore';
+import { applyCategoryOrder, arrangeByScope, orderViewOf } from '@/utils/promptOrder';
+import {
+  useCategoryOrder,
+  usePromptOrder,
+  usePromptOrderByCategory,
+} from '@/utils/promptOrderStore';
 import { replaceRangeWithText } from '../RichInput/replaceRangeWithText';
 
 /**
@@ -343,12 +347,15 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
    * before this is exactly the panel they still get.
    */
   const counts = countByCategory(state.loaded, state.categories);
+  // The column in the order the user dragged it into, so the arrow keys walk it
+  // in the order it is drawn in. The library modal reads the same order.
+  const categoryColumnOrder = useCategoryOrder();
   const categoryRows: PanelCategoryRow[] =
     state.categories.length === 0
       ? []
       : [
           { key: ALL_CATEGORIES, category: null, count: counts.all },
-          ...state.categories.map((category) => ({
+          ...applyCategoryOrder(state.categories, categoryColumnOrder).map((category) => ({
             key: category.id,
             category,
             count: counts.byId.get(category.id) ?? 0,
