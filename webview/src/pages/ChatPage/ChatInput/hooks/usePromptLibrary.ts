@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, type RefObject } from 'react';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { usePromptOrderSync } from '@/hooks/usePromptOrderSync';
 import { MessageType } from '@/shared';
+import { dropStrayText } from '@/utils/dropStrayText';
 import { findPromptToken, PROMPT_TRIGGER } from '@/utils/findPromptToken';
 import type {
   GetPromptsAck,
@@ -241,6 +242,12 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
    * back, and the edit opens when the key is released.
    */
   const editKeyDown = useRef(false);
+  /** The composer's text when that key went down, to take the key's own character back out. */
+  const textBeforeEditKey = useRef<string | null>(null);
+  const noteEditKeyDown = () => {
+    editKeyDown.current = true;
+    textBeforeEditKey.current = inputRef?.current?.textContent ?? null;
+  };
 
   const valueRef = useRef(value);
   valueRef.current = value;
@@ -593,6 +600,12 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       editKeyDown.current = false;
       e.preventDefault();
       e.stopPropagation();
+      // The key's own character may have landed in the composer, next to the `!!`.
+      const composer = inputRef?.current;
+      if (composer && textBeforeEditKey.current !== null) {
+        dropStrayText(composer, textBeforeEditKey.current, onChange);
+      }
+      textBeforeEditKey.current = null;
       if (categoryRows.length > 0 && state.focusedPane === 'categories') {
         const category = categoryRows.find(row => row.key === state.selectedCategory)?.category;
         if (category) setState(prev => ({ ...prev, editingCategory: category.id }));
@@ -602,7 +615,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       }
       return true;
     },
-    [state.focusedPane, state.selectedCategory, categoryRows, rows, selectedIndex, onEditPrompt],
+    [state.focusedPane, state.selectedCategory, categoryRows, rows, selectedIndex, onEditPrompt, inputRef, onChange],
   );
 
   const handleKeyDown = useCallback(
@@ -677,7 +690,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
               if (e.code === 'KeyE') {
                 // Held back until the key is released, see `editKeyDown`.
                 e.stopPropagation();
-                editKeyDown.current = true;
+                noteEditKeyDown();
               } else if (wantsEdit) {
                 setState(prev => ({ ...prev, editingCategory: category.id }));
               } else {
@@ -693,7 +706,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
               if (e.code === 'KeyE') {
                 // Held back until the key is released, see `editKeyDown`.
                 e.stopPropagation();
-                editKeyDown.current = true;
+                noteEditKeyDown();
               } else {
                 action(row.prompt);
               }

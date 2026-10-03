@@ -789,6 +789,55 @@ describe('editing and deleting from the keyboard', () => {
     });
   });
 
+  // The panel's keys are pressed while the focus is in the composer. Under an IME
+  // the `e` key also starts a composition there, and its character (`ㄷ`) ends up
+  // next to the `!!` it was meant to act on.
+  describe('the character the e key leaves in the composer', () => {
+    const composerWith = (text: string) => {
+      const element = document.createElement('div');
+      element.contentEditable = 'true';
+      element.textContent = text;
+      document.body.appendChild(element);
+      element.focus();
+      return element;
+    };
+
+    it('is taken back out when the key comes up, before the edit opens', async () => {
+      const composer = composerWith('!!');
+      const edited = vi.fn();
+      document.execCommand = vi.fn(() => {
+        composer.textContent = '!!';
+        return true;
+      });
+      const { result } = renderLibrary(makeParams('!!'), { inputRef: { current: composer }, onEditPrompt: edited });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(1));
+      press(result, 'ArrowDown', 'ArrowDown');
+
+      act(() => { result.current.handleKeyDown(keyEvent('ㄷ', 'KeyE')); });
+      composer.textContent = '!!ㄷ'; // the composition the key started, committed
+      act(() => { result.current.handleKeyUp(keyEvent('ㄷ', 'KeyE')); });
+
+      expect(composer.textContent).toBe('!!');
+      expect(edited).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a composer alone when the key left nothing in it', async () => {
+      const composer = composerWith('!!');
+      document.execCommand = vi.fn(() => true);
+      const { result } = renderLibrary(makeParams('!!'), { inputRef: { current: composer }, onEditPrompt });
+      act(() => result.current.detectPrompt('!!', 2));
+      await waitFor(() => expect(result.current.rows.length).toBeGreaterThan(1));
+      press(result, 'ArrowDown', 'ArrowDown');
+
+      act(() => { result.current.handleKeyDown(keyEvent('e', 'KeyE')); });
+      act(() => { result.current.handleKeyUp(keyEvent('e', 'KeyE')); });
+
+      expect(document.execCommand).not.toHaveBeenCalled();
+      expect(composer.textContent).toBe('!!');
+    });
+  });
+
   describe('a highlighted prompt', () => {
     it('is edited with e, under any layout', async () => {
       const { result } = await open();
