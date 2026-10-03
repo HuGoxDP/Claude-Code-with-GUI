@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { MessageType } from '@/shared';
 import { ALL_CATEGORIES } from '@/utils/promptCategories';
+import {
+  resetPromptOrder,
+  updatePromptOrder,
+} from '@/utils/promptOrderStore';
 import type { PromptCategory, SavedPrompt } from '@/types/prompt';
 
 // ---------------------------------------------------------------------------
@@ -91,6 +95,8 @@ function makeParams(value: string) {
 
 describe('usePromptLibrary', () => {
   beforeEach(() => {
+    // The arranged order is shared with the library modal and outlives a render.
+    resetPromptOrder();
     sendMock.mockClear();
     globalPrompts = [prompt('g1', 'merge cleanup', 'Merged it, check and tidy up locally')];
     projectPrompts = [prompt('p1', 'demo check', 'Check this demo project')];
@@ -116,6 +122,28 @@ describe('usePromptLibrary', () => {
     await waitFor(() => expect(result.current.rows).toHaveLength(3));
     expect(result.current.rows.map(row => (row.kind === 'prompt' ? row.prompt.id : 'create'))).toEqual([
       'p1',
+      'g1',
+      'create',
+    ]);
+  });
+
+  // The arrow keys walk `rows`, and the panel draws in the same order, so the
+  // arranged order has to be applied here and not only where the rows are drawn.
+  it('lists the prompts in the order the user arranged them', async () => {
+    globalPrompts = [prompt('g1', 'one', 'one body'), prompt('g2', 'two', 'two body')];
+    projectPrompts = [prompt('p1', 'uno', 'uno body'), prompt('p2', 'dos', 'dos body')];
+    act(() => {
+      updatePromptOrder(() => ({ global: ['g2', 'g1'], project: ['p2', 'p1'] }));
+    });
+    const { result } = renderLibrary(makeParams('!!'));
+
+    act(() => result.current.detectPrompt('!!', 2));
+
+    await waitFor(() => expect(result.current.rows).toHaveLength(5));
+    expect(result.current.rows.map(row => (row.kind === 'prompt' ? row.prompt.id : 'create'))).toEqual([
+      'p2',
+      'p1',
+      'g2',
       'g1',
       'create',
     ]);
@@ -340,6 +368,8 @@ describe('the category column', () => {
   }
 
   beforeEach(() => {
+    // The arranged order is shared with the library modal and outlives a render.
+    resetPromptOrder();
     sendMock.mockClear();
     categories = [category('c1', 'review'), category('c2', 'docs')];
     globalPrompts = [

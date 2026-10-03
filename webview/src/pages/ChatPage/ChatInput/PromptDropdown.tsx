@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { DragDropProvider, useDraggable, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
+import { DragDropProvider, useDragOperation, useDroppable, type DragEndEvent } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
+import { usePromptReorder } from '@/hooks/usePromptReorder';
+import { promptSortableId } from '@/utils/promptOrder';
+import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
 import { Tooltip } from '@/components/Tooltip';
@@ -8,6 +12,7 @@ import type { CategorySelection } from '@/utils/promptCategories';
 import {
   CATEGORY_DROP_TYPE,
   PROMPT_DRAG_TYPE,
+  PROMPT_NO_DRAG_ATTRIBUTE,
   acceptsDrop,
   categoriesAfterDrop,
   readCategoryDrop,
@@ -102,6 +107,37 @@ export function PromptDropdown(props: Props) {
   const hasCategories = categoryRows.length > 0;
 
   /**
+   * The rows as they are DRAWN, which differs from `rows` only while a prompt is
+   * being dragged: the neighbours are previewed sliding aside, the way the
+   * library modal does it, with the same shared order behind both.
+   *
+   * `rows` stays the source of truth for which row is selected and for what
+   * picking one means, because the keyboard and the paste both address a row by
+   * its place in it. A drawn row is therefore mapped back to its place in `rows`
+   * rather than trusting that the two lists agree.
+   */
+  const promptsIn = (scope: ScopedPrompt['scope']) =>
+    rows.flatMap((row) => (row.kind === 'prompt' && row.prompt.scope === scope ? [row.prompt] : []));
+  const reorder = usePromptReorder(
+    { global: promptsIn('global'), project: promptsIn('project') },
+    () => true,
+  );
+  const drawn: PromptRow[] = [
+    ...[...reorder.lists.project, ...reorder.lists.global].map(
+      (prompt): PromptRow => ({ kind: 'prompt', prompt }),
+    ),
+    ...rows.filter((row) => row.kind === 'create'),
+  ];
+  const rowsIndexOf = (drawnRow: PromptRow) =>
+    rows.findIndex((row) =>
+      row.kind === 'create'
+        ? drawnRow.kind === 'create'
+        : drawnRow.kind === 'prompt' &&
+          row.prompt.id === drawnRow.prompt.id &&
+          row.prompt.scope === drawnRow.prompt.scope,
+    );
+
+  /**
    * File a prompt by dropping it on a category chip.
    *
    * `categoriesAfterDrop` decides what the drop means, and the library modal
@@ -120,7 +156,16 @@ export function PromptDropdown(props: Props) {
   };
 
   return (
-    <DragDropProvider onDragEnd={handleDrop}>
+    <DragDropProvider
+      sensors={PROMPT_SENSORS}
+      onDragOver={reorder.onDragOver}
+      onDragEnd={(event) => {
+        // One drop is one of two things, decided by where it landed: among the
+        // rows it reorders, on a category chip it files.
+        reorder.onDragEnd(event);
+        handleDrop(event);
+      }}
+    >
     <div className="w-full bg-surface-overlay border border-border-default rounded-md shadow-lg overflow-hidden">
       {isLoading && promptRowCount === 0 ? (
         <div className="px-3 py-2 text-xs text-text-tertiary">
@@ -161,8 +206,10 @@ export function PromptDropdown(props: Props) {
               </div>
             )}
             <ul ref={listRef}>
-              {rows.map((row, index) => (
-                <li key={row.kind === 'prompt' ? row.prompt.id : 'create'}>
+              {drawn.map((row) => {
+                const index = rowsIndexOf(row);
+                return (
+                <li key={row.kind === 'prompt' ? `${row.prompt.scope}:${row.prompt.id}` : 'create'}>
                   {row.kind === 'create' ? (
                     <button
                       type="button"
@@ -191,6 +238,9 @@ export function PromptDropdown(props: Props) {
                   ) : (
                     <PanelPromptRow
                       prompt={row.prompt}
+                      sortIndex={reorder.lists[row.prompt.scope].findIndex(
+                        (candidate) => candidate.id === row.prompt.id,
+                      )}
                       isSelected={index === selectedIndex}
                       isRinged={index === selectedIndex && hasCategories && focusedPane === 'prompts'}
                       onSelect={() => onSelect(index)}
@@ -199,7 +249,8 @@ export function PromptDropdown(props: Props) {
                     />
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
             </div>
           </div>
@@ -275,6 +326,8 @@ function PanelCategoryChip(props: PanelCategoryChipProps) {
 
 interface PanelPromptRowProps {
   prompt: ScopedPrompt;
+  /** Where the row sits among the prompts of its own scope, which the drag layer sorts by. */
+  sortIndex: number;
   isSelected: boolean;
   isRinged: boolean;
   onSelect: () => void;
@@ -285,60 +338,60 @@ interface PanelPromptRowProps {
 /**
  * One prompt row, which can also be dragged onto a category chip.
  *
- * The row is a <div> holding a drag handle and a button, rather than one big
- * button: the bookmark had to become a grab handle, and a handle nested inside
- * the button that pastes the prompt would fire the paste on the way down. The
- * split also lets edit and delete be real <button>s instead of spans wearing a
- * button role.
+ * The whole row is the drag handle, with a grab cursor over all of it, so the
+ * row itself is what follows the pointer. The row's body is a button that pastes
+ * the prompt, which is why picking happens on `click` rather than on `mousedown`:
+ * a press has to stay undecided between "pick this" and "start dragging this"
+ * until the pointer has either travelled or been released, and picking on the
+ * press itself decided it before the user had done either. The drag layer holds
+ * the click back once a drag has begun, so finishing a drag never pastes.
+ *
+ * `mousedown` is still swallowed on the body, but only to keep focus in the
+ * composer: letting it through would blur the composer before the click landed.
+ *
+ * Edit and delete are real <button>s, marked as no-drag, since a press on them
+ * can only mean a click.
  */
 function PanelPromptRow(props: PanelPromptRowProps) {
-  const { prompt, isSelected, isRinged, onSelect, onEdit, onDelete } = props;
+  const { prompt, sortIndex, isSelected, isRinged, onSelect, onEdit, onDelete } = props;
   const { t } = useTranslation('chat');
-  const { t: tCommon } = useTranslation('common');
 
-  const { ref: dragRef, isDragging } = useDraggable({
-    id: `panel-prompt-drag:${prompt.scope}:${prompt.id}`,
+  // Sortable rather than merely draggable: a row that is only draggable leaves
+  // its neighbours where they are, so there is nothing to show where the row
+  // would land. As in the library modal, a row accepts only drops from its own
+  // scope, since the two scopes keep separate orders.
+  const { ref: dragRef, isDragging } = useSortable({
+    id: promptSortableId(prompt.scope, prompt.id),
+    index: sortIndex,
+    group: prompt.scope,
     type: PROMPT_DRAG_TYPE,
+    accept: (source) => readPromptDrag(source.data)?.scope === prompt.scope,
     data: { promptId: prompt.id, scope: prompt.scope, categories: prompt.categories ?? [] },
   });
 
   return (
     <div
-      className={`group/row flex w-full items-center gap-2 px-3 py-1.5 text-xs ${
-        isSelected
-          ? 'bg-surface-selected text-text-primary'
-          : 'text-text-secondary hover:bg-surface-selected/60'
-      } ${isRinged ? 'ring-1 ring-inset ring-border-focus' : ''} ${
-        isDragging ? 'opacity-50' : ''
+      ref={dragRef}
+      className={`group/row flex w-full cursor-grab items-center gap-2 px-3 py-1.5 text-xs active:cursor-grabbing ${
+        isDragging
+          ? // Lifted while held: fully opaque, so the rows it passes over do not
+            // show through its text, and above them rather than painted under.
+            'relative z-10 bg-surface-overlay text-text-primary shadow-lg ring-1 ring-inset ring-border-focus'
+          : `${
+              isSelected
+                ? 'bg-surface-selected text-text-primary'
+                : 'text-text-secondary hover:bg-surface-selected/60'
+            } ${isRinged ? 'ring-1 ring-inset ring-border-focus' : ''}`
       }`}
     >
-      {/* The bookmark is the grab handle. `mousedown` is swallowed here so the
-          row's own paste does not fire the moment the drag begins; dnd-kit
-          listens for `pointerdown`, which is a different event and still
-          arrives. */}
-      <span
-        ref={dragRef}
-        title={tCommon('promptLibrary.dragToCategory')}
-        aria-label={tCommon('promptLibrary.dragToCategory')}
-        onMouseDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        className="flex-shrink-0 cursor-grab text-current active:cursor-grabbing"
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-        </svg>
-      </span>
-
       <button
         type="button"
         onMouseDown={(e) => {
-          // mousedown, not click: the composer's blur must not fire first.
+          // Keep focus in the composer. Picking happens on click, below.
           e.preventDefault();
-          onSelect();
         }}
-        className="flex min-w-0 flex-1 items-center gap-2 text-start"
+        onClick={onSelect}
+        className="flex min-w-0 flex-1 cursor-[inherit] items-center gap-2 text-start"
       >
         {/* The name gets a quarter of the row and the content gets the rest.
             The name is only there to tell the prompts apart at a glance; the
@@ -370,7 +423,10 @@ function PanelPromptRow(props: PanelPromptRowProps) {
             ? t('chatInput.promptDropdown.scopeProject')
             : t('chatInput.promptDropdown.scopeGlobal')}
         </span>
-        <span className="absolute inset-y-0 end-0 hidden items-center gap-0.5 group-hover/row:flex">
+        <span
+          {...{ [PROMPT_NO_DRAG_ATTRIBUTE]: '' }}
+          className="absolute inset-y-0 end-0 hidden cursor-pointer items-center gap-0.5 group-hover/row:flex"
+        >
           <button
             type="button"
             title={t('chatInput.promptDropdown.editPrompt')}

@@ -15,6 +15,8 @@ import {
   matchesCategorySelection,
   type CategorySelection,
 } from '@/utils/promptCategories';
+import { arrangeByScope } from '@/utils/promptOrder';
+import { usePromptOrder } from '@/utils/promptOrderStore';
 import { replaceRangeWithText } from '../RichInput/replaceRangeWithText';
 
 /**
@@ -306,8 +308,12 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
   // Both narrowings, in the order the user applies them: the column says which
   // part of the library is in play, the typed query finds within it.
+  // The order the user dragged the prompts into comes first, so that the arrow
+  // keys walk the list in the order it is drawn in. The library modal reads the
+  // same order, which is why a drag on either screen is the order on both.
+  const order = usePromptOrder();
   const rows: PromptRow[] = [
-    ...state.loaded
+    ...arrangeByScope(state.loaded, order)
       .filter(prompt => matchesCategorySelection(prompt, state.selectedCategory, state.categories))
       .filter(prompt => matchesQuery(prompt, state.query, state.categories))
       .map((prompt): PromptRow => ({ kind: 'prompt', prompt })),

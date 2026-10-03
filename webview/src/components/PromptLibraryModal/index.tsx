@@ -14,7 +14,9 @@ import { PromptList, buildPromptRows, matchesPromptQuery } from './PromptList';
 import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
 import { PromptForm } from './PromptForm';
 import { PromptExportDialog, PromptImportDialog } from './PromptTransferDialog';
+import { usePromptReorder } from '@/hooks/usePromptReorder';
 import { categoriesAfterDrop, readCategoryDrop, readPromptDrag } from '@/utils/promptDrag';
+import { PROMPT_SENSORS } from '@/utils/promptSensors';
 import { PromptCategorySidebar, buildSidebarRows } from './PromptCategorySidebar';
 import {
   ALL_CATEGORIES,
@@ -124,8 +126,14 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   const inCategory = (prompt: SavedPrompt) =>
     matchesCategorySelection(prompt, selectedCategory, store.categories) &&
     matchesPromptQuery(prompt, query);
-  const globalPrompts = store.globalPrompts.filter(inCategory);
-  const projectPrompts = store.projectPrompts.filter(inCategory);
+  // The order the user has dragged the cards into comes before the narrowing, so
+  // the arrow keys and the screen both walk the same list.
+  const reorder = usePromptReorder(
+    { global: store.globalPrompts, project: store.projectPrompts },
+    inCategory,
+  );
+  const globalPrompts = reorder.lists.global;
+  const projectPrompts = reorder.lists.project;
   const rows = buildPromptRows(globalPrompts, projectPrompts);
 
   // Counted over everything, not over what the search left: a count that moved
@@ -505,7 +513,17 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
               /* Two columns from `sm` up, stacked below it. The sidebar decides
                  which slice of the library the lists show, so it sits beside
                  them rather than above the search box that narrows within it. */
-              <DragDropProvider onDragEnd={(event) => void handlePromptDrop(event)}>
+              <DragDropProvider
+                sensors={PROMPT_SENSORS}
+                onDragOver={(event) => reorder.onDragOver(event)}
+                onDragEnd={(event) => {
+                  // One drop is one of two things, decided by what was held and where
+                  // it landed: a card among the cards reorders them, a card on a
+                  // category files it.
+                  reorder.onDragEnd(event);
+                  void handlePromptDrop(event);
+                }}
+              >
               <div className="flex min-h-0 flex-1 flex-col px-4 sm:flex-row sm:gap-3">
                 <PromptCategorySidebar
                   rows={sidebarRows}
