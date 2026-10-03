@@ -13,11 +13,15 @@ import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import { useWorkflowState } from '@/contexts/WorkflowStateContext';
 import { SWITCH_MODEL_EVENT } from '@/pages/ChatPage/ModelSwitchOverlay';
 import { ROTATE_MODEL_EVENT } from '@/pages/ChatPage/ChatInput/ModelTag';
+import { TOGGLE_HELP_EVENT } from '@/components/HelpModal/events';
+import { isHelpShortcut } from '@/components/HelpModal/helpShortcut';
 import { PanelSection } from '@/types/commandPalette';
 import type { SlashCommandInfo } from '@/types/slashCommand';
 import { CommandPaletteServices } from './types';
 import { CommandPaletteRegistry } from './CommandPaletteRegistry';
 import { KeyboardRegistry } from './KeyboardRegistry';
+import { isNewTabShortcut } from './isNewTabShortcut';
+import { isMac } from '@/config/environment';
 import { applyModelCapabilityFlags } from './applyModelCapabilityFlags';
 import {
   ContextSection,
@@ -179,7 +183,7 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
     // Register non-command keyboard shortcuts
     keyboardReg.register({
       id: 'new-tab',
-      match: (e: KeyboardEvent) => (e.metaKey || e.ctrlKey) && e.key === 'n',
+      match: (e: KeyboardEvent) => isNewTabShortcut(e, isMac()),
       execute: async () => {
         const newTabButton = document.getElementById('new-tab-button');
         if (newTabButton) newTabButton.click();
@@ -191,6 +195,17 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
       match: (e: KeyboardEvent) => (e.metaKey || e.ctrlKey) && e.key === ',',
       execute: async () => {
         await openSettingsAt(Route.SETTINGS_GENERAL);
+      },
+    });
+
+    // Cmd/Ctrl+/ toggles the help modal. Matched on either the typed character or
+    // the physical key, so a layout that types '/' elsewhere still reaches it,
+    // and ignored while held so the repeat does not flip it open and shut.
+    keyboardReg.register({
+      id: 'open-help',
+      match: isHelpShortcut,
+      execute: async () => {
+        window.dispatchEvent(new CustomEvent(TOGGLE_HELP_EVENT));
       },
     });
 

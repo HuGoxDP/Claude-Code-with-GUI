@@ -593,6 +593,15 @@ class ClaudeCodePanel(
             acquired.handlersInstalled = true
         }
 
+        // macOS Emacs text keys (issue #506). Called on every realization, not
+        // once per holder: the guard registers its shortcut action only the first
+        // time it sees this component, and every later call re-points the
+        // callback at this panel, so a moved tab reports through the panel that
+        // owns the component now rather than through a disposed one.
+        EmacsTextKeyShortcutGuard.install(b.component) { letter, shift -> sendEmacsTextKey(letter, shift) }
+        // Undo/Redo keystrokes (issue #495), installed and re-pointed the same way.
+        EditHistoryShortcutGuard.install(b.component) { command -> sendEditHistoryCommand(command) }
+
         // Install native (Swing/IDE) drag-and-drop bridge once per holder.
         if (!acquired.nativeDropBridgeInstalled) {
             setupNativeDropBridge()
@@ -1673,6 +1682,51 @@ class ClaudeCodePanel(
         }
         val method = if (alreadyDropped) "NATIVE_DROP_DELIVER" else "NATIVE_DROP"
         backendService.sendNotification(project.basePath ?: "", method, params)
+    }
+
+    /**
+     * Report a macOS Emacs text key to this panel's webview, which moves the
+     * caret or edits the text. [letter] is one of the lowercase letters
+     * [EmacsTextKey.pressOf] returns and [shift] whether Shift was held. The
+     * page cannot read the letter itself: under off-screen rendering every
+     * Ctrl+letter reaches it as Ctrl+A (issue #506).
+     *
+     * Runs from the shortcut action [EmacsTextKeyShortcutGuard] registers, inside
+     * the IDE's key dispatch, so a failure is logged and swallowed rather than
+     * thrown into it; a lost key press only means the key did nothing.
+     */
+    private fun sendEmacsTextKey(letter: String, shift: Boolean) {
+        try {
+            val params = buildJsonObject {
+                put("panelId", JsonPrimitive(panelId))
+                put("key", JsonPrimitive(letter))
+                put("shift", JsonPrimitive(shift))
+            }
+            backendService.sendNotification(project.basePath ?: "", "EMACS_TEXT_KEY_PRESSED", params)
+        } catch (e: Exception) {
+            logger.warn("EMACS_TEXT_KEY_PRESSED not sent (panelId=$panelId, key=$letter, shift=$shift)", e)
+        }
+    }
+
+    /**
+     * Ask this panel's webview to undo or redo in its focused text field. The
+     * IDE's keymap would otherwise run its own Undo/Redo before the page saw
+     * the keystroke (issue #495).
+     *
+     * Runs from the shortcut action [EditHistoryShortcutGuard] registers, inside
+     * the IDE's key dispatch, so a failure is logged and swallowed rather than
+     * thrown into it; a lost command only means the key did nothing.
+     */
+    private fun sendEditHistoryCommand(command: EditHistoryCommand) {
+        try {
+            val params = buildJsonObject {
+                put("panelId", JsonPrimitive(panelId))
+                put("command", JsonPrimitive(command.wire))
+            }
+            backendService.sendNotification(project.basePath ?: "", "EDIT_HISTORY_COMMAND_REQUESTED", params)
+        } catch (e: Exception) {
+            logger.warn("EDIT_HISTORY_COMMAND_REQUESTED not sent (panelId=$panelId, command=${command.wire})", e)
+        }
     }
 
     // ─── WebView loading ────────────────────────────────────────────
