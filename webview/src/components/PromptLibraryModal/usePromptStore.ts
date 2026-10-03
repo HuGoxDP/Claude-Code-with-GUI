@@ -95,7 +95,7 @@ export function usePromptStore(): PromptStore {
 
     // Categories come back on the same round trip: the sidebar and the lists are
     // drawn together, so reading them apart would show one before the other.
-    (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
+    const categoriesRead = (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
       .then((ack) => {
         const read = ack?.categories ?? [];
         hydrateCategoryOrder(categoryOrderFromPriorities(read));
@@ -115,8 +115,10 @@ export function usePromptStore(): PromptStore {
       );
     }
 
-    Promise.all(requests)
-      .then((acks) => {
+    // Loading ends when BOTH are in: the screen picks its first category from the
+    // column, which is only known once the categories have been read.
+    Promise.all([Promise.all(requests), categoriesRead])
+      .then(([acks]) => {
         for (const ack of acks) {
           hydratePromptOrder(ack.scope, (ack.prompts ?? []).map((prompt) => prompt.id), ack.orderByCategory ?? {});
         }

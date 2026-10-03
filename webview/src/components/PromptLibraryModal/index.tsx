@@ -155,6 +155,17 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
    * listener reads them from here so it keeps the newest ones without having to
    * re-subscribe whenever a render makes new functions.
    */
+  /**
+   * True between the `e` key going down and coming back up.
+   *
+   * Edit mode is entered on the key coming UP, not down. Under an IME the key
+   * going down is also the start of a composition, and the text it produces
+   * (`ㄷ` on a Korean layout) is delivered to whatever has the focus after the key
+   * handler returns. Moving the focus into a name field on the keydown therefore
+   * typed the key into the field it had just opened. The keydown is only held
+   * back, and the field opens when the key is released.
+   */
+  const editKeyDown = useRef(false);
   const deleteActions = useRef({
     prompt: (_scope: PromptScope, _prompt: SavedPrompt) => {},
     category: (_category: { id: string; name: string }) => {},
@@ -202,6 +213,20 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     sidebarRows.findIndex((row) => row.key === selectedCategory),
   );
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // The library opens on the top row of the column, whichever row that is: with
+  // "All" dragged to the bottom, the first category is where the user starts, and
+  // its first prompt is the highlighted one. Once, when the first read lands; a
+  // later read (after an edit) must not move the user off where they are.
+  const openedOnFirstRow = useRef(false);
+  useEffect(() => {
+    if (openedOnFirstRow.current || store.loading) return;
+    openedOnFirstRow.current = true;
+    const first = sidebarRows[0]?.key;
+    if (first !== undefined) setSelectedCategory(first);
+    // Reads the rows of the render the load finished in, once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.loading]);
 
   // A reload can shorten the list under the selection — deleting the last card
   // is the everyday way — so pull it back inside the list rather than leaving it
@@ -349,8 +374,6 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   // does, so closing the library or leaving the edit screen never also stops a
   // response that is still streaming behind it.
   useEscapeLayer(() => {
-    // A category name being typed answers Escape itself: it cancels the edit.
-    if (renamingCategory) return false;
     if (formBusy) return true; // locked while a save is in flight
     if (view.kind === 'edit') {
       leaveEdit();
@@ -403,6 +426,13 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
       // Edit and delete act on whichever row the highlight is on. `e` is matched
       // by its physical key, so it works under any layout: the key that types
       // "e" on a Latin keyboard types a different letter on a Korean one.
+      // A held `e` keeps repeating; none of the repeats is typed anywhere.
+      if (e.code === 'KeyE' && editKeyDown.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
       const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
       if (!typing && bare) {
         const pressedE = e.code === 'KeyE';
@@ -411,22 +441,26 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
         // is the key that crosses into that category's prompts.
         const wantsEdit = pressedE || (e.key === 'ArrowRight' && focusedPaneRef.current === 'prompts');
         if (wantsEdit || wantsDelete) {
-          if (focusedPaneRef.current === 'categories') {
-            // "All" and "uncategorised" are not categories and cannot be edited
-            // or deleted.
-            const category = sidebarRows[selectedCategoryIndex]?.category;
-            if (category) {
-              e.preventDefault();
+          const category =
+            focusedPaneRef.current === 'categories' ? sidebarRows[selectedCategoryIndex]?.category : undefined;
+          // "All" and "uncategorised" are not categories and cannot be edited or
+          // deleted.
+          const target = focusedPaneRef.current === 'categories' ? category : selectedRow;
+          if (target) {
+            e.preventDefault();
+            if (pressedE) {
+              // Held back until the key is released, see `editKeyDown`.
+              e.stopPropagation();
+              editKeyDown.current = true;
+            } else if (category) {
               if (wantsEdit) setRenameRequest(new RenameRequest(category.id));
               else deleteActions.current.category(category);
-              return;
-            }
-          } else if (selectedRow) {
-            e.preventDefault();
-            if (wantsEdit) {
-              setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
-            } else {
-              deleteActions.current.prompt(selectedRow.scope, selectedRow.prompt);
+            } else if (selectedRow) {
+              if (wantsEdit) {
+                setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
+              } else {
+                deleteActions.current.prompt(selectedRow.scope, selectedRow.prompt);
+              }
             }
             return;
           }
@@ -478,8 +512,25 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
         usePrompt(selectedRow.prompt.content);
       }
     };
+    // The `e` key coming back up is what opens the edit, see `editKeyDown`.
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyE' || !editKeyDown.current) return;
+      editKeyDown.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      if (focusedPaneRef.current === 'categories') {
+        const category = sidebarRows[selectedCategoryIndex]?.category;
+        if (category) setRenameRequest(new RenameRequest(category.id));
+      } else if (selectedRow) {
+        setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
+      }
+    };
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('keyup', handleKeyUp, true);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('keyup', handleKeyUp, true);
+    };
   }, [
     onClose,
     view,

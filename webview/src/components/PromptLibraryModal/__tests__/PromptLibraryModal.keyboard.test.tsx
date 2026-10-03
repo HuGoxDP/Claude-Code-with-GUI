@@ -54,7 +54,11 @@ const press = (init: KeyboardEventInit, target: Element | Window = document.body
   act(() => {
     fireEvent.keyDown(target, init);
   });
-const pressKey = (key: string, code = '') => press({ key, code, bubbles: true });
+const pressKey = (key: string, code = '') => {
+  press({ key, code, bubbles: true });
+  // The `e` key opens its edit when it is let go, not when it goes down.
+  if (code === 'KeyE') act(() => void fireEvent.keyUp(document.body, { key, code, bubbles: true }));
+};
 
 describe('PromptLibraryModal keyboard', () => {
   let onClose: () => void;
@@ -133,6 +137,111 @@ describe('PromptLibraryModal keyboard', () => {
       press({ key: 'e', code: 'KeyE', ctrlKey: true, bubbles: true });
 
       expect(nameField()).not.toBeInTheDocument();
+    });
+  });
+
+  // Edit mode is entered on the key coming UP. Under an IME the key going down is
+  // also the start of a composition, whose text (`ㄷ` on a Korean layout) lands in
+  // whatever has the focus once the key handler returns; moving the focus into a
+  // field on the keydown typed the key into the field it had just opened.
+  describe('the e key opens an edit when it is let go', () => {
+    const down = () => press({ key: 'ㄷ', code: 'KeyE', bubbles: true, cancelable: true });
+    const up = () => act(() => void fireEvent.keyUp(document.body, { key: 'ㄷ', code: 'KeyE', bubbles: true, cancelable: true }));
+
+    it('opens nothing while the key is still down', () => {
+      down();
+
+      expect(nameField()).not.toBeInTheDocument();
+    });
+
+    it('opens the edit screen when the key comes up', () => {
+      down();
+      up();
+
+      expect(nameField()).toBeInTheDocument();
+    });
+
+    it('keeps the key down from being typed anywhere', () => {
+      const event = new KeyboardEvent('keydown', { key: 'ㄷ', code: 'KeyE', bubbles: true, cancelable: true });
+
+      act(() => void document.body.dispatchEvent(event));
+
+      expect(event.defaultPrevented).toBe(true);
+    });
+
+    it('keeps the key coming up from reaching anything else', () => {
+      down();
+      const event = new KeyboardEvent('keyup', { key: 'ㄷ', code: 'KeyE', bubbles: true, cancelable: true });
+      const heard = vi.fn();
+      document.addEventListener('keyup', heard);
+
+      act(() => void document.body.dispatchEvent(event));
+      document.removeEventListener('keyup', heard);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(heard).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for a key that comes up without having gone down on a row', () => {
+      up();
+
+      expect(nameField()).not.toBeInTheDocument();
+    });
+
+    it('swallows the repeats of a held key and opens once', () => {
+      down();
+      const repeat = new KeyboardEvent('keydown', { key: 'ㄷ', code: 'KeyE', repeat: true, bubbles: true, cancelable: true });
+      act(() => void document.body.dispatchEvent(repeat));
+      up();
+
+      expect(repeat.defaultPrevented).toBe(true);
+      expect(nameField()).toBeInTheDocument();
+    });
+
+    it('opens a category\'s name field the same way, and only on the way up', () => {
+      pressKey('ArrowLeft', 'ArrowLeft');
+      pressKey('ArrowDown', 'ArrowDown');
+
+      down();
+      expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+      up();
+
+      expect(screen.getByDisplayValue('review')).toBeInTheDocument();
+    });
+  });
+
+  describe('leaving a category\'s edit mode', () => {
+    const intoEdit = () => {
+      pressKey('ArrowLeft', 'ArrowLeft');
+      pressKey('ArrowDown', 'ArrowDown');
+      pressKey('e', 'KeyE');
+    };
+
+    // The field used to take Escape itself, so Escape did nothing whenever the
+    // focus was not in it (or an IME syllable was half done).
+    it('works from wherever the focus is, not only from inside the field', () => {
+      intoEdit();
+      (document.activeElement as HTMLElement | null)?.blur();
+      expect(screen.getByDisplayValue('review')).toBeInTheDocument();
+
+      pressKey('Escape', 'Escape');
+
+      expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+      expect(screen.getByText('review')).toBeInTheDocument();
+      expect(store.renameCategory).not.toHaveBeenCalled();
+      expect(onClose as unknown as ReturnType<typeof vi.fn>).not.toHaveBeenCalled();
+      expect(composerSawEscape).not.toHaveBeenCalled();
+    });
+
+    it('works while an IME syllable is half done in the field', () => {
+      intoEdit();
+      const field = screen.getByDisplayValue('review');
+      fireEvent.compositionStart(field);
+
+      fireEvent.keyDown(field, { key: 'Escape', code: 'Escape', keyCode: 229 });
+
+      expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+      expect(store.renameCategory).not.toHaveBeenCalled();
     });
   });
 

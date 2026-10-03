@@ -166,7 +166,13 @@ the same in the library screen and in the `!!` panel.
 | A category | **`Backspace`** | Asks first whether to delete it. Only the category goes; its prompts stay |
 
 - `e` is recognised by the **position of the key**, not by the letter it types.
-  The key that types `ㄷ` on a Korean keyboard works as `e` too.
+  The key that types `ㄷ` on a Korean keyboard works as `e` too. The edit screen
+  or the name field opens when the key is **released**, not when it goes down:
+  opening it on the press would type the key's character (`ㄷ`) into the field
+  that just opened.
+- While a category's name is being edited, `Enter` saves and `Esc` cancels
+  (the old name comes back). `Esc` works even when the cursor is not in the
+  field.
 - **Categories are not edited with `→`.** In the category column `→` crosses into
   that category's prompts, and once there `→` opens the edit screen of the
   highlighted prompt.
@@ -175,6 +181,9 @@ the same in the library screen and in the `!!` panel.
 - If you opened the edit screen from the `!!` panel, closing it (saving,
   cancelling or `Esc`) brings you back to that `!!` panel. An edit screen opened
   from inside the library returns to the library's list.
+- The library screen and the `!!` panel start on the **top category of the
+  column**, with the first prompt of that category highlighted. If you moved
+  **All** down, they open on the first category.
 - After a delete the library screen or the `!!` panel stays open, and only the
   deleted row disappears.
 - In the library screen's search box, `e` and `Backspace` are ordinary

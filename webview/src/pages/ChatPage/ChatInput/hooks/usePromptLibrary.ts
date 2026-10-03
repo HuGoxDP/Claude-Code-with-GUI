@@ -19,6 +19,7 @@ import {
 import {
   allRowIndex,
   applyCategoryOrder,
+  columnIds,
   arrangeByScope,
   categoryOrderFromPriorities,
   orderViewOf,
@@ -148,6 +149,7 @@ interface UsePromptLibraryReturn {
   deleteCategory: (category: PromptCategory) => Promise<void>;
   detectPrompt: (value: string, caretPosition: number) => void;
   handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => boolean;
+  handleKeyUp: (e: React.KeyboardEvent<HTMLElement>) => boolean;
   selectRow: (index: number) => void;
   /**
    * Remove one prompt and re-read the list, so the row disappears from the open
@@ -228,6 +230,18 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
 
   const [state, setState] = useState<PromptLibraryState>(EMPTY_STATE);
 
+  /**
+   * True between the `e` key going down and coming back up.
+   *
+   * Edit mode is entered on the key coming UP, not down. Under an IME the key
+   * going down is also the start of a composition, and the text it produces (`ㄷ`
+   * on a Korean layout) is delivered to whatever has the focus after the key
+   * handler returns. Moving the focus into a name field on the keydown therefore
+   * typed the key into the field it had just opened. The keydown is only held
+   * back, and the edit opens when the key is released.
+   */
+  const editKeyDown = useRef(false);
+
   const valueRef = useRef(value);
   valueRef.current = value;
 
@@ -275,8 +289,17 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     (bridge.send(MessageType.GET_PROMPT_CATEGORIES, {}) as Promise<PromptCategoriesAck>)
       .then((ack) => {
         const read = ack?.categories ?? [];
-        hydrateCategoryOrder(categoryOrderFromPriorities(read));
-        setState(prev => ({ ...prev, categories: read }));
+        const order = categoryOrderFromPriorities(read);
+        hydrateCategoryOrder(order);
+        // Every opening starts on the top row of the column, whichever row that
+        // is, and the first prompt of that category is the highlighted one. A
+        // re-read after an edit keeps the user where they are.
+        const firstRow = columnIds(read, order)[0] ?? ALL_CATEGORIES;
+        setState(prev => ({
+          ...prev,
+          categories: read,
+          ...(keepSelection ? {} : { selectedCategory: firstRow }),
+        }));
       })
       .catch(() => setState(prev => ({ ...prev, categories: [] })));
 
@@ -323,7 +346,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         ...(prompt.scope === 'project' ? { workingDir: workingDirectory } : {}),
         id: prompt.id,
       });
-      load();
+      load(true);
     },
     [bridge, workingDirectory, load],
   );
@@ -338,7 +361,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         content: prompt.content,
         categories: categoryIds,
       });
-      load();
+      load(true);
     },
     [bridge, workingDirectory, load],
   );
@@ -387,7 +410,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
         ...prev,
         selectedCategory: prev.selectedCategory === category.id ? ALL_CATEGORIES : prev.selectedCategory,
       }));
-      load();
+      load(true);
     },
     [bridge, load],
   );
@@ -560,6 +583,28 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     [rows, state, inputRef, onChange, onPastePrompt, onCreatePrompt, close, requestFill],
   );
 
+  /**
+   * The `e` key coming back up is what opens the edit, see `editKeyDown`.
+   * Answers true when it used the key.
+   */
+  const handleKeyUp = useCallback(
+    (e: React.KeyboardEvent<HTMLElement>): boolean => {
+      if (e.code !== 'KeyE' || !editKeyDown.current) return false;
+      editKeyDown.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      if (categoryRows.length > 0 && state.focusedPane === 'categories') {
+        const category = categoryRows.find(row => row.key === state.selectedCategory)?.category;
+        if (category) setState(prev => ({ ...prev, editingCategory: category.id }));
+      } else {
+        const row = rows[selectedIndex];
+        if (row?.kind === 'prompt') onEditPrompt?.(row.prompt);
+      }
+      return true;
+    },
+    [state.focusedPane, state.selectedCategory, categoryRows, rows, selectedIndex, onEditPrompt],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLElement>): boolean => {
       if (!state.isActive) return false;
@@ -609,6 +654,13 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
       // the user has walked the rows with the arrows: until then the composer has
       // the focus and `e` and Backspace belong to the query being typed. `e` is
       // matched by its key position so it works under any layout.
+      // A held `e` keeps repeating; none of the repeats is typed anywhere.
+      if (e.code === 'KeyE' && editKeyDown.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+      }
+
       const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
       if (state.navigated && bare) {
         const wantsDelete = e.key === 'Backspace';
@@ -622,8 +674,15 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
             const category = categoryRows.find(row => row.key === state.selectedCategory)?.category;
             if (category && (wantsEdit || onDeleteCategory)) {
               e.preventDefault();
-              if (wantsEdit) setState(prev => ({ ...prev, editingCategory: category.id }));
-              else onDeleteCategory?.(category);
+              if (e.code === 'KeyE') {
+                // Held back until the key is released, see `editKeyDown`.
+                e.stopPropagation();
+                editKeyDown.current = true;
+              } else if (wantsEdit) {
+                setState(prev => ({ ...prev, editingCategory: category.id }));
+              } else {
+                onDeleteCategory?.(category);
+              }
               return true;
             }
           } else {
@@ -631,7 +690,13 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
             const action = wantsEdit ? onEditPrompt : onDeletePrompt;
             if (row?.kind === 'prompt' && action) {
               e.preventDefault();
-              action(row.prompt);
+              if (e.code === 'KeyE') {
+                // Held back until the key is released, see `editKeyDown`.
+                e.stopPropagation();
+                editKeyDown.current = true;
+              } else {
+                action(row.prompt);
+              }
               return true;
             }
           }
@@ -737,6 +802,7 @@ export function usePromptLibrary(params: UsePromptLibraryParams): UsePromptLibra
     deleteCategory,
     detectPrompt,
     handleKeyDown,
+    handleKeyUp,
     selectRow,
     deletePrompt,
     reload: () => load(true),

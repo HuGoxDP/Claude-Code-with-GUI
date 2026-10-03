@@ -20,6 +20,7 @@ interface Props {
   value: string;
   onChange: (value: string) => void;
   onKeyDown?: (e: ReactKeyboardEvent<HTMLDivElement>) => void;
+  onKeyUp?: (e: ReactKeyboardEvent<HTMLDivElement>) => void;
   onPaste?: (e: ReactClipboardEvent<HTMLDivElement>) => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -111,6 +112,7 @@ export const RichInput = forwardRef<HTMLDivElement, Props>((props: Props, ref) =
     value,
     onChange,
     onKeyDown,
+    onKeyUp,
     onPaste,
     onFocus,
     onBlur,
@@ -343,6 +345,7 @@ export const RichInput = forwardRef<HTMLDivElement, Props>((props: Props, ref) =
         onInput={handleInput}
         onBeforeInput={handleBeforeInput}
         onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
         onPaste={onPaste}
         onFocus={onFocus}
         onBlur={onBlur}

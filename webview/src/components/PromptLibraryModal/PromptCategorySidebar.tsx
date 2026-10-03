@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDiscardOpeningKey } from '@/hooks/useDiscardOpeningKey';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 import { useIMEComposition } from '@/pages/ChatPage/ChatInput/RichInput/useIMEComposition';
 import { useDroppable, useDragOperation } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
@@ -130,11 +130,6 @@ export function PromptCategorySidebar(props: Props) {
   const skipCommitRef = useRef(false);
   // The IME's own Enter ends a composition; only the next one is ours.
   const ime = useIMEComposition();
-  // The key that put the field into edit mode (`e`, or `ㄷ` on a Korean layout)
-  // must not end up typed into it.
-  const discardingOpeningKey = useDiscardOpeningKey(inputRef, editingKey, () =>
-    setDraft(rows.find((row) => row.key === editingKey)?.category?.name ?? ''),
-  );
 
   useEffect(() => {
     onEditingChange?.(editingKey !== null);
@@ -197,17 +192,22 @@ export function PromptCategorySidebar(props: Props) {
     // selection out from under a name being typed.
     e.stopPropagation();
     ime.noteKeyDown(e.keyCode);
-    // An Enter or Escape that is the IME finishing a syllable is not ours: acting
-    // on it would save half a name, and the same key would go on to the composer.
+    // An Enter that is the IME finishing a syllable is not ours: acting on it
+    // would save half a name, and the same key would go on to the composer.
     if (ime.isComposing() || e.nativeEvent.isComposing) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       void commit();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      cancel();
     }
   };
+
+  // Escape leaves edit mode and puts the old name back. It is taken by the
+  // overlay layer and not by the field, so it works wherever the focus happens to
+  // be, and a half-finished IME syllable cannot make the field ignore it.
+  useEscapeLayer(() => {
+    cancel();
+    return true;
+  }, editingKey !== null);
 
   const rowClass = (isActive: boolean) =>
     `group/cat flex w-auto max-w-40 flex-shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-start text-xs transition-colors sm:w-full sm:max-w-none ${
@@ -229,9 +229,7 @@ export function PromptCategorySidebar(props: Props) {
               onKeyDown={handleDraftKeyDown}
               onCompositionStart={ime.handleCompositionStart}
               onCompositionEnd={ime.handleCompositionEnd}
-              onBlur={() => {
-                if (!discardingOpeningKey.current) void commit();
-              }}
+              onBlur={() => void commit()}
               className="w-full min-w-0 border-b border-text-tertiary/40 bg-transparent text-xs text-text-primary outline-none"
             />
           </div>

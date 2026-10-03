@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react';
-import { useDiscardOpeningKey } from '@/hooks/useDiscardOpeningKey';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
@@ -47,7 +46,6 @@ export function PromptForm({
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PromptFormValues>({
     defaultValues: {
@@ -60,10 +58,6 @@ export function PromptForm({
     // Trimmed, so a name of only spaces is refused the same way an empty one is.
     validate: (value) => value.trim() !== '' || t('promptLibrary.nameRequired'),
   });
-  const nameInputRef = useRef<HTMLInputElement | null>(null);
-  // This form opens straight onto its name field, often from a key (`e`, or `ㄷ`
-  // on a Korean layout). That key must not end up typed after the name.
-  useDiscardOpeningKey(nameInputRef, 'form', () => setValue('name', editing?.name ?? ''));
 
   /**
    * The categories this prompt is filed under, by id and in the order picked.
@@ -119,10 +113,6 @@ export function PromptForm({
           <input
             autoFocus
             {...nameField}
-            ref={(element) => {
-              nameField.ref(element);
-              nameInputRef.current = element;
-            }}
             aria-invalid={errors.name ? true : undefined}
             placeholder={t('promptLibrary.namePlaceholder')}
             className="w-full px-2 py-1.5 text-sm rounded-md bg-surface-base border border-border-default text-text-primary placeholder:text-text-disabled focus:outline-none focus:border-border-focus"

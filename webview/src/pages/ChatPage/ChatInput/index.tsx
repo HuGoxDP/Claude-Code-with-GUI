@@ -1414,6 +1414,9 @@ export function ChatInput() {
             value={value}
             onChange={handleRichChange}
             onKeyDown={handleKeyDown}
+            onKeyUp={(e) => {
+              if (promptLibrary.isActive) promptLibrary.handleKeyUp(e);
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             onPaste={handleRichPaste}

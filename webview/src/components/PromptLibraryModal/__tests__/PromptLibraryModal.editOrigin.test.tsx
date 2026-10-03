@@ -50,7 +50,10 @@ describe('PromptLibraryModal: leaving the edit screen', () => {
   });
   afterEach(() => window.removeEventListener(PROMPT_EDIT_CLOSED_EVENT, closedHeard));
 
-  const press = (key: string, code = key) => act(() => void fireEvent.keyDown(document.body, { key, code }));
+  const press = (key: string, code = key) => {
+    act(() => void fireEvent.keyDown(document.body, { key, code }));
+    if (code === 'KeyE') act(() => void fireEvent.keyUp(document.body, { key, code }));
+  };
   const clickCancel = () => fireEvent.click((buttons => buttons[buttons.length - 1]!)(screen.getAllByRole('button', { name: 'Cancel' })));
 
   describe('opened on a prompt, as the !! panel does', () => {

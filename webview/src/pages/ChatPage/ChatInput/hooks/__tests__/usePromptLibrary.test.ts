@@ -471,10 +471,52 @@ describe('reordering from the keyboard', () => {
       { ...category('c1', 'review'), priority: -1 },
       { ...category('c2', 'docs'), priority: 1 },
     ];
-    const { result } = await open();
+    const { result } = renderLibrary(makeParams('!!'));
+    act(() => result.current.detectPrompt('!!', 2));
     await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
 
     expect(result.current.categoryRows.map((row) => row.key)).toEqual(['c1', ALL_CATEGORIES, 'c2']);
+  });
+
+  // The panel opens on the top row of the column, whichever row that is, and the
+  // first prompt of that category is the highlighted one.
+  it('opens on the top row of the column, not on "everything"', async () => {
+    categories = [
+      { ...category('c1', 'review'), priority: -1 },
+      { ...category('c2', 'docs'), priority: 1 },
+    ];
+    globalPrompts = [prompt('g2', 'two', 'two body'), { ...prompt('g1', 'one', 'one body'), categories: ['c1'] }];
+    const { result } = renderLibrary(makeParams('!!'));
+    act(() => result.current.detectPrompt('!!', 2));
+
+    await waitFor(() => expect(result.current.selectedCategory).toBe('c1'));
+    expect(result.current.selectedIndex).toBe(0);
+    expect(result.current.rows[0]).toMatchObject({ kind: 'prompt', prompt: { id: 'g1' } });
+  });
+
+  it('still opens on "everything" when it is the top row', async () => {
+    const { result } = renderLibrary(makeParams('!!'));
+    act(() => result.current.detectPrompt('!!', 2));
+    await waitFor(() => expect(result.current.categoryRows.length).toBeGreaterThan(0));
+
+    expect(result.current.selectedCategory).toBe(ALL_CATEGORIES);
+  });
+
+  it('keeps the category the user is on when the library is read again after a delete', async () => {
+    categories = [
+      { ...category('c1', 'review'), priority: -1 },
+      { ...category('c2', 'docs'), priority: 1 },
+    ];
+    const { result } = renderLibrary(makeParams('!!'));
+    act(() => result.current.detectPrompt('!!', 2));
+    await waitFor(() => expect(result.current.selectedCategory).toBe('c1'));
+    act(() => result.current.selectCategory('c2'));
+
+    await act(async () => {
+      await result.current.deletePrompt({ ...prompt('g2', 'two', 'two body'), scope: 'global' });
+    });
+
+    expect(result.current.selectedCategory).toBe('c2');
   });
 });
 
@@ -705,10 +747,14 @@ describe('editing and deleting from the keyboard', () => {
     await waitFor(() => expect(rendered.result.current.categoryRows.length).toBeGreaterThan(0));
     return rendered;
   }
-  const press = (result: { current: { handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => boolean } }, key: string, code = '') => {
+  const press = (result: { current: { handleKeyDown: (e: React.KeyboardEvent<HTMLElement>) => boolean; handleKeyUp: (e: React.KeyboardEvent<HTMLElement>) => boolean } }, key: string, code = '') => {
     let handled = false;
     const event = keyEvent(key, code);
     act(() => { handled = result.current.handleKeyDown(event); });
+    // The `e` key opens its edit when it is let go, not when it goes down.
+    if (code === 'KeyE' && handled) {
+      act(() => { result.current.handleKeyUp(keyEvent(key, code)); });
+    }
     return { handled, event };
   };
 
