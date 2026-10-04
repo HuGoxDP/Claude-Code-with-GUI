@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { HeartIcon } from '@heroicons/react/24/solid';
 import { SponsorSummary } from './SponsorSummary';
 import { SponsorLetter } from './SponsorLetter';
@@ -11,6 +12,7 @@ import { SponsorBillingSection } from './SponsorBillingSection';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { useAccounts } from '@/hooks/queries/useAccounts';
 import { useSponsorStatus } from '@/hooks/queries/useSponsorStatus';
+import { useDevMode } from '@/hooks/queries/useDevMode';
 import { getAdapter } from '@/adapters';
 import { MessageType, ErrorCode } from '@/shared';
 import { PRICING_URL } from '@/config/app';
@@ -45,6 +47,8 @@ export function SponsorSettings() {
   const { t } = useTranslation('settings');
   const { send } = useBridgeContext();
   const { activeEmail } = useAccounts();
+  const devMode = useDevMode();
+  const queryClient = useQueryClient();
   const {
     isSponsor,
     licenseKey,
@@ -141,6 +145,14 @@ export function SponsorSettings() {
   const handleDeactivate = async () => {
     setCheckoutStartedAt(null);
     await deactivate();
+  };
+
+  // Dev-only: become a sponsor without paying, to test gated features.
+  // "Clear key" in the manage menu undoes it.
+  const handleDevGrant = async () => {
+    setCheckoutStartedAt(null);
+    await send(MessageType.DEV_GRANT_SPONSOR);
+    void queryClient.invalidateQueries({ queryKey: [MessageType.GET_SPONSOR_STATUS] });
   };
 
   const handleActivate = async () => {
@@ -317,6 +329,19 @@ export function SponsorSettings() {
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Test-only. Shown only when the backend is in dev mode. */}
+      {devMode && !isSponsor && (
+        <div className="mt-6 rounded-xl border border-dashed border-fuchsia-500 p-4">
+          <button
+            type="button"
+            onClick={() => void handleDevGrant()}
+            className="rounded-lg border border-fuchsia-500 px-4 py-2 text-sm text-fuchsia-500 hover:bg-fuchsia-500/10"
+          >
+            {t('sponsor.devGrant')}
+          </button>
         </div>
       )}
 

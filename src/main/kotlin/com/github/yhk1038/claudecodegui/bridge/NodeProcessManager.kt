@@ -447,6 +447,7 @@ class NodeProcessManager(
                         put("CCG_HOST_PID", hostPid())
                         put("CCG_CLIENT_INFO", clientInfo)
                         put("PORT", requestedPort.toString())
+                        if (isDevMode()) put("CCG_DEV_MODE", "true")
                         webviewDir?.let { wv ->
                             WslPathResolver.toWslPath(wv.absolutePath)?.let { put("WEBVIEW_DIR", it) }
                         }
@@ -506,6 +507,9 @@ class NodeProcessManager(
                         // and reports the real port via its PORT:{n} stdout line. Lets one
                         // backend per IDE project root coexist without a fixed-port clash (#57).
                         put("PORT", requestedPort.toString())
+                        // runIde sets claude.dev.mode on the IDE JVM only; hand it to the
+                        // backend so dev-only test controls (e.g. granting sponsor) work there.
+                        if (isDevMode()) put("CCG_DEV_MODE", "true")
                         // Stable control-channel auth token (see [authToken]). The backend
                         // requires it on /ws, /rpc, /logs and the /internal routes. Set via the
                         // env map (never logged — the native branch does not log the env).
@@ -931,6 +935,11 @@ class NodeProcessManager(
          * explicitly makes the number of shim layers irrelevant.
          */
         private fun hostPid(): String = ProcessHandle.current().pid().toString()
+
+        /** Same dev-mode signal [PluginResourceExtractor] uses: true under `runIde`. */
+        private fun isDevMode(): Boolean =
+            System.getProperty("claude.dev.mode", "false").toBoolean() ||
+                System.getenv("CLAUDE_DEV_MODE") == "true"
 
         /**
          * How long [killNow] lets the backend run its own shutdown before SIGKILL. Short

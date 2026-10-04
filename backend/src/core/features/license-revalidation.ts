@@ -1,4 +1,5 @@
-import { readLicense, saveLicense, reportActivation } from './license';
+import { readLicense, saveLicense, reportActivation, DEV_SPONSOR_KEY } from './license';
+import { isDevMode } from '../../config/environment';
 import type { LicenseVerifyResult } from './license';
 
 /**
@@ -54,6 +55,8 @@ export async function revalidateStoredLicense(verify: LicenseVerifier): Promise<
   try {
     const license = await readLicense();
     if (license === null) return;
+    // The dev-mode test key is unknown to www, so asking would only revoke it.
+    if (license.licenseKey === DEV_SPONSOR_KEY && isDevMode()) return;
 
     // A license stored before a plan field existed has a fresh timestamp but
     // nothing to show, so the sponsor screen would sit blank until the interval

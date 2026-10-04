@@ -558,6 +558,7 @@
     }
   },
   "sponsor": {
+    "devGrant": "[DEV] Grant sponsor",
     "title": "Support this project",
     "description": [
       "For the sustainable development of this independent project,",

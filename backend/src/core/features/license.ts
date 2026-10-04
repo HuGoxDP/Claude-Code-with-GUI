@@ -246,6 +246,31 @@ export async function readLicense(): Promise<StoredLicense | null> {
   }
 }
 
+/**
+ * The key a dev-mode "grant sponsor" writes. Not a real key: www does not know
+ * it, so revalidation skips it in dev mode (otherwise www's "invalid" would
+ * revoke it a day later).
+ */
+export const DEV_SPONSOR_KEY = 'dev-test-sponsor';
+
+/**
+ * Dev-only: make this install a sponsor without paying, for testing gated
+ * features. Overwrites whatever is stored (including a deactivation marker);
+ * the sponsor screen's "clear key" undoes it. Callers must check dev mode.
+ */
+export async function grantDevSponsor(): Promise<void> {
+  await saveLicense({
+    licenseKey: DEV_SPONSOR_KEY,
+    status: LICENSE_STATUS_ACTIVE,
+    verifiedAt: new Date().toISOString(),
+    // Filled so revalidation's "plan missing" check does not fire either.
+    tier: 'dev',
+    interval: 'monthly',
+    price: { amount: 0, currency: 'USD' },
+    cancellable: false,
+  });
+}
+
 /** Persist a verified license. */
 export async function saveLicense(license: StoredLicense): Promise<void> {
   await mkdir(LICENSE_DIR, { recursive: true });

@@ -210,6 +210,10 @@ export enum MessageType {
   REMOVE_SPONSOR_DEVICE = 'REMOVE_SPONSOR_DEVICE',
   /** List the payments behind this sponsor license, each with its receipt link. inbound webview→backend */
   GET_SPONSOR_INVOICES = 'GET_SPONSOR_INVOICES',
+  /** Ask whether the backend runs in dev mode (dev build, or IDE launched via run-ide), so the webview can show test-only controls. inbound webview→backend */
+  GET_DEV_MODE = 'GET_DEV_MODE',
+  /** Dev-only: store a fake active sponsor license on this install, for testing sponsor-gated features without paying. Refused outside dev mode. inbound webview→backend */
+  DEV_GRANT_SPONSOR = 'DEV_GRANT_SPONSOR',
   /** Cancel the recurring payment behind this sponsor license (ends billing, unlike clearing the key). inbound webview→backend */
   CANCEL_SPONSOR_SUBSCRIPTION = 'CANCEL_SPONSOR_SUBSCRIPTION',
 

@@ -558,6 +558,7 @@
     }
   },
   "sponsor": {
+    "devGrant": "[DEV] Accorder le parrainage",
     "title": "Soutenir ce projet",
     "description": [
       "Pour le développement durable de ce projet indépendant,",

@@ -47,6 +47,7 @@ import { verifyLicenseHandler } from './verifyLicense';
 import { getSponsorStatusHandler } from './getSponsorStatus';
 import { deactivateLicenseHandler } from './deactivateLicense';
 import { checkSponsorHandler } from './checkSponsor';
+import { getDevModeHandler, devGrantSponsorHandler } from './devSponsor';
 import {
   getSponsorDevicesHandler,
   removeSponsorDeviceHandler,
@@ -335,6 +336,12 @@ export async function handleMessage(
       break;
     case MessageType.CHECK_SPONSOR:
       await checkSponsorHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_DEV_MODE:
+      await getDevModeHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.DEV_GRANT_SPONSOR:
+      await devGrantSponsorHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SPONSOR_DEVICES:
       await getSponsorDevicesHandler(connectionId, message, connections, bridge);

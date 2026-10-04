@@ -554,6 +554,7 @@
     }
   },
   "sponsor": {
+    "devGrant": "[DEV] 授予贊助者權限",
     "title": "贊助這個專案",
     "description": [
       "為了這個獨立專案的可持續開發，",

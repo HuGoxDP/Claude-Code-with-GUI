@@ -558,6 +558,7 @@
     }
   },
   "sponsor": {
+    "devGrant": "[DEV] Conceder patrocínio",
     "title": "Apoiar este projeto",
     "description": [
       "Para o desenvolvimento sustentável deste projeto independente,",

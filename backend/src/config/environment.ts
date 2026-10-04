@@ -17,6 +17,10 @@ export const CCG_RYBBIT_API_KEY = process.env._CCG_RYBBIT_API_KEY ?? '';
 // ── 빌드 환경 ──────────────────────────────────────────
 export const isDev = () => process.env.NODE_ENV !== 'production';
 export const isProd = () => process.env.NODE_ENV === 'production';
+// 개발 모드: 빌드가 dev이거나(Vite/tsx), 번들이 production이어도 IDE가
+// `run-ide`(claude.dev.mode=true)로 떠서 CCG_DEV_MODE=true를 주입한 경우.
+// 테스트용 기능(예: DEV_GRANT_SPONSOR)의 게이트로만 쓴다.
+export const isDevMode = () => isDev() || process.env.CCG_DEV_MODE === 'true';
 
 // ── 실행 환경 (런타임 주입) ─────────────────────────────
 // 실행 주체(JetBrains=Kotlin spawn, standalone=ccg)가 주입한다. 이 키들은

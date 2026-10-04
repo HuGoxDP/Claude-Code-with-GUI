@@ -554,6 +554,7 @@
     }
   },
   "sponsor": {
+    "devGrant": "[DEV] 授予赞助者权限",
     "title": "赞助这个项目",
     "description": [
       "为了这个独立项目的可持续开发，",

@@ -19,6 +19,7 @@ vi.mock('../license', () => ({
   saveLicense: mockSaveLicense,
   deactivateLicense: mockDeactivateLicense,
   reportActivation: mockReportActivation,
+  DEV_SPONSOR_KEY: 'dev-test-sponsor',
 }));
 
 import {
@@ -64,6 +65,21 @@ describe('revalidateStoredLicense', () => {
 
     expect(mockVerifyRemote).not.toHaveBeenCalled();
     expect(mockDeactivateLicense).not.toHaveBeenCalled();
+  });
+
+  it('never asks www about the dev-mode test key (www would revoke it)', async () => {
+    // Stale on purpose: a real key this old would be re-checked. Vitest is not a
+    // production build, so isDevMode() is true here.
+    mockReadLicense.mockResolvedValue({
+      licenseKey: 'dev-test-sponsor',
+      status: 'active',
+      verifiedAt: hoursAgo(REVALIDATE_INTERVAL_MS / 3600_000 + 1),
+    });
+
+    await revalidateStoredLicense(mockVerifyRemote);
+
+    expect(mockVerifyRemote).not.toHaveBeenCalled();
+    expect(mockSaveLicense).not.toHaveBeenCalled();
   });
 
   it('skips the network call while the last check is still fresh', async () => {
