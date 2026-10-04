@@ -14,7 +14,8 @@
     "resumeConversation": "会話を再開",
     "showBackgroundTasks": "ワークフロー: バックグラウンドタスクを表示",
     "scheduleSend": "メッセージを予約送信...",
-    "promptLibrary": "プロンプトライブラリ"
+    "promptLibrary": "プロンプトライブラリ",
+    "commitMessage": "コミットメッセージを書く..."
   },
   "scheduleSend": {
     "title": "メッセージを予約",

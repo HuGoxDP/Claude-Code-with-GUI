@@ -14,7 +14,8 @@
     "resumeConversation": "ازسرگیری گفتگو",
     "showBackgroundTasks": "جریان کاری: نمایش کارهای پس‌زمینه",
     "scheduleSend": "زمان‌بندی پیام...",
-    "promptLibrary": "کتابخانهٔ پرامپت"
+    "promptLibrary": "کتابخانهٔ پرامپت",
+    "commitMessage": "نوشتن پیام کامیت..."
   },
   "scheduleSend": {
     "title": "زمان‌بندی پیام",

@@ -14,7 +14,8 @@
     "resumeConversation": "繼續對話",
     "showBackgroundTasks": "工作流程:顯示背景工作",
     "scheduleSend": "排程傳送訊息...",
-    "promptLibrary": "提示詞庫"
+    "promptLibrary": "提示詞庫",
+    "commitMessage": "撰寫提交訊息..."
   },
   "scheduleSend": {
     "title": "排程傳送訊息",

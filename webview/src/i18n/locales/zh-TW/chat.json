@@ -717,5 +717,27 @@
       "tooLong": "草稿太長，無法優化（最多 20,000 個字元）。",
       "emptyPrompt": "請先輸入要優化的內容。"
     }
+  },
+  "commitMessage": {
+    "title": "提交訊息",
+    "loading": "正在讀取變更並撰寫訊息…",
+    "regenerate": "重新撰寫",
+    "cancel": "取消",
+    "close": "關閉",
+    "copy": "複製",
+    "copyHint": "將訊息複製到剪貼簿 (Cmd/Ctrl+Enter)",
+    "copied": "已複製提交訊息",
+    "copyFailed": "無法複製訊息",
+    "scope": {
+      "staged": "以已暫存的變更為準，即 git commit 會提交的內容。",
+      "all": "以所有未提交的變更為準（沒有已暫存內容），包含未追蹤的檔案。"
+    },
+    "errors": {
+      "title": "無法撰寫提交訊息",
+      "generic": "出了點問題，請重試。",
+      "noChanges": "此專案沒有可提交的變更。",
+      "notARepository": "此專案不是 Git 儲存庫。",
+      "emptyResult": "模型傳回了空訊息，請重試。"
+    }
   }
 }

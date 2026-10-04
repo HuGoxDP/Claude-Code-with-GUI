@@ -117,6 +117,14 @@ export enum MessageType {
    */
   ENHANCE_PROMPT = 'ENHANCE_PROMPT',
   /**
+   * Write a commit message for what `git commit` would commit in the project
+   * ({ workingDir, model? }): the staged changes, or every change when nothing is
+   * staged. The ACK carries { message, scope }. The IDE's commit dialog reaches
+   * the same writer through POST /internal/commit-message with the dialog's files.
+   * inbound webview→backend
+   */
+  GENERATE_COMMIT_MESSAGE = 'GENERATE_COMMIT_MESSAGE',
+  /**
    * Tells the webview the uuid the CLI recorded for the send whose turn just
    * ended, and whether the code can be rewound to it (issue #356).
    *

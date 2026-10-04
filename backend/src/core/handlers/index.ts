@@ -22,6 +22,7 @@ import { logDebug } from '../../logging/log-level';
 import { renameSessionHandler } from './renameSession';
 import { exportSessionHandler } from './exportSession';
 import { enhancePromptHandler } from './enhancePrompt';
+import { generateCommitMessageHandler } from './generateCommitMessage';
 import { getSessionFavoritesHandler, setSessionFavoriteHandler } from './sessionFavorites';
 import { getAgentTranscriptHandler } from './getAgentTranscript';
 import { watchBackgroundTaskOutputHandler, unwatchBackgroundTaskOutputHandler } from './watchBackgroundTaskOutput';
@@ -274,6 +275,9 @@ export async function handleMessage(
       break;
     case MessageType.ENHANCE_PROMPT:
       await enhancePromptHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GENERATE_COMMIT_MESSAGE:
+      await generateCommitMessageHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_AGENT_TRANSCRIPT:
       await getAgentTranscriptHandler(connectionId, message, connections, bridge);

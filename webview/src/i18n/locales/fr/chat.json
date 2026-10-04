@@ -717,5 +717,27 @@
       "tooLong": "Le brouillon est trop long (20 000 caractères au maximum).",
       "emptyPrompt": "Saisissez d'abord un texte à améliorer."
     }
+  },
+  "commitMessage": {
+    "title": "Message de commit",
+    "loading": "Lecture des modifications et rédaction du message…",
+    "regenerate": "Réécrire",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "copy": "Copier",
+    "copyHint": "Copie le message dans le presse-papiers (Cmd/Ctrl+Entrée)",
+    "copied": "Message de commit copié",
+    "copyFailed": "Impossible de copier le message",
+    "scope": {
+      "staged": "Pour les modifications indexées, telles que git commit les validerait.",
+      "all": "Pour toutes les modifications non validées (rien n'est indexé), fichiers non suivis compris."
+    },
+    "errors": {
+      "title": "Impossible de rédiger un message de commit",
+      "generic": "Un problème est survenu. Réessayez.",
+      "noChanges": "Il n'y a rien à valider dans ce projet.",
+      "notARepository": "Ce projet n'est pas un dépôt Git.",
+      "emptyResult": "Le modèle a renvoyé un message vide. Réessayez."
+    }
   }
 }

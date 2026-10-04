@@ -25,6 +25,7 @@ import {
   type OpenPromptLibraryDetail,
 } from '@/commandPalette/sections/context/items';
 import { PromptLibraryModal } from '@/components/PromptLibraryModal';
+import { CommitMessageDialogSlot } from '@/components/CommitMessageDialog/Slot';
 import { useMcpServers, MCP_SERVERS_QUERY_KEY } from '@/hooks/useMcpServers';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatInputFocus } from '../../contexts/ChatInputFocusContext';
@@ -463,6 +464,7 @@ function ChatPageContent() {
           onClose={() => setDiffOverlayToolUseId(null)}
         />
       )}
+      <CommitMessageDialogSlot />
       <AnnouncementModalSlot />
       <WhatsNewSlot />
     </div>

@@ -14,7 +14,8 @@
     "resumeConversation": "Unterhaltung fortsetzen",
     "showBackgroundTasks": "Workflow: Hintergrundaufgaben anzeigen",
     "scheduleSend": "Nachricht planen...",
-    "promptLibrary": "Prompt-Bibliothek"
+    "promptLibrary": "Prompt-Bibliothek",
+    "commitMessage": "Commit-Nachricht schreiben..."
   },
   "scheduleSend": {
     "title": "Nachricht planen",

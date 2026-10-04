@@ -717,5 +717,27 @@
       "tooLong": "Der Entwurf ist zu lang (höchstens 20.000 Zeichen).",
       "emptyPrompt": "Gib zuerst etwas ein, das verbessert werden soll."
     }
+  },
+  "commitMessage": {
+    "title": "Commit-Nachricht",
+    "loading": "Änderungen werden gelesen und eine Nachricht geschrieben…",
+    "regenerate": "Neu schreiben",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "copy": "Kopieren",
+    "copyHint": "Nachricht in die Zwischenablage kopieren (Cmd/Strg+Enter)",
+    "copied": "Commit-Nachricht kopiert",
+    "copyFailed": "Die Nachricht konnte nicht kopiert werden",
+    "scope": {
+      "staged": "Für die gestagten Änderungen, so wie git commit sie committen würde.",
+      "all": "Für alle nicht committeten Änderungen (nichts gestagt), einschließlich nicht verfolgter Dateien."
+    },
+    "errors": {
+      "title": "Es konnte keine Commit-Nachricht geschrieben werden",
+      "generic": "Etwas ist schiefgelaufen. Versuche es erneut.",
+      "noChanges": "In diesem Projekt gibt es nichts zu committen.",
+      "notARepository": "Dieses Projekt ist kein Git-Repository.",
+      "emptyResult": "Das Modell hat eine leere Nachricht geliefert. Versuche es erneut."
+    }
   }
 }

@@ -14,7 +14,8 @@
     "resumeConversation": "استئناف المحادثة",
     "showBackgroundTasks": "مهمة سير العمل: عرض المهام الخلفية",
     "scheduleSend": "جدولة رسالة...",
-    "promptLibrary": "مكتبة المطالبات"
+    "promptLibrary": "مكتبة المطالبات",
+    "commitMessage": "كتابة رسالة الإيداع..."
   },
   "scheduleSend": {
     "title": "جدولة رسالة",

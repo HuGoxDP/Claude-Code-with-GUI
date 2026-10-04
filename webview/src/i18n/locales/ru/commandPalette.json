@@ -14,7 +14,8 @@
     "resumeConversation": "Возобновить разговор",
     "showBackgroundTasks": "Рабочий процесс: показать фоновые задачи",
     "scheduleSend": "Запланировать сообщение...",
-    "promptLibrary": "Библиотека промптов"
+    "promptLibrary": "Библиотека промптов",
+    "commitMessage": "Написать сообщение коммита..."
   },
   "scheduleSend": {
     "title": "Запланировать сообщение",

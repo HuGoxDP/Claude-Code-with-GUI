@@ -14,7 +14,8 @@
     "resumeConversation": "Reprendre la conversation",
     "showBackgroundTasks": "Workflow : afficher les tâches en arrière-plan",
     "scheduleSend": "Planifier un message...",
-    "promptLibrary": "Bibliothèque de prompts"
+    "promptLibrary": "Bibliothèque de prompts",
+    "commitMessage": "Rédiger un message de commit..."
   },
   "scheduleSend": {
     "title": "Planifier un message",

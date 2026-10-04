@@ -14,7 +14,8 @@
     "resumeConversation": "恢复对话",
     "showBackgroundTasks": "工作流:显示后台任务",
     "scheduleSend": "定时发送消息...",
-    "promptLibrary": "提示词库"
+    "promptLibrary": "提示词库",
+    "commitMessage": "撰写提交信息..."
   },
   "scheduleSend": {
     "title": "定时发送消息",

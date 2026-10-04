@@ -14,7 +14,8 @@
     "resumeConversation": "Reanudar conversación",
     "showBackgroundTasks": "Flujo de trabajo: Mostrar tareas en segundo plano",
     "scheduleSend": "Programar un mensaje...",
-    "promptLibrary": "Biblioteca de prompts"
+    "promptLibrary": "Biblioteca de prompts",
+    "commitMessage": "Escribir un mensaje de commit..."
   },
   "scheduleSend": {
     "title": "Programar un mensaje",

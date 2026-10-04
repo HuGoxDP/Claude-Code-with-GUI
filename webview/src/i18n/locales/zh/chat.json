@@ -717,5 +717,27 @@
       "tooLong": "草稿太长，无法优化（最多 20,000 个字符）。",
       "emptyPrompt": "请先输入要优化的内容。"
     }
+  },
+  "commitMessage": {
+    "title": "提交信息",
+    "loading": "正在读取改动并撰写信息…",
+    "regenerate": "重新撰写",
+    "cancel": "取消",
+    "close": "关闭",
+    "copy": "复制",
+    "copyHint": "将信息复制到剪贴板 (Cmd/Ctrl+Enter)",
+    "copied": "已复制提交信息",
+    "copyFailed": "无法复制信息",
+    "scope": {
+      "staged": "基于已暂存的改动，即 git commit 会提交的内容。",
+      "all": "基于所有未提交的改动（没有已暂存内容），包括未跟踪的文件。"
+    },
+    "errors": {
+      "title": "无法撰写提交信息",
+      "generic": "出了点问题，请重试。",
+      "noChanges": "此项目没有可提交的改动。",
+      "notARepository": "此项目不是 Git 仓库。",
+      "emptyResult": "模型返回了空信息，请重试。"
+    }
   }
 }

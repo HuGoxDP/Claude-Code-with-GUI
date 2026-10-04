@@ -14,7 +14,8 @@
     "resumeConversation": "Resume conversation",
     "showBackgroundTasks": "Workflow: Show background tasks",
     "scheduleSend": "Schedule a message...",
-    "promptLibrary": "Prompt Library"
+    "promptLibrary": "Prompt Library",
+    "commitMessage": "Write a commit message..."
   },
   "scheduleSend": {
     "title": "Schedule a message",

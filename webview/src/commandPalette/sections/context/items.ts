@@ -3,6 +3,7 @@ import type { PromptScope, SavedPrompt } from '@/types/prompt';
 import { i18n } from '@/i18n';
 import { StaticItem } from '../../types';
 import { enKeyword } from '../../enKeyword';
+import { OPEN_COMMIT_MESSAGE_EVENT } from '@/components/CommitMessageDialog';
 
 /**
  * Fired when the user runs `/resume`. The session dropdown opens (browse/resume
@@ -124,6 +125,16 @@ export const getContextItems = (): StaticItem[] => [
     disabled: false,
     action: async () => {
       window.dispatchEvent(new CustomEvent(OPEN_PROMPT_LIBRARY_EVENT));
+    },
+  }),
+  // Writes a commit message for what `git commit` would commit here, to copy.
+  // The IDE has the same writer as a button in its commit dialog; this is the
+  // way in for a chat that runs without one (standalone mode).
+  new StaticItem('commit-message', i18n.t('commandPalette:context.commitMessage'), {
+    keywords: [enKeyword('commandPalette:context.commitMessage'), 'commit', 'git', 'message'],
+    disabled: false,
+    action: async () => {
+      window.dispatchEvent(new CustomEvent(OPEN_COMMIT_MESSAGE_EVENT));
     },
   }),
 ];

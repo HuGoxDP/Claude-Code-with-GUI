@@ -721,5 +721,27 @@
       "tooLong": "The draft is too long to enhance (20,000 characters at most).",
       "emptyPrompt": "Type something to enhance first."
     }
+  },
+  "commitMessage": {
+    "title": "Commit message",
+    "loading": "Reading your changes and writing a message…",
+    "regenerate": "Write again",
+    "cancel": "Cancel",
+    "close": "Close",
+    "copy": "Copy",
+    "copyHint": "Copy the message to the clipboard (Cmd/Ctrl+Enter)",
+    "copied": "Commit message copied",
+    "copyFailed": "Could not copy the message",
+    "scope": {
+      "staged": "For the staged changes, as git commit would commit them.",
+      "all": "For all uncommitted changes (nothing is staged), untracked files included."
+    },
+    "errors": {
+      "title": "Could not write a commit message",
+      "generic": "Something went wrong. Try again.",
+      "noChanges": "There is nothing to commit in this project.",
+      "notARepository": "This project is not a Git repository.",
+      "emptyResult": "The model returned an empty message. Try again."
+    }
   }
 }

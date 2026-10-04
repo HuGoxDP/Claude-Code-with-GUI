@@ -717,5 +717,27 @@
       "tooLong": "O rascunho é longo demais (no máximo 20.000 caracteres).",
       "emptyPrompt": "Digite algo para melhorar primeiro."
     }
+  },
+  "commitMessage": {
+    "title": "Mensagem de commit",
+    "loading": "Lendo suas alterações e escrevendo uma mensagem…",
+    "regenerate": "Escrever de novo",
+    "cancel": "Cancelar",
+    "close": "Fechar",
+    "copy": "Copiar",
+    "copyHint": "Copia a mensagem para a área de transferência (Cmd/Ctrl+Enter)",
+    "copied": "Mensagem de commit copiada",
+    "copyFailed": "Não foi possível copiar a mensagem",
+    "scope": {
+      "staged": "Para as alterações preparadas (staged), como o git commit as confirmaria.",
+      "all": "Para todas as alterações não confirmadas (nada preparado), incluindo arquivos não rastreados."
+    },
+    "errors": {
+      "title": "Não foi possível escrever uma mensagem de commit",
+      "generic": "Algo deu errado. Tente novamente.",
+      "noChanges": "Não há nada para confirmar neste projeto.",
+      "notARepository": "Este projeto não é um repositório Git.",
+      "emptyResult": "O modelo devolveu uma mensagem vazia. Tente novamente."
+    }
   }
 }

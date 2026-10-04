@@ -717,5 +717,27 @@
       "tooLong": "El borrador es demasiado largo (máximo 20.000 caracteres).",
       "emptyPrompt": "Escribe primero algo que mejorar."
     }
+  },
+  "commitMessage": {
+    "title": "Mensaje de commit",
+    "loading": "Leyendo tus cambios y escribiendo un mensaje…",
+    "regenerate": "Volver a escribir",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "copy": "Copiar",
+    "copyHint": "Copia el mensaje al portapapeles (Cmd/Ctrl+Enter)",
+    "copied": "Mensaje de commit copiado",
+    "copyFailed": "No se pudo copiar el mensaje",
+    "scope": {
+      "staged": "Para los cambios preparados (staged), como los confirmaría git commit.",
+      "all": "Para todos los cambios sin confirmar (no hay nada preparado), incluidos los archivos sin seguimiento."
+    },
+    "errors": {
+      "title": "No se pudo escribir un mensaje de commit",
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "noChanges": "No hay nada que confirmar en este proyecto.",
+      "notARepository": "Este proyecto no es un repositorio Git.",
+      "emptyResult": "El modelo devolvió un mensaje vacío. Inténtalo de nuevo."
+    }
   }
 }

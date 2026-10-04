@@ -18,6 +18,10 @@
     -->
     <depends optional="true">org.jetbrains.plugins.terminal</depends>
     <depends optional="true" config-file="claudecode-jcef.xml">com.intellij.modules.jcef</depends>
+    <!-- "Generate Commit Message with Claude" in the commit message box. Optional so
+         an IDE without VCS support still loads the plugin; the action and the VCS
+         classes it uses live behind this config file. -->
+    <depends optional="true" config-file="claudecode-vcs.xml">com.intellij.modules.vcs</depends>
 
     <resource-bundle>messages.ClaudeCodeBundle</resource-bundle>
 

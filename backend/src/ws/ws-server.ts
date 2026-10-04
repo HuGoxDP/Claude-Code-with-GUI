@@ -8,6 +8,7 @@ import { ConnectionManager } from './connection-manager';
 import { ConnectionHeartbeat, type HeartbeatSocket } from './connection-heartbeat';
 import { handleEditorContextRequest } from './editor-context-route';
 import { handleIdeSelectionRequest } from './ide-selection-route';
+import { handleCommitMessageRequest } from './commit-message-route';
 import { handleStatusRequest } from './status-route';
 import type { Bridge } from '../bridge/bridge-interface';
 import type { IPCMessage } from '../core/types';
@@ -532,6 +533,25 @@ export function startWebSocketServer(
             return;
           }
           const result = handleIdeSelectionRequest(connections, rawBody);
+          res.writeHead(result.status, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(result.body));
+          return;
+        }
+
+        // IDE → backend: write a commit message for the files in the commit
+        // dialog. Answers with the message rather than pushing it anywhere; the
+        // IDE puts it in the dialog's message box. Slow by nature (a model call),
+        // so the IDE waits longer for this route than for the pushes above.
+        if (req.method === 'POST' && urlPath === '/internal/commit-message') {
+          let rawBody: string;
+          try {
+            rawBody = await readRequestBody(req);
+          } catch {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to read request body' }));
+            return;
+          }
+          const result = await handleCommitMessageRequest(rawBody);
           res.writeHead(result.status, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify(result.body));
           return;
