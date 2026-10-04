@@ -44,6 +44,10 @@ import { useAgentMention, type AgentRecipient } from './hooks/useAgentMention';
 import { AgentMentionDropdown } from './AgentMentionDropdown';
 import { usePromptVariableFill } from './hooks/usePromptVariableFill';
 import { PromptVariablesModal } from '@/components/PromptVariablesModal';
+import { PromptEnhancerDialog } from '@/components/PromptEnhancerDialog';
+import { usePromptEnhancer } from './hooks/usePromptEnhancer';
+import { useCurrentModel } from '@/hooks/useCurrentModel';
+import { useIdeSelectionContext } from '@/contexts/IdeSelectionContext';
 import { useEditorContext } from '@/hooks/useEditorContext';
 import { MentionDropdown } from './MentionDropdown';
 import { PromptDropdown } from './PromptDropdown';
@@ -145,6 +149,17 @@ export function ChatInput() {
 
   const bridge = useBridgeContext();
   const { subscribe } = bridge;
+  // The enhancer rewrites the draft with the model the user is talking to, and
+  // sees the editor file/selection only when the editor-context tag is on — the
+  // same switch that decides whether the next send carries it.
+  const currentModel = useCurrentModel();
+  const { currentSelection, includeSelection } = useIdeSelectionContext();
+  const enhancer = usePromptEnhancer({
+    send: bridge.send,
+    workingDirectory,
+    model: currentModel,
+    editorContext: includeSelection ? currentSelection : null,
+  });
   const [isFocused, setIsFocused] = useState(false);
   // Known path tokens (e.g. `src/file.ts#L10-L25`) inserted via Alt+K /
   // EDITOR_CONTEXT, highlighted as chips in the composer. Reset on submit and
@@ -888,6 +903,34 @@ export function ChatInput() {
     agentMention.detectAgent(newValue, caret);
   }, [onChange, palette, mention, promptLibrary, agentMention, textareaRef]);
 
+  // The draft the enhancer rewrites: the words, without the recipient chip. The
+  // chip is an address, not text, and a rewrite would turn it into a sentence.
+  const startEnhance = useCallback(() => {
+    const draft = recipient ? value.replace(recipient.token, '').trim() : value;
+    enhancer.start(draft);
+  }, [enhancer, recipient, value]);
+
+  // Replaces the whole draft through the browser's editing pipeline, so one
+  // Cmd/Ctrl+Z gives the original back. The chip, if any, stays in front.
+  const applyEnhanced = useCallback((enhanced: string) => {
+    enhancer.close();
+    const next = recipient ? `${recipient.token} ${enhanced}` : enhanced;
+    const el = textareaRef.current;
+    el?.focus();
+    const current = el?.textContent ?? value;
+    const handledByBrowser = el ? replaceRangeWithText(el, 0, current.length, next) : false;
+    if (!handledByBrowser) onChange(next);
+    requestAnimationFrame(() => {
+      const target = textareaRef.current;
+      if (target) setCaretOffset(target, next.length);
+    });
+  }, [enhancer, recipient, value, onChange, textareaRef]);
+
+  const closeEnhancer = useCallback(() => {
+    enhancer.close();
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }, [enhancer, textareaRef]);
+
   // Right after `/rename ` the session's current title is previewed after the
   // caret, the way unsettled dictation is, and Tab turns it into real text.
   const renameGhost = renameSuggestion(value, currentSession?.title);
@@ -1451,6 +1494,9 @@ export function ChatInput() {
               hasValue={hasValue}
               onAttach={() => setShowAttachMenu(prev => !prev)}
               onSlashCommand={palette.handleSlashButtonClick}
+              onEnhance={startEnhance}
+              enhancing={enhancer.state.phase === 'loading'}
+              canEnhance={!!(recipient ? value.replace(recipient.token, '') : value).trim()}
               onSubmit={() => submitComposer()}
               onStop={onStop}
             />
@@ -1461,6 +1507,13 @@ export function ChatInput() {
           Portal로 그려지므로 위치가 레이아웃에 영향을 주지 않고, 인풋 내부에
           두면 컴포저가 조건부로 언마운트될 때 함께 사라지기 때문이다. */}
       {confirmDialog}
+      <PromptEnhancerDialog
+        state={enhancer.state}
+        onUse={applyEnhanced}
+        onClose={closeEnhancer}
+        onRetry={enhancer.retry}
+        onChangeEnhanced={enhancer.setEnhanced}
+      />
     </div>
   );
 }

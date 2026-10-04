@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "Attach file",
       "slashCommands": "Slash commands",
+      "enhancePrompt": "Enhance prompt",
       "stopGenerating": "Stop generating",
       "sendMessage": "Send message"
     },
@@ -702,5 +703,23 @@
     "previous": "Previous match (Shift+Enter)",
     "next": "Next match (Enter)",
     "close": "Close (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "Enhance prompt",
+    "original": "Your draft",
+    "enhanced": "Enhanced",
+    "loading": "Rewriting your draft…",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "keepOriginal": "Keep original",
+    "use": "Use enhanced",
+    "useHint": "Replace the draft with this text (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "Could not enhance the prompt",
+      "generic": "Something went wrong. Try again.",
+      "emptyResult": "The model returned nothing to use. Try again.",
+      "tooLong": "The draft is too long to enhance (20,000 characters at most).",
+      "emptyPrompt": "Type something to enhance first."
+    }
   }
 }

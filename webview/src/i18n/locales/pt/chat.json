@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "Anexar arquivo",
       "slashCommands": "Comandos de barra",
+      "enhancePrompt": "Melhorar o prompt",
       "stopGenerating": "Parar geração",
       "sendMessage": "Enviar mensagem"
     },
@@ -698,5 +699,23 @@
     "previous": "Resultado anterior (Shift+Enter)",
     "next": "Próximo resultado (Enter)",
     "close": "Fechar (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "Melhorar o prompt",
+    "original": "Seu rascunho",
+    "enhanced": "Melhorado",
+    "loading": "Reescrevendo seu rascunho…",
+    "retry": "Tentar novamente",
+    "cancel": "Cancelar",
+    "keepOriginal": "Manter o original",
+    "use": "Usar a versão melhorada",
+    "useHint": "Substitui o rascunho por este texto (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "Não foi possível melhorar o prompt",
+      "generic": "Algo deu errado. Tente novamente.",
+      "emptyResult": "O modelo não devolveu nada utilizável. Tente novamente.",
+      "tooLong": "O rascunho é longo demais (no máximo 20.000 caracteres).",
+      "emptyPrompt": "Digite algo para melhorar primeiro."
+    }
   }
 }

@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "附加檔案",
       "slashCommands": "斜線指令",
+      "enhancePrompt": "優化提示詞",
       "stopGenerating": "停止產生",
       "sendMessage": "傳送訊息"
     },
@@ -698,5 +699,23 @@
     "previous": "上一個 (Shift+Enter)",
     "next": "下一個 (Enter)",
     "close": "關閉 (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "優化提示詞",
+    "original": "你的草稿",
+    "enhanced": "優化後",
+    "loading": "正在改寫草稿…",
+    "retry": "重試",
+    "cancel": "取消",
+    "keepOriginal": "保留原文",
+    "use": "使用優化結果",
+    "useHint": "以此文字取代草稿 (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "無法優化提示詞",
+      "generic": "出了點問題，請重試。",
+      "emptyResult": "模型沒有傳回可用的結果，請重試。",
+      "tooLong": "草稿太長，無法優化（最多 20,000 個字元）。",
+      "emptyPrompt": "請先輸入要優化的內容。"
+    }
   }
 }

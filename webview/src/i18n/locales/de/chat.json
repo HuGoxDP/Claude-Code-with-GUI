@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "Datei anhängen",
       "slashCommands": "Slash-Befehle",
+      "enhancePrompt": "Prompt verbessern",
       "stopGenerating": "Generierung stoppen",
       "sendMessage": "Nachricht senden"
     },
@@ -698,5 +699,23 @@
     "previous": "Vorheriger Treffer (Shift+Enter)",
     "next": "Nächster Treffer (Enter)",
     "close": "Schließen (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "Prompt verbessern",
+    "original": "Dein Entwurf",
+    "enhanced": "Verbessert",
+    "loading": "Entwurf wird umgeschrieben…",
+    "retry": "Erneut versuchen",
+    "cancel": "Abbrechen",
+    "keepOriginal": "Original behalten",
+    "use": "Verbesserte Version verwenden",
+    "useHint": "Ersetzt den Entwurf durch diesen Text (Cmd/Strg+Enter)",
+    "errors": {
+      "title": "Der Prompt konnte nicht verbessert werden",
+      "generic": "Etwas ist schiefgelaufen. Versuche es erneut.",
+      "emptyResult": "Das Modell hat nichts Verwendbares geliefert. Versuche es erneut.",
+      "tooLong": "Der Entwurf ist zu lang (höchstens 20.000 Zeichen).",
+      "emptyPrompt": "Gib zuerst etwas ein, das verbessert werden soll."
+    }
   }
 }

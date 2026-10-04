@@ -1,5 +1,6 @@
 import { InputMode, INPUT_MODES } from '../../../types/chatInput';
 import { useTranslation } from '@/i18n';
+import { SparkleIcon } from '@/components/PromptEnhancerDialog';
 
 interface Props {
   mode: InputMode;
@@ -8,6 +9,12 @@ interface Props {
   hasValue: boolean;
   onAttach?: () => void;
   onSlashCommand?: () => void;
+  /** Rewrite the draft into a clearer prompt (the enhancer dialog). */
+  onEnhance?: () => void;
+  /** An enhancement is running: the button spins and does not start another. */
+  enhancing?: boolean;
+  /** There are words to rewrite. Attachments alone count for sending, not for this. */
+  canEnhance?: boolean;
   onSubmit: () => void;
   onStop?: () => void;
 }
@@ -20,6 +27,9 @@ export function ActionButtons(props: Props) {
     hasValue,
     onAttach,
     onSlashCommand,
+    onEnhance,
+    enhancing = false,
+    canEnhance = hasValue,
     onSubmit,
     onStop,
   } = props;
@@ -45,6 +55,21 @@ export function ActionButtons(props: Props) {
           <svg className="w-[14px] h-[14px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
           </svg>
+        </button>
+        )}
+
+        {onEnhance && (
+        /* Prompt enhancer: needs a draft to rewrite, so it is off while empty. */
+        <button
+            type="button"
+            className="flex items-center justify-center w-6 h-6 rounded-full text-text-tertiary hover:text-text-secondary hover:bg-surface-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            onClick={onEnhance}
+            disabled={!canEnhance || enhancing}
+            aria-busy={enhancing}
+            title={t('chatInput.actionButtons.enhancePrompt')}
+            aria-label={t('chatInput.actionButtons.enhancePrompt')}
+        >
+          <SparkleIcon className={`w-[14px] h-[14px] ${enhancing ? 'animate-pulse text-accent-primary' : ''}`} />
         </button>
         )}
 

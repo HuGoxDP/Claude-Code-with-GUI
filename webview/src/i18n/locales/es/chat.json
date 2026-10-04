@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "Adjuntar archivo",
       "slashCommands": "Comandos con barra",
+      "enhancePrompt": "Mejorar el prompt",
       "stopGenerating": "Detener generación",
       "sendMessage": "Enviar mensaje"
     },
@@ -698,5 +699,23 @@
     "previous": "Resultado anterior (Shift+Enter)",
     "next": "Resultado siguiente (Enter)",
     "close": "Cerrar (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "Mejorar el prompt",
+    "original": "Tu borrador",
+    "enhanced": "Mejorado",
+    "loading": "Reescribiendo tu borrador…",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "keepOriginal": "Mantener el original",
+    "use": "Usar la versión mejorada",
+    "useHint": "Sustituye el borrador por este texto (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "No se pudo mejorar el prompt",
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "emptyResult": "El modelo no devolvió nada utilizable. Inténtalo de nuevo.",
+      "tooLong": "El borrador es demasiado largo (máximo 20.000 caracteres).",
+      "emptyPrompt": "Escribe primero algo que mejorar."
+    }
   }
 }

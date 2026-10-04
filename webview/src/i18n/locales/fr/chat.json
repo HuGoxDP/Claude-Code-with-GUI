@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "Joindre un fichier",
       "slashCommands": "Commandes slash",
+      "enhancePrompt": "Améliorer le prompt",
       "stopGenerating": "Arrêter la génération",
       "sendMessage": "Envoyer le message"
     },
@@ -698,5 +699,23 @@
     "previous": "Résultat précédent (Shift+Enter)",
     "next": "Résultat suivant (Enter)",
     "close": "Fermer (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "Améliorer le prompt",
+    "original": "Votre brouillon",
+    "enhanced": "Amélioré",
+    "loading": "Réécriture du brouillon…",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "keepOriginal": "Garder l'original",
+    "use": "Utiliser la version améliorée",
+    "useHint": "Remplace le brouillon par ce texte (Cmd/Ctrl+Entrée)",
+    "errors": {
+      "title": "Impossible d'améliorer le prompt",
+      "generic": "Un problème est survenu. Réessayez.",
+      "emptyResult": "Le modèle n'a rien renvoyé d'exploitable. Réessayez.",
+      "tooLong": "Le brouillon est trop long (20 000 caractères au maximum).",
+      "emptyPrompt": "Saisissez d'abord un texte à améliorer."
+    }
   }
 }

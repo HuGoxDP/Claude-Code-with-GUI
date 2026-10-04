@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "附加文件",
       "slashCommands": "斜杠命令",
+      "enhancePrompt": "优化提示词",
       "stopGenerating": "停止生成",
       "sendMessage": "发送消息"
     },
@@ -698,5 +699,23 @@
     "previous": "上一个 (Shift+Enter)",
     "next": "下一个 (Enter)",
     "close": "关闭 (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "优化提示词",
+    "original": "你的草稿",
+    "enhanced": "优化后",
+    "loading": "正在改写草稿…",
+    "retry": "重试",
+    "cancel": "取消",
+    "keepOriginal": "保留原文",
+    "use": "使用优化结果",
+    "useHint": "用此文本替换草稿 (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "无法优化提示词",
+      "generic": "出了点问题，请重试。",
+      "emptyResult": "模型没有返回可用的结果，请重试。",
+      "tooLong": "草稿太长，无法优化（最多 20,000 个字符）。",
+      "emptyPrompt": "请先输入要优化的内容。"
+    }
   }
 }

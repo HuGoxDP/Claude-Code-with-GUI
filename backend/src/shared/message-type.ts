@@ -110,6 +110,13 @@ export enum MessageType {
   /** The starred sessions changed in some window. outbound backend→webview (broadcast) */
   SESSION_FAVORITES_CHANGED = 'SESSION_FAVORITES_CHANGED',
   /**
+   * Rewrite the composer's draft into a clearer prompt with one `claude -p` call
+   * ({ prompt, workingDir?, model?, context? }); the ACK carries { enhancedPrompt }.
+   * Nothing is sent to the session: the user picks the version to keep.
+   * inbound webview→backend
+   */
+  ENHANCE_PROMPT = 'ENHANCE_PROMPT',
+  /**
    * Tells the webview the uuid the CLI recorded for the send whose turn just
    * ended, and whether the code can be rewound to it (issue #356).
    *

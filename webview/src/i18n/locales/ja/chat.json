@@ -50,6 +50,7 @@
     "actionButtons": {
       "attachFile": "ファイルを添付",
       "slashCommands": "スラッシュコマンド",
+      "enhancePrompt": "プロンプトを改善",
       "stopGenerating": "生成を停止",
       "sendMessage": "メッセージを送信"
     },
@@ -698,5 +699,23 @@
     "previous": "前の結果 (Shift+Enter)",
     "next": "次の結果 (Enter)",
     "close": "閉じる (Esc)"
+  },
+  "promptEnhancer": {
+    "title": "プロンプトを改善",
+    "original": "元の下書き",
+    "enhanced": "改善後",
+    "loading": "下書きを書き直しています…",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "keepOriginal": "元のままにする",
+    "use": "改善後を使う",
+    "useHint": "下書きをこのテキストに置き換えます (Cmd/Ctrl+Enter)",
+    "errors": {
+      "title": "プロンプトを改善できませんでした",
+      "generic": "問題が発生しました。もう一度お試しください。",
+      "emptyResult": "モデルから使える結果が返りませんでした。もう一度お試しください。",
+      "tooLong": "下書きが長すぎるため改善できません（最大 20,000 文字）。",
+      "emptyPrompt": "まず改善する内容を入力してください。"
+    }
   }
 }
