@@ -685,5 +685,18 @@
     "sponsorHint": "با عرض پوزش، رفتن به دارایی‌های پیام‌های دیگر هدیه‌ای کوچک برای حامیان ماست",
     "pinToDock": "سنجاق به داک",
     "unpinFromDock": "برداشتن سنجاق"
+  },
+  "conversationSearch": {
+    "label": "جستجو در گفتگو",
+    "placeholder": "یافتن در گفتگو",
+    "counter": "{{current}} از {{total}}",
+    "noResults": "نتیجه‌ای نیست",
+    "invalidRegex": "عبارت منظم نامعتبر",
+    "matchCase": "تطبیق حروف بزرگ و کوچک (Alt+C)",
+    "wholeWord": "کل کلمه (Alt+W)",
+    "regex": "عبارت منظم (Alt+R)",
+    "previous": "نتیجهٔ قبلی (Shift+Enter)",
+    "next": "نتیجهٔ بعدی (Enter)",
+    "close": "بستن (Esc)"
   }
 }

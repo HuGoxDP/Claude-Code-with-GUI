@@ -3,7 +3,8 @@ import { instanceToPlain, plainToInstance } from 'class-transformer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SessionState } from '../types';
 import { SessionMetaDto } from '../dto';
-import type { SessionServiceError } from '../api/modules/SessionsApi';
+import type { SessionServiceError, SessionExportOptions, SessionExportResult } from '../api/modules/SessionsApi';
+import { parseSessionFavorites } from '../api/modules/SessionsApi';
 import { useBridgeContext } from './BridgeContext';
 import { useApi } from './ApiContext';
 import { useWorkingDir } from './WorkingDirContext';
@@ -90,6 +91,12 @@ interface SessionContextValue {
   switchSession: (sessionId: string) => void;
   deleteSession: (sessionId: string) => Promise<void>;
   renameSession: (sessionId: string, title: string) => Promise<void>;
+  /** Save a session to a file the user picks — the GUI's `/export`. */
+  exportSession: (sessionId: string, options?: SessionExportOptions) => Promise<SessionExportResult>;
+  /** Ids of the sessions the user starred; they sort into their own group at the top. */
+  favoriteSessionIds: ReadonlySet<string>;
+  /** Star or unstar a session. */
+  setSessionFavorite: (sessionId: string, favorite: boolean) => Promise<void>;
   addNewSession: (sessionId: string, firstPrompt: string, handoff?: SessionHandoff) => void;
   setSessionState: (state: SessionState) => void;
   setWorkingDirectory: (dir: string | null) => void;
@@ -364,6 +371,22 @@ export function SessionProvider({ children }: SessionProviderProps) {
     navigate(withRootDir(path, rootDir, workingDirectory), { replace: isJetBrains() });
   }, [navigate, workingDirectory, rootDir]);
 
+  const [favoriteSessionIds, setFavoriteSessionIds] = useState<ReadonlySet<string>>(() => new Set());
+
+  /** Stars, plus a row for each one inside the listed scope (merged, never replacing). */
+  const loadFavorites = useCallback(async () => {
+    if (!isConnected || !rootDir) return;
+    try {
+      const result = await api.sessions.getFavorites(rootDir, includeNested);
+      setFavoriteSessionIds(new Set(result.favorites.map(f => f.sessionId)));
+      if (result.sessions.length > 0) {
+        setSessions(prev => mergeSessions(prev, result.sessions));
+      }
+    } catch (error) {
+      console.error('[SessionContext] Failed to load favorite sessions:', error);
+    }
+  }, [isConnected, api.sessions, rootDir, includeNested]);
+
   // loadSessions - using new API
   const loadSessions = useCallback(async () => {
     if (!isConnected) {
@@ -411,6 +434,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
       setScopeDirCount(result.scopeDirCount);
       setSessionsServiceError(result.serviceError ?? null);
       console.log('[SessionContext] Loaded CLI sessions:', result.sessions.length, 'hasMore:', result.hasMore);
+      // The page above rarely reaches a session starred long ago, and a refresh
+      // replaces the rows; fetch the stars with their own rows so they show.
+      void loadFavorites();
     } catch (error) {
       console.error('[SessionContext] Failed to load sessions:', error);
       // A transient failure must not keep showing a serviceError from a
@@ -420,7 +446,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [isConnected, api.sessions, rootDir, includeNested, settingsPending]);
+  }, [isConnected, api.sessions, rootDir, includeNested, settingsPending, loadFavorites]);
 
   /**
    * Fetch a further range and append it.
@@ -611,6 +637,53 @@ export function SessionProvider({ children }: SessionProviderProps) {
     }
   }, [api.sessions, workingDirectory]);
 
+  const exportSession = useCallback(async (
+    sessionId: string,
+    options: SessionExportOptions = {},
+  ): Promise<SessionExportResult> => {
+    // A row from another directory (a merged list) is exported from where it lives.
+    const target = sessions.find(s => s.id === sessionId);
+    const dir = target?.sessionDir ?? workingDirectory ?? undefined;
+    try {
+      return await api.sessions.exportSession(sessionId, options, dir);
+    } catch (error) {
+      console.error('[SessionContext] Failed to export session:', error);
+      return { status: 'error', error: error instanceof Error ? error.message : String(error) };
+    }
+  }, [api.sessions, sessions, workingDirectory]);
+
+  const setSessionFavorite = useCallback(async (sessionId: string, favorite: boolean) => {
+    // Drawn at once; the stored list from the reply then settles it either way.
+    setFavoriteSessionIds(prev => {
+      const next = new Set(prev);
+      if (favorite) next.add(sessionId);
+      else next.delete(sessionId);
+      return next;
+    });
+    const target = sessions.find(s => s.id === sessionId);
+    const dir = target?.sessionDir ?? workingDirectory ?? '';
+    try {
+      const { favorites } = await api.sessions.setFavorite(sessionId, dir, favorite);
+      setFavoriteSessionIds(new Set(favorites.map(f => f.sessionId)));
+    } catch (error) {
+      console.error('[SessionContext] Failed to update favorite:', error);
+      setFavoriteSessionIds(prev => {
+        const next = new Set(prev);
+        if (favorite) next.delete(sessionId);
+        else next.add(sessionId);
+        return next;
+      });
+    }
+  }, [api.sessions, sessions, workingDirectory]);
+
+  // Another window starred or unstarred a session.
+  useEffect(() => {
+    const unsubscribe = subscribe(MessageType.SESSION_FAVORITES_CHANGED, (message) => {
+      setFavoriteSessionIds(new Set(parseSessionFavorites(message.payload?.favorites).map(f => f.sessionId)));
+    });
+    return unsubscribe;
+  }, [subscribe]);
+
   const addNewSession = useCallback((
     sessionId: string,
     firstPrompt: string,
@@ -699,6 +772,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
     switchSession,
     deleteSession,
     renameSession,
+    exportSession,
+    favoriteSessionIds,
+    setSessionFavorite,
     addNewSession,
     setSessionState,
     setWorkingDirectory,

@@ -685,5 +685,18 @@
     "sponsorHint": "Passar para os recursos de outras mensagens é um pequeno agrado reservado a quem nos apoia",
     "pinToDock": "Fixar no dock",
     "unpinFromDock": "Desafixar do dock"
+  },
+  "conversationSearch": {
+    "label": "Pesquisar na conversa",
+    "placeholder": "Localizar na conversa",
+    "counter": "{{current}} de {{total}}",
+    "noResults": "Nenhum resultado",
+    "invalidRegex": "Expressão regular inválida",
+    "matchCase": "Diferenciar maiúsculas (Alt+C)",
+    "wholeWord": "Palavra inteira (Alt+W)",
+    "regex": "Expressão regular (Alt+R)",
+    "previous": "Resultado anterior (Shift+Enter)",
+    "next": "Próximo resultado (Enter)",
+    "close": "Fechar (Esc)"
   }
 }

@@ -6,6 +6,7 @@ import type { IPCMessage } from '../types';
 import { getProjectSessionsPath } from '../features/getProjectSessionsPath';
 import { removeSessionTitleOverride } from '../features/sessionTitleOverrides';
 import { cancelSchedulesForSession } from '../features/scheduled-messages';
+import { setSessionFavorite } from '../features/session-favorites-store';
 import { MessageType } from '../../shared';
 
 export async function deleteSessionHandler(
@@ -71,6 +72,12 @@ export async function deleteSessionHandler(
     // Reservations are bound to the session, so they die with it — otherwise a
     // pending "send later" would fire into a conversation that no longer exists.
     await cancelSchedulesForSession(sessionId, connections);
+
+    // A star on a session that no longer exists would only ever point at nothing.
+    const unstarred = await setSessionFavorite(sessionId, '', false);
+    if (unstarred.ok) {
+      connections.broadcastToAll(MessageType.SESSION_FAVORITES_CHANGED, { favorites: unstarred.favorites });
+    }
 
     connections.broadcastToAll(MessageType.SESSIONS_UPDATED, {
       action: 'delete',

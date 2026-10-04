@@ -209,7 +209,15 @@
     "refreshSessions": "Atualizar sessões",
     "renameSession": "Renomear sessão",
     "deleteSession": "Excluir sessão",
+    "exportSession": "Exportar sessão",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "Transcrição legível da conversa",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "O arquivo da sessão exatamente como a CLI o escreveu",
+    "addFavorite": "Adicionar aos favoritos",
+    "removeFavorite": "Remover dos favoritos",
     "groups": {
+      "favorites": "Favoritos",
       "today": "Hoje",
       "yesterday": "Ontem",
       "pastWeek": "Semana passada",
@@ -241,6 +249,12 @@
       "activeTitle": "Mostrar apenas sessões que aguardam resposta, estão trabalhando ou não lidas",
       "noneActive": "Nenhuma sessão está esperando por você"
     }
+  },
+  "sessionExport": {
+    "saved": "Salvo em {{path}}",
+    "failed": "Não foi possível exportar a sessão: {{error}}",
+    "empty": "Esta conversa ainda não tem nada para exportar.",
+    "noSession": "Inicie uma conversa antes de exportá-la."
   },
   "sponsorGated": {
     "message": "Um pequeno agrado reservado a quem nos apoia",
@@ -357,6 +371,7 @@
       "openModelMenu": "Escolher o modelo",
       "rotateModel": "Mudar para o próximo modelo",
       "clearConversation": "Limpar a conversa",
+      "searchConversation": "Pesquisar na conversa",
       "refreshSessionList": "Atualizar a lista de sessões enquanto ela estiver aberta",
       "zoomIn": "Aumentar o zoom",
       "zoomOut": "Diminuir o zoom",

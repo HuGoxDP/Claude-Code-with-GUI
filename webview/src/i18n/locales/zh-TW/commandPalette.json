@@ -74,6 +74,7 @@
     "copyFrontLogDone": "已複製前端記錄（{{count}} 行）",
     "copyFrontLogFailed": "沒有可複製的前端記錄",
     "keyboardShortcuts": "鍵盤快速鍵",
+    "searchConversation": "在對話中搜尋",
     "viewHelpDocs": "檢視說明文件",
     "restartPlugin": "重新啟動外掛",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "清除對話",
-    "usageDescription": "帳戶與用量"
+    "usageDescription": "帳戶與用量",
+    "exportDescription": "將對話匯出為檔案（Markdown；檔名為 .jsonl 時匯出原始 JSONL）"
   },
   "panel": {
     "reportProblem": "回報問題",

@@ -23,6 +23,7 @@ import { useControlRequestCommand } from '../hooks/useControlRequestCommand';
 import type { IdeSelectionPayload } from '../hooks/useIdeSelection';
 import { injectIdeContext, InjectedSelectionKey } from '../hooks/ideContextTag';
 import { matchesUsageCommand } from '@/commandPalette/sections/slashCommands/UsageCommand';
+import { matchesExportCommand, exportFileNameOf, runExportCommand } from '@/commandPalette/sections/slashCommands/ExportCommand';
 import { OPEN_ACCOUNT_USAGE_EVENT } from '@/commandPalette/sections/model/AccountUsageItem';
 
 /** SEND_MESSAGE bridge payload */
@@ -597,6 +598,14 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
         setInput('');
         return;
       }
+      // `/export [file]` writes the conversation to a file in the terminal, but a
+      // stream-json session refuses it, so the GUI saves the session itself via
+      // the Bridge's save dialog (markdown, or the raw JSONL for a .jsonl name).
+      if (matchesExportCommand(trimmedInput)) {
+        void runExportCommand(session.currentSessionId, session.exportSession, exportFileNameOf(trimmedInput));
+        setInput('');
+        return;
+      }
       // `/reload-plugins` and `/btw` are missing from the CLI's command list in a
       // stream-json session and are answered with "isn't available in this
       // environment" when sent as text, so run them over the control_request the
@@ -626,7 +635,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
       sendMessage(trimmedInput, inputMode, undefined, attachments);
       setInput('');
     },
-    [inputRef, runControlRequestCommand, sendMessage, setInput, chatStream.isStreaming, appSettings, queueMessage]
+    [inputRef, runControlRequestCommand, sendMessage, setInput, chatStream.isStreaming, appSettings, queueMessage, session.currentSessionId, session.exportSession]
   );
 
   // stop: stdin interrupt를 백엔드에 전송.

@@ -20,6 +20,8 @@ import { rewindCodeHandler } from './rewindCode';
 import { forkSessionHandler } from './forkSession';
 import { logDebug } from '../../logging/log-level';
 import { renameSessionHandler } from './renameSession';
+import { exportSessionHandler } from './exportSession';
+import { getSessionFavoritesHandler, setSessionFavoriteHandler } from './sessionFavorites';
 import { getAgentTranscriptHandler } from './getAgentTranscript';
 import { watchBackgroundTaskOutputHandler, unwatchBackgroundTaskOutputHandler } from './watchBackgroundTaskOutput';
 import { getSettingsHandler } from './getSettings';
@@ -259,6 +261,15 @@ export async function handleMessage(
       break;
     case MessageType.RENAME_SESSION:
       await renameSessionHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.EXPORT_SESSION:
+      await exportSessionHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_SESSION_FAVORITES:
+      await getSessionFavoritesHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SET_SESSION_FAVORITE:
+      await setSessionFavoriteHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_AGENT_TRANSCRIPT:
       await getAgentTranscriptHandler(connectionId, message, connections, bridge);

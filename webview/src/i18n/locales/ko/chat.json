@@ -685,5 +685,18 @@
     "sponsorHint": "아쉽게도 다른 메시지의 에셋까지\n이어서 넘겨보는 것은\n후원자 분들을 위한 작은 혜택으로\n제공하고 있습니다",
     "pinToDock": "도크에 고정",
     "unpinFromDock": "도크 고정 해제"
+  },
+  "conversationSearch": {
+    "label": "대화에서 검색",
+    "placeholder": "대화에서 찾기",
+    "counter": "{{total}}개 중 {{current}}",
+    "noResults": "결과 없음",
+    "invalidRegex": "잘못된 정규식",
+    "matchCase": "대소문자 구분 (Alt+C)",
+    "wholeWord": "단어 단위 (Alt+W)",
+    "regex": "정규식 (Alt+R)",
+    "previous": "이전 결과 (Shift+Enter)",
+    "next": "다음 결과 (Enter)",
+    "close": "닫기 (Esc)"
   }
 }

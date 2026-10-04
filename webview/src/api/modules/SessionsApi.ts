@@ -42,6 +42,48 @@ export interface SessionListResult {
   scopeDirCount: number | null;
 }
 
+/** What `/export` writes: a readable transcript, or the session JSONL verbatim. */
+export type SessionExportFormat = 'markdown' | 'jsonl';
+
+export interface SessionExportOptions {
+  format?: SessionExportFormat;
+  /** A name typed after `/export`; its extension picks the format when `format` is absent. */
+  fileName?: string;
+}
+
+/** The reply to EXPORT_SESSION. `path` is null when the save dialog was cancelled. */
+export interface SessionExportResult {
+  status: 'ok' | 'error';
+  path?: string | null;
+  format?: SessionExportFormat;
+  error?: string;
+}
+
+/** One starred session, and where it lives. */
+export interface SessionFavorite {
+  sessionId: string;
+  sessionDir: string;
+}
+
+/** The reply to GET_SESSION_FAVORITES. */
+export interface SessionFavoritesResult {
+  favorites: SessionFavorite[];
+  /** Rows for the stars inside the listed directory, built like list rows. */
+  sessions: SessionMetaDto[];
+}
+
+/** Read the `favorites` array off a reply, dropping anything malformed. */
+export function parseSessionFavorites(value: unknown): SessionFavorite[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((f): f is { sessionId: string; sessionDir?: unknown } =>
+      !!f && typeof f === 'object' && typeof (f as { sessionId?: unknown }).sessionId === 'string')
+    .map((f) => ({ sessionId: f.sessionId, sessionDir: typeof f.sessionDir === 'string' ? f.sessionDir : '' }));
+}
+
+/** The save dialog waits on the user, so the request must outlive the default timeout. */
+const EXPORT_TIMEOUT_MS = 30 * 60_000;
+
 /** How much of the list to fetch. Omitting `limit` asks for all of it. */
 export interface SessionListRange {
   offset?: number;
@@ -178,6 +220,58 @@ export class SessionsApi {
   async rename(sessionId: string, title: string, workingDir?: string): Promise<void> {
     const dir = workingDir ?? this.getConfig().workingDir;
     await this.bridge.request(MessageType.RENAME_SESSION, { sessionId, title, workingDir: dir });
+  }
+
+  /**
+   * The starred sessions, with rows for those inside [rootDir].
+   */
+  async getFavorites(rootDir: string, includeNested: boolean): Promise<SessionFavoritesResult> {
+    const response = await this.bridge.request<{ favorites?: unknown; sessions?: unknown }>(
+      MessageType.GET_SESSION_FAVORITES,
+      { rootDir, includeNested },
+    );
+    const rows = Array.isArray(response?.sessions) ? response.sessions : [];
+    return {
+      favorites: parseSessionFavorites(response?.favorites),
+      sessions: plainToInstance(SessionMetaDto, rows as object[]),
+    };
+  }
+
+  /**
+   * Star or unstar one session. Resolves to the stored list; `ok` is false when
+   * the save failed and the list is what is still on disk.
+   */
+  async setFavorite(
+    sessionId: string,
+    sessionDir: string,
+    favorite: boolean,
+  ): Promise<{ ok: boolean; favorites: SessionFavorite[] }> {
+    const response = await this.bridge.request<{ status?: string; favorites?: unknown }>(
+      MessageType.SET_SESSION_FAVORITE,
+      { sessionId, sessionDir, favorite },
+    );
+    return { ok: response?.status === 'ok', favorites: parseSessionFavorites(response?.favorites) };
+  }
+
+  /**
+   * Save a session to a file the user picks (the GUI's `/export`).
+   */
+  async exportSession(
+    sessionId: string,
+    options: SessionExportOptions = {},
+    workingDir?: string,
+  ): Promise<SessionExportResult> {
+    const dir = workingDir ?? this.getConfig().workingDir;
+    return this.bridge.request<SessionExportResult>(
+      MessageType.EXPORT_SESSION,
+      {
+        sessionId,
+        workingDir: dir,
+        ...(options.format ? { format: options.format } : {}),
+        ...(options.fileName ? { fileName: options.fileName } : {}),
+      },
+      { timeout: EXPORT_TIMEOUT_MS },
+    );
   }
 
   /**

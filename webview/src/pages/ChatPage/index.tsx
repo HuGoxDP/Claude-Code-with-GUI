@@ -47,6 +47,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { ChatInput } from './ChatInput';
 import { AccountSwitchErrorBanner } from './AccountSwitchErrorBanner';
 import { SendIndex, SEND_INDEX_RAIL_WIDTH } from './SendIndex';
+import { ConversationSearch } from './ConversationSearch';
 import { carriedSend } from './SendIndex/carriedSend';
 import { useSessionSends } from '@/hooks/useSessionSends';
 import type { SessionSend } from '@/shared';
@@ -360,6 +361,7 @@ function ChatPageContent() {
         cannot drift; see SEND_INDEX_RAIL_WIDTH.
       */}
       <SendIndex sections={sections} sessionSends={sessionSends} />
+      <ConversationSearch rootRef={scrollContainerRef} />
       <div
         ref={scrollContainerRef}
         data-chat-scroll
@@ -390,7 +392,7 @@ function ChatPageContent() {
             collapse button first of all. Capping the footer at the scroll
             container lets each panel shrink its own middle and scroll there,
             with no height worked out by hand, at any zoom or window size. */}
-        <div id={CHAT_FOOTER_ID} className="sticky w-full start-0 bottom-0 z-10 flex flex-col max-h-full">
+        <div id={CHAT_FOOTER_ID} data-search-skip className="sticky w-full start-0 bottom-0 z-10 flex flex-col max-h-full">
           {showScrollButton && (
               <button
                   onClick={scrollToBottom}

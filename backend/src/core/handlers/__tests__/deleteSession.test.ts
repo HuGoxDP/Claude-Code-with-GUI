@@ -12,6 +12,10 @@ vi.mock('../../features/sessionTitleOverrides', () => ({
   removeSessionTitleOverride: vi.fn(),
 }));
 
+vi.mock('../../features/session-favorites-store', () => ({
+  setSessionFavorite: vi.fn().mockResolvedValue({ ok: true, favorites: [] }),
+}));
+
 import { unlink } from 'fs/promises';
 import { deleteSessionHandler } from '../deleteSession';
 import { getProjectSessionsPath } from '../../features/getProjectSessionsPath';

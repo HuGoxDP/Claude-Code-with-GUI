@@ -209,7 +209,15 @@
     "refreshSessions": "Refresh sessions",
     "renameSession": "Rename session",
     "deleteSession": "Delete session",
+    "exportSession": "Export session",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "Readable transcript of the conversation",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "The session file exactly as the CLI wrote it",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites",
     "groups": {
+      "favorites": "Favorites",
       "today": "Today",
       "yesterday": "Yesterday",
       "pastWeek": "Past week",
@@ -241,6 +249,12 @@
       "activeTitle": "Show only sessions that need input, are working, or are unread",
       "noneActive": "No session is waiting on you"
     }
+  },
+  "sessionExport": {
+    "saved": "Saved to {{path}}",
+    "failed": "Could not export the session: {{error}}",
+    "empty": "This conversation has nothing to export yet.",
+    "noSession": "Start a conversation before exporting it."
   },
   "sponsorGated": {
     "message": "This one is a little perk I keep for sponsors",
@@ -357,6 +371,7 @@
       "openModelMenu": "Choose the model",
       "rotateModel": "Switch to the next model",
       "clearConversation": "Clear the conversation",
+      "searchConversation": "Search in conversation",
       "refreshSessionList": "Refresh the session list while it is open",
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",

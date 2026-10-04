@@ -156,4 +156,55 @@ describe('SessionItem', () => {
 
     expect(onRename).not.toHaveBeenCalled();
   });
+
+  describe('export', () => {
+    it('offers no export action without an onExport handler', () => {
+      renderItem(createMockSession());
+      fireEvent.mouseEnter(screen.getByRole('button', { name: /Test Session/i }));
+      expect(screen.queryByTitle('Export session')).toBeNull();
+    });
+
+    it('asks for a format, then exports in it without opening the session', () => {
+      const onExport = vi.fn();
+      render(
+        <SessionItem
+          session={createMockSession()}
+          isSelected={false}
+          onSelect={onSelect}
+          onDelete={onDelete}
+          onRename={onRename}
+          onExport={onExport}
+        />,
+      );
+      const row = screen.getByRole('button', { name: /Test Session/i });
+      fireEvent.mouseEnter(row);
+      fireEvent.click(screen.getByTitle('Export session'));
+      expect(screen.getByTestId('session-export-choice')).toBeDefined();
+      fireEvent.click(screen.getByText('JSONL'));
+      expect(onExport).toHaveBeenCalledWith('jsonl');
+      expect(onSelect).not.toHaveBeenCalled();
+      // The row goes back to its usual actions.
+      expect(screen.queryByTestId('session-export-choice')).toBeNull();
+    });
+
+    it('drops the format choice when the pointer leaves the row', () => {
+      render(
+        <SessionItem
+          session={createMockSession()}
+          isSelected={false}
+          onSelect={onSelect}
+          onDelete={onDelete}
+          onRename={onRename}
+          onExport={vi.fn()}
+        />,
+      );
+      const row = screen.getByRole('button', { name: /Test Session/i });
+      fireEvent.mouseEnter(row);
+      fireEvent.click(screen.getByTitle('Export session'));
+      fireEvent.mouseLeave(row);
+      fireEvent.mouseEnter(row);
+      expect(screen.queryByTestId('session-export-choice')).toBeNull();
+      expect(screen.getByTitle('Export session')).toBeDefined();
+    });
+  });
 });

@@ -59,7 +59,19 @@ export enum SessionGroup {
   PastYear = 'pastYear',
 }
 
-export type GroupedSessions = Record<SessionGroup, SessionMetaDto[]>;
+/**
+ * Sessions by group. `favorites` is optional so a caller that never stars
+ * anything (and the many test fixtures that predate stars) can leave it out;
+ * read groups through {@link sessionsInGroup} rather than indexing directly.
+ */
+export type GroupedSessions = Record<SessionGroup, SessionMetaDto[]> & {
+  [FAVORITES_GROUP]?: SessionMetaDto[];
+};
+
+/** The starred sessions' group, drawn above every date group. */
+export const FAVORITES_GROUP = 'favorites' as const;
+
+export type DisplayGroup = SessionGroup | typeof FAVORITES_GROUP;
 
 // Group headers are resolved through i18n at render time
 // (common:sessionList.groups.<SessionGroup>), so there is no static label map.
@@ -71,6 +83,14 @@ export const GROUP_ORDER: SessionGroup[] = [
   SessionGroup.PastMonth,
   SessionGroup.PastYear,
 ];
+
+/** Every group in the order the list draws them: stars first, then by date. */
+export const DISPLAY_GROUP_ORDER: DisplayGroup[] = [FAVORITES_GROUP, ...GROUP_ORDER];
+
+/** The sessions of one group; an absent favorites group is simply empty. */
+export function sessionsInGroup(groups: GroupedSessions, key: DisplayGroup): SessionMetaDto[] {
+  return groups[key] ?? [];
+}
 
 /**
  * 세션의 updatedAt 날짜를 기준으로 그룹을 결정
@@ -104,8 +124,14 @@ export function getSessionGroup(date: Date, now: Date = new Date()): SessionGrou
  * @param now - 현재 시간 (테스트 시 시간 주입용, 기본값: new Date())
  * @remarks session.updatedAt이 undefined일 경우 'pastYear' 그룹으로 분류
  */
-export function groupSessionsByDate(sessions: SessionMetaDto[], now: Date = new Date()): GroupedSessions {
+export function groupSessionsByDate(
+  sessions: SessionMetaDto[],
+  now: Date = new Date(),
+  /** Starred session ids; those sessions go to the favorites group instead of a date group. */
+  favoriteIds?: ReadonlySet<string>,
+): GroupedSessions {
   const groups: GroupedSessions = {
+    [FAVORITES_GROUP]: [],
     [SessionGroup.Today]: [],
     [SessionGroup.Yesterday]: [],
     [SessionGroup.PastWeek]: [],
@@ -114,6 +140,10 @@ export function groupSessionsByDate(sessions: SessionMetaDto[], now: Date = new 
   };
 
   for (const session of sessions) {
+    if (favoriteIds?.has(session.id)) {
+      groups[FAVORITES_GROUP]!.push(session);
+      continue;
+    }
     // updatedAt이 런타임에 undefined일 수 있음 (DTO 타입은 non-optional이지만 방어적 처리)
     const group = session.updatedAt ? getSessionGroup(session.updatedAt, now) : SessionGroup.PastYear;
     groups[group].push(session);

@@ -31,13 +31,18 @@ object WebViewKeyPolicy {
      */
     private const val VK_OEM_COMMA = 188
 
+    /** Read once; the OS does not change under a running IDE. */
+    internal val IS_MAC: Boolean = System.getProperty("os.name", "").lowercase().startsWith("mac")
+
     /**
      * Does this keystroke belong to the WebView rather than to an IDE action?
      *
      * @param keyCode CEF's `windows_key_code`
      * @param modifiers CEF's `modifiers` bitmask, read through [EventFlags]
+     * @param mac whether this is macOS, where Cmd is the shortcut modifier and
+     *   Ctrl+letter belongs to the Emacs text keys
      */
-    fun belongsToWebView(keyCode: Int, modifiers: Int): Boolean {
+    fun belongsToWebView(keyCode: Int, modifiers: Int, mac: Boolean = IS_MAC): Boolean {
         val meta = (modifiers and EventFlags.EVENTFLAG_COMMAND_DOWN) != 0
         val alt = (modifiers and EventFlags.EVENTFLAG_ALT_DOWN) != 0
         val ctrl = (modifiers and EventFlags.EVENTFLAG_CONTROL_DOWN) != 0
@@ -49,6 +54,13 @@ object WebViewKeyPolicy {
         // Cmd+, / Ctrl+, opens our settings. Without this the IDE's own Settings
         // dialog opens over the chat instead.
         if (keyCode == VK_OEM_COMMA && (meta || ctrl)) return true
+
+        // Cmd+F (macOS) / Ctrl+F (elsewhere) finds in the conversation. Without
+        // this the IDE's Find bar opens for whatever editor sits behind the chat.
+        // Shift+F stays the IDE's (Find in Files), Alt+F is left for menu
+        // mnemonics, and Ctrl+F on macOS is the Emacs forward-character key.
+        val shortcutModifier = if (mac) meta && !ctrl else ctrl && !meta
+        if (keyCode == KeyEvent.VK_F && shortcutModifier && !shift && !alt) return true
 
         // A modified Enter is the composer's, whichever modifier it carries.
         //

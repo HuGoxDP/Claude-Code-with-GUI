@@ -209,7 +209,15 @@
     "refreshSessions": "重新整理工作階段",
     "renameSession": "重新命名工作階段",
     "deleteSession": "刪除工作階段",
+    "exportSession": "匯出工作階段",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "可讀的對話紀錄",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "CLI 寫入的原始工作階段檔案",
+    "addFavorite": "加入最愛",
+    "removeFavorite": "從最愛移除",
     "groups": {
+      "favorites": "最愛",
       "today": "今天",
       "yesterday": "昨天",
       "pastWeek": "過去一週",
@@ -241,6 +249,12 @@
       "activeTitle": "僅顯示需要答覆、正在處理或未讀的工作階段",
       "noneActive": "沒有需要你處理的工作階段"
     }
+  },
+  "sessionExport": {
+    "saved": "已儲存至 {{path}}",
+    "failed": "無法匯出工作階段：{{error}}",
+    "empty": "此對話尚無可匯出的內容。",
+    "noSession": "請先開始對話再匯出。"
   },
   "sponsorGated": {
     "message": "這是我們為贊助者準備的一點小心意，還請見諒",
@@ -357,6 +371,7 @@
       "openModelMenu": "選擇模型",
       "rotateModel": "切換到下一個模型",
       "clearConversation": "清除對話",
+      "searchConversation": "在對話中搜尋",
       "refreshSessionList": "在工作階段清單開啟時重新整理清單",
       "zoomIn": "放大",
       "zoomOut": "縮小",

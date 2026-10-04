@@ -4,6 +4,7 @@ import { i18n } from '@/i18n';
 import { copyFrontendLogs } from '@/utils/copyFrontendLogs';
 import { HelpShortcutHint } from '@/components/HelpModal/HelpShortcutHint';
 import { OPEN_HELP_EVENT } from '@/components/HelpModal/events';
+import { OPEN_CONVERSATION_SEARCH_EVENT } from '@/pages/ChatPage/ConversationSearch/events';
 import { StaticItem } from '../../types';
 import { enKeyword } from '../../enKeyword';
 
@@ -40,6 +41,13 @@ export const getSupportItems = (): StaticItem[] => [
     valueComponent: HelpShortcutHint,
     action: async () => {
       window.dispatchEvent(new CustomEvent(OPEN_HELP_EVENT));
+    },
+  }),
+  new StaticItem('search-conversation', i18n.t('commandPalette:support.searchConversation'), {
+    disabled: false,
+    keywords: [enKeyword('commandPalette:support.searchConversation'), 'find', 'search'],
+    action: async () => {
+      window.dispatchEvent(new CustomEvent(OPEN_CONVERSATION_SEARCH_EVENT));
     },
   }),
   new StaticItem('help-docs',i18n.t('commandPalette:support.viewHelpDocs'), {

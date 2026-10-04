@@ -6,6 +6,7 @@ import {
 import { SessionState, Context } from '@/types';
 import { InputMode } from '@/types/chatInput';
 import type { ConfirmOptions } from '@/components/ConfirmDialog/useConfirmDialog';
+import type { SessionExportOptions, SessionExportResult } from '@/api/modules/SessionsApi';
 
 /**
  * Services injected by CommandPaletteRegistry into commands.
@@ -33,6 +34,8 @@ export interface CommandPaletteServices {
     inputMode: InputMode;
     setSessionState: (state: SessionState) => void;
     resetToNewSession: () => void;
+    /** Save a session to a file (the GUI's `/export`). Optional so test doubles may omit it. */
+    exportSession?: (sessionId: string, options?: SessionExportOptions) => Promise<SessionExportResult>;
   };
   adapter: {
     openNewTab: () => Promise<void>;

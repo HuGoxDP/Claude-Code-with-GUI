@@ -74,6 +74,7 @@
     "copyFrontLogDone": "Registro del frontend copiado ({{count}} líneas)",
     "copyFrontLogFailed": "No hay registro del frontend que copiar",
     "keyboardShortcuts": "Atajos de teclado",
+    "searchConversation": "Buscar en la conversación",
     "viewHelpDocs": "Ver documentación de ayuda",
     "restartPlugin": "Reiniciar plugin",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "Borrar conversación",
-    "usageDescription": "Cuenta y uso"
+    "usageDescription": "Cuenta y uso",
+    "exportDescription": "Exportar la conversación a un archivo (Markdown, o JSONL sin procesar con un nombre .jsonl)"
   },
   "panel": {
     "reportProblem": "Reportar un problema",

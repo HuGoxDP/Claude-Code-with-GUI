@@ -74,6 +74,7 @@
     "copyFrontLogDone": "گزارش رابط کاربری کپی شد ({{count}} خط)",
     "copyFrontLogFailed": "گزارش رابط کاربری برای کپی وجود ندارد",
     "keyboardShortcuts": "میان‌برهای صفحه‌کلید",
+    "searchConversation": "جستجو در گفتگو",
     "viewHelpDocs": "مشاهده مستندات راهنما",
     "restartPlugin": "راه‌اندازی مجدد پلاگین",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "پاک کردن گفتگو",
-    "usageDescription": "حساب کاربری و مصرف"
+    "usageDescription": "حساب کاربری و مصرف",
+    "exportDescription": "خروجی گرفتن از گفتگو در یک فایل (Markdown، یا JSONL خام برای نام ‎.jsonl)"
   },
   "panel": {
     "reportProblem": "گزارش مشکل",

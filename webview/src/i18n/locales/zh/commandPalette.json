@@ -74,6 +74,7 @@
     "copyFrontLogDone": "已复制前端日志（{{count}} 行）",
     "copyFrontLogFailed": "没有可复制的前端日志",
     "keyboardShortcuts": "键盘快捷键",
+    "searchConversation": "在对话中搜索",
     "viewHelpDocs": "查看帮助文档",
     "restartPlugin": "重启插件",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "清除对话",
-    "usageDescription": "账户与用量"
+    "usageDescription": "账户与用量",
+    "exportDescription": "将对话导出为文件（Markdown；文件名为 .jsonl 时导出原始 JSONL）"
   },
   "panel": {
     "reportProblem": "反馈问题",

@@ -34,6 +34,7 @@ export function useSessionList(): UseSessionListResult {
     loadMoreSessions,
     loadAllSessions,
     hasMoreSessions,
+    favoriteSessionIds,
   } = useSessionContext();
   const { confirmDialog, confirm } = useConfirmDialog();
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,8 +72,8 @@ export function useSessionList(): UseSessionListResult {
   }, [sessions, searchQuery]);
 
   const groupedSessions = useMemo(() => {
-    return groupSessionsByDate(filteredSessions);
-  }, [filteredSessions]);
+    return groupSessionsByDate(filteredSessions, new Date(), favoriteSessionIds);
+  }, [filteredSessions, favoriteSessionIds]);
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);

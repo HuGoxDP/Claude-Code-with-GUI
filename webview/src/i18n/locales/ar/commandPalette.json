@@ -74,6 +74,7 @@
     "copyFrontLogDone": "تم نسخ سجل الواجهة ({{count}} سطر)",
     "copyFrontLogFailed": "لا يوجد سجل واجهة لنسخه",
     "keyboardShortcuts": "اختصارات لوحة المفاتيح",
+    "searchConversation": "البحث في المحادثة",
     "viewHelpDocs": "عرض وثائق المساعدة",
     "restartPlugin": "إعادة تشغيل الإضافة",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "مسح المحادثة",
-    "usageDescription": "الحساب والاستخدام"
+    "usageDescription": "الحساب والاستخدام",
+    "exportDescription": "تصدير المحادثة إلى ملف (Markdown، أو JSONL الخام لاسم ‎.jsonl)"
   },
   "panel": {
     "reportProblem": "الإبلاغ عن مشكلة",

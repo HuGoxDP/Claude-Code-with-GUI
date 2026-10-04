@@ -209,7 +209,15 @@
     "refreshSessions": "Actualiser les sessions",
     "renameSession": "Renommer la session",
     "deleteSession": "Supprimer la session",
+    "exportSession": "Exporter la session",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "Transcription lisible de la conversation",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "Le fichier de session tel que la CLI l’a écrit",
+    "addFavorite": "Ajouter aux favoris",
+    "removeFavorite": "Retirer des favoris",
     "groups": {
+      "favorites": "Favoris",
       "today": "Aujourd'hui",
       "yesterday": "Hier",
       "pastWeek": "Semaine dernière",
@@ -241,6 +249,12 @@
       "activeTitle": "N'afficher que les sessions en attente de réponse, en cours ou non lues",
       "noneActive": "Aucune session ne vous attend"
     }
+  },
+  "sessionExport": {
+    "saved": "Enregistré dans {{path}}",
+    "failed": "Impossible d’exporter la session : {{error}}",
+    "empty": "Cette conversation n’a encore rien à exporter.",
+    "noSession": "Commencez une conversation avant de l’exporter."
   },
   "sponsorGated": {
     "message": "Une petite attention réservée à nos sponsors",
@@ -357,6 +371,7 @@
       "openModelMenu": "Choisir le modèle",
       "rotateModel": "Passer au modèle suivant",
       "clearConversation": "Effacer la conversation",
+      "searchConversation": "Rechercher dans la conversation",
       "refreshSessionList": "Actualiser la liste des sessions quand elle est ouverte",
       "zoomIn": "Zoom avant",
       "zoomOut": "Zoom arrière",

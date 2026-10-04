@@ -74,6 +74,7 @@
     "copyFrontLogDone": "Frontend-Log kopiert ({{count}} Zeilen)",
     "copyFrontLogFailed": "Kein Frontend-Log zum Kopieren vorhanden",
     "keyboardShortcuts": "Tastenkürzel",
+    "searchConversation": "In der Unterhaltung suchen",
     "viewHelpDocs": "Hilfedokumente ansehen",
     "restartPlugin": "Plugin neu starten",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "Unterhaltung löschen",
-    "usageDescription": "Konto & Nutzung"
+    "usageDescription": "Konto & Nutzung",
+    "exportDescription": "Unterhaltung in eine Datei exportieren (Markdown, bei .jsonl-Namen das rohe JSONL)"
   },
   "panel": {
     "reportProblem": "Problem melden",

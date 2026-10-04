@@ -94,6 +94,22 @@ export enum MessageType {
   /** Rename a session's title. */
   RENAME_SESSION = 'RENAME_SESSION',
   /**
+   * Save a session to a file the user picks: a Markdown transcript of the
+   * active chain, or the session JSONL verbatim. The GUI's `/export`.
+   * inbound webview→backend
+   */
+  EXPORT_SESSION = 'EXPORT_SESSION',
+  /**
+   * The starred sessions ({ favorites: [{ sessionId, sessionDir }] }) plus the
+   * list row of each one inside `rootDir`, so a star past the loaded page still
+   * shows. inbound webview→backend; answered on the ACK.
+   */
+  GET_SESSION_FAVORITES = 'GET_SESSION_FAVORITES',
+  /** Star or unstar one session. inbound webview→backend; the stored list comes back on the ACK. */
+  SET_SESSION_FAVORITE = 'SET_SESSION_FAVORITE',
+  /** The starred sessions changed in some window. outbound backend→webview (broadcast) */
+  SESSION_FAVORITES_CHANGED = 'SESSION_FAVORITES_CHANGED',
+  /**
    * Tells the webview the uuid the CLI recorded for the send whose turn just
    * ended, and whether the code can be rewound to it (issue #356).
    *

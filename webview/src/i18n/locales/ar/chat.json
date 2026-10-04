@@ -701,5 +701,18 @@
     "sponsorHint": "نعتذر، الانتقال إلى أصول الرسائل الأخرى هديةٌ صغيرة نخصّ بها داعمينا",
     "pinToDock": "تثبيت في الشريط",
     "unpinFromDock": "إلغاء التثبيت"
+  },
+  "conversationSearch": {
+    "label": "البحث في المحادثة",
+    "placeholder": "البحث في المحادثة",
+    "counter": "{{current}} من {{total}}",
+    "noResults": "لا توجد نتائج",
+    "invalidRegex": "تعبير نمطي غير صالح",
+    "matchCase": "مطابقة حالة الأحرف (Alt+C)",
+    "wholeWord": "الكلمة كاملة (Alt+W)",
+    "regex": "تعبير نمطي (Alt+R)",
+    "previous": "النتيجة السابقة (Shift+Enter)",
+    "next": "النتيجة التالية (Enter)",
+    "close": "إغلاق (Esc)"
   }
 }

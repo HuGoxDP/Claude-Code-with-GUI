@@ -64,6 +64,19 @@ class WebViewKeyPolicyTest {
     }
 
     @Test
+    fun `Cmd or Ctrl F searches the conversation, Find in Files stays with the IDE`() {
+        // macOS: Cmd+F. Ctrl+F there is the Emacs forward-character key.
+        assertTrue(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, meta, mac = true))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, ctrl, mac = true))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, meta or shift, mac = true))
+        // Windows and Linux: Ctrl+F.
+        assertTrue(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, ctrl, mac = false))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, ctrl or shift, mac = false))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, none, mac = false))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_F, alt, mac = false))
+    }
+
+    @Test
     fun `keys with IDE bindings we did not claim stay with the IDE`() {
         // F12 was claimed once and swallowed WebStorm's terminal shortcut for
         // everyone, with no way to turn it off (issue #333).

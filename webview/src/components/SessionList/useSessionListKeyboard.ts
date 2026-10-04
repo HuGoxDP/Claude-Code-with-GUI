@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, KeyboardEvent } from 'react';
-import { GroupedSessions, GROUP_ORDER } from './utils';
+import { GroupedSessions, DISPLAY_GROUP_ORDER, sessionsInGroup } from './utils';
 
 interface Params {
   groupedSessions: GroupedSessions;
@@ -36,7 +36,7 @@ export function useSessionListKeyboard(params: Params): Result {
   // Sessions in the exact order they render (group order, then within-group),
   // so arrow-key navigation matches what the user sees.
   const orderedSessions = useMemo(
-    () => GROUP_ORDER.flatMap((group) => groupedSessions[group]),
+    () => DISPLAY_GROUP_ORDER.flatMap((group) => sessionsInGroup(groupedSessions, group)),
     [groupedSessions],
   );
   const highlightedSessionId =

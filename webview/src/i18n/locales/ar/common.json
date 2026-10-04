@@ -213,7 +213,15 @@
     "refreshSessions": "تحديث الجلسات",
     "renameSession": "إعادة تسمية الجلسة",
     "deleteSession": "حذف الجلسة",
+    "exportSession": "تصدير الجلسة",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "نص مقروء للمحادثة",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "ملف الجلسة كما كتبته واجهة CLI تمامًا",
+    "addFavorite": "إضافة إلى المفضلة",
+    "removeFavorite": "إزالة من المفضلة",
     "groups": {
+      "favorites": "المفضلة",
       "today": "اليوم",
       "yesterday": "أمس",
       "pastWeek": "الأسبوع الماضي",
@@ -245,6 +253,12 @@
       "activeTitle": "إظهار الجلسات التي تنتظر ردًا أو قيد العمل أو غير المقروءة فقط",
       "noneActive": "لا توجد جلسة تنتظرك"
     }
+  },
+  "sessionExport": {
+    "saved": "تم الحفظ في {{path}}",
+    "failed": "تعذّر تصدير الجلسة: {{error}}",
+    "empty": "لا تحتوي هذه المحادثة على ما يمكن تصديره بعد.",
+    "noSession": "ابدأ محادثة قبل تصديرها."
   },
   "sponsorGated": {
     "message": "نعتذر، هذه هديةٌ صغيرة نخصّ بها داعمينا",
@@ -361,6 +375,7 @@
       "openModelMenu": "اختيار النموذج",
       "rotateModel": "التبديل إلى النموذج التالي",
       "clearConversation": "مسح المحادثة",
+      "searchConversation": "البحث في المحادثة",
       "refreshSessionList": "تحديث قائمة الجلسات أثناء فتحها",
       "zoomIn": "تكبير",
       "zoomOut": "تصغير",

@@ -4,6 +4,7 @@ import { getRelativeTime } from './utils';
 import { useSessionListScale } from './scale';
 import { useTranslation } from '@/i18n';
 import { SessionActivity } from '@/shared';
+import type { SessionExportFormat } from '@/api/modules/SessionsApi';
 
 interface Props {
   session: SessionMetaDto;
@@ -13,6 +14,15 @@ interface Props {
   onSelect: () => void;
   onDelete: () => void;
   onRename: (title: string) => void;
+  /**
+   * Save this session to a file (the GUI's `/export`). The row offers the
+   * choice of format; omitted, the row has no export action.
+   */
+  onExport?: (format: SessionExportFormat) => void;
+  /** The session is starred (drawn in the favorites group, with a filled star). */
+  isFavorite?: boolean;
+  /** Star or unstar. Omitted, the row has no star action. */
+  onToggleFavorite?: () => void;
   /**
    * Path of the session's own directory relative to the one being browsed,
    * shown when the two differ. The caller decides that — the row does not know
@@ -74,6 +84,21 @@ function ActivityDot({ activity, isOpen }: { activity: SessionActivity; isOpen: 
   );
 }
 
+/** A 12px star, outlined or filled. */
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path
+        d="M6 1.2l1.45 2.95 3.25.47-2.35 2.3.55 3.23L6 8.62 3.1 10.15l.55-3.23L1.3 4.62l3.25-.47z"
+        fill={filled ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="0.9"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function SessionItem(props: Props) {
   const {
     session,
@@ -85,11 +110,16 @@ export function SessionItem(props: Props) {
     originLabel,
     activity = SessionActivity.Idle,
     isOpen = false,
+    onExport,
+    isFavorite = false,
+    onToggleFavorite,
   } = props;
   const { t } = useTranslation('common');
   const scale = useSessionListScale();
   const [isHovered, setIsHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  // The export icon swaps the row's actions for the two formats to choose from.
+  const [isChoosingExport, setIsChoosingExport] = useState(false);
   const [draft, setDraft] = useState(session.title);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -153,6 +183,22 @@ export function SessionItem(props: Props) {
     onDelete();
   };
 
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite?.();
+  };
+
+  const startExport = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsChoosingExport(true);
+  };
+
+  const exportAs = (format: SessionExportFormat) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsChoosingExport(false);
+    onExport?.(format);
+  };
+
 
   // A <button> may not contain an <input>, and while renaming the row must not
   // act as one anyway — clicking into the field would otherwise also open the
@@ -164,7 +210,10 @@ export function SessionItem(props: Props) {
       ref={buttonRef as never}
       onClick={isEditing ? undefined : onSelect}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsChoosingExport(false);
+      }}
       className={`w-full ${scale.itemPad} text-start ${scale.itemText} rounded transition-colors flex justify-between items-center gap-1 ${
         isSelected || isHighlighted
           ? 'text-text-primary bg-[var(--surface-selected)]'
@@ -210,8 +259,64 @@ export function SessionItem(props: Props) {
           <span className="truncate">{session.title}</span>
         )}
       </span>
-      {isHovered && !isEditing ? (
+      {isHovered && !isEditing && isChoosingExport && onExport ? (
+        <span className="flex-shrink-0 flex items-center gap-1" data-testid="session-export-choice">
+          <span
+            role="button"
+            onClick={exportAs('markdown')}
+            className={`${scale.itemTime} px-1 rounded border border-border-default text-text-secondary hover:text-text-primary transition-colors`}
+            title={t('sessionList.exportMarkdownHint')}
+          >
+            {t('sessionList.exportMarkdown')}
+          </span>
+          <span
+            role="button"
+            onClick={exportAs('jsonl')}
+            className={`${scale.itemTime} px-1 rounded border border-border-default text-text-secondary hover:text-text-primary transition-colors`}
+            title={t('sessionList.exportJsonlHint')}
+          >
+            {t('sessionList.exportJsonl')}
+          </span>
+        </span>
+      ) : isHovered && !isEditing ? (
         <span className="flex-shrink-0 flex items-center gap-1.5">
+          {onToggleFavorite && (
+            <span
+              role="button"
+              onClick={toggleFavorite}
+              className={`${isFavorite ? 'text-state-warning-fg' : 'text-text-tertiary hover:text-text-primary'} transition-colors flex items-center justify-center`}
+              title={t(isFavorite ? 'sessionList.removeFavorite' : 'sessionList.addFavorite')}
+              aria-label={t(isFavorite ? 'sessionList.removeFavorite' : 'sessionList.addFavorite')}
+              aria-pressed={isFavorite}
+            >
+              <StarIcon filled={isFavorite} />
+            </span>
+          )}
+          {onExport && (
+            <span
+              role="button"
+              onClick={startExport}
+              className="text-text-tertiary hover:text-text-primary transition-colors flex items-center justify-center"
+              title={t('sessionList.exportSession')}
+              aria-label={t('sessionList.exportSession')}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 1.5v6M3.5 5L6 7.5 8.5 5M2 9v1a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V9"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          )}
           <span
             role="button"
             onClick={startEditing}
@@ -263,9 +368,14 @@ export function SessionItem(props: Props) {
             </svg>
           </span>
         </span>
-      ) : session.updatedAt ? (
-        <span className={`flex-shrink-0 ${scale.itemTime} text-text-tertiary`}>
-          {getRelativeTime(session.updatedAt)}
+      ) : session.updatedAt || isFavorite ? (
+        <span className={`flex-shrink-0 flex items-center gap-1 ${scale.itemTime} text-text-tertiary`}>
+          {isFavorite && (
+            <span className="text-state-warning-fg flex items-center" data-testid="session-favorite-mark">
+              <StarIcon filled />
+            </span>
+          )}
+          {session.updatedAt ? getRelativeTime(session.updatedAt) : null}
         </span>
       ) : null}
     </Row>

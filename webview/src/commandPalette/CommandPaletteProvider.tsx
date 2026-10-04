@@ -15,6 +15,7 @@ import { SWITCH_MODEL_EVENT } from '@/pages/ChatPage/ModelSwitchOverlay';
 import { ROTATE_MODEL_EVENT } from '@/pages/ChatPage/ChatInput/ModelTag';
 import { TOGGLE_HELP_EVENT } from '@/components/HelpModal/events';
 import { isHelpShortcut } from '@/components/HelpModal/helpShortcut';
+import { OPEN_CONVERSATION_SEARCH_EVENT, isConversationSearchShortcut } from '@/pages/ChatPage/ConversationSearch/events';
 import { PanelSection } from '@/types/commandPalette';
 import type { SlashCommandInfo } from '@/types/slashCommand';
 import { CommandPaletteServices } from './types';
@@ -32,6 +33,7 @@ import {
   SupportSection,
   ClearCommand,
   UsageCommand,
+  ExportCommand,
   buildControlRequestCommands,
   CliPassthroughCommand,
   ModelSlashCommand,
@@ -104,6 +106,7 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
 
       setSessionState: session.setSessionState,
       resetToNewSession: session.resetToNewSession,
+      exportSession: session.exportSession,
     },
     adapter: {
       openNewTab: () => getAdapter().openNewTab(),
@@ -141,6 +144,7 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
 
       setSessionState: session.setSessionState,
       resetToNewSession: session.resetToNewSession,
+      exportSession: session.exportSession,
     },
     adapter: {
       openNewTab: () => getAdapter().openNewTab(),
@@ -209,6 +213,16 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
       },
     });
 
+    // Cmd/Ctrl+F finds in the conversation (the bar lives on the chat page and
+    // ignores the event anywhere else).
+    keyboardReg.register({
+      id: 'search-conversation',
+      match: isConversationSearchShortcut,
+      execute: async () => {
+        window.dispatchEvent(new CustomEvent(OPEN_CONVERSATION_SEARCH_EVENT));
+      },
+    });
+
     keyboardReg.register({
       id: 'open-model-menu',
       match: (e: KeyboardEvent) =>
@@ -243,6 +257,7 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
       const localCommands = [
         new ClearCommand(),
         new UsageCommand(),
+        new ExportCommand(),
         ...buildControlRequestCommands(),
       ];
       const localLabels: Set<string> = new Set(localCommands.map(c => c.label));

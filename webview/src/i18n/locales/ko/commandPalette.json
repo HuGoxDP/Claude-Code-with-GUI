@@ -74,6 +74,7 @@
     "copyFrontLogDone": "프론트 로그를 복사했습니다 ({{count}}줄)",
     "copyFrontLogFailed": "복사할 프론트 로그가 없습니다",
     "keyboardShortcuts": "키보드 단축키",
+    "searchConversation": "대화에서 검색",
     "viewHelpDocs": "도움말 문서 보기",
     "restartPlugin": "플러그인 재시작",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "대화 지우기",
-    "usageDescription": "계정 및 사용량"
+    "usageDescription": "계정 및 사용량",
+    "exportDescription": "대화를 파일로 내보내기 (Markdown, .jsonl 이름이면 원본 JSONL)"
   },
   "panel": {
     "reportProblem": "문제 신고",

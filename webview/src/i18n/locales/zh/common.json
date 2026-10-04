@@ -209,7 +209,15 @@
     "refreshSessions": "刷新会话",
     "renameSession": "重命名会话",
     "deleteSession": "删除会话",
+    "exportSession": "导出会话",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "可读的对话记录",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "CLI 写入的原始会话文件",
+    "addFavorite": "加入收藏",
+    "removeFavorite": "取消收藏",
     "groups": {
+      "favorites": "收藏",
       "today": "今天",
       "yesterday": "昨天",
       "pastWeek": "过去一周",
@@ -241,6 +249,12 @@
       "activeTitle": "仅显示需要答复、正在处理或未读的会话",
       "noneActive": "没有需要你处理的会话"
     }
+  },
+  "sessionExport": {
+    "saved": "已保存到 {{path}}",
+    "failed": "无法导出会话：{{error}}",
+    "empty": "此对话暂无可导出的内容。",
+    "noSession": "请先开始对话再导出。"
   },
   "sponsorGated": {
     "message": "这是我们为赞助者准备的一点小心意，还请见谅",
@@ -357,6 +371,7 @@
       "openModelMenu": "选择模型",
       "rotateModel": "切换到下一个模型",
       "clearConversation": "清除对话",
+      "searchConversation": "在对话中搜索",
       "refreshSessionList": "会话列表打开时刷新会话",
       "zoomIn": "放大",
       "zoomOut": "缩小",

@@ -211,7 +211,15 @@
     "refreshSessions": "Обновить сессии",
     "renameSession": "Переименовать сессию",
     "deleteSession": "Удалить сессию",
+    "exportSession": "Экспортировать сессию",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "Читаемая расшифровка разговора",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "Файл сессии в точности как его записал CLI",
+    "addFavorite": "Добавить в избранное",
+    "removeFavorite": "Убрать из избранного",
     "groups": {
+      "favorites": "Избранное",
       "today": "Сегодня",
       "yesterday": "Вчера",
       "pastWeek": "На прошлой неделе",
@@ -243,6 +251,12 @@
       "activeTitle": "Показывать только сессии, которые ждут ответа, работают или не прочитаны",
       "noneActive": "Ни одна сессия вас не ждёт"
     }
+  },
+  "sessionExport": {
+    "saved": "Сохранено в {{path}}",
+    "failed": "Не удалось экспортировать сессию: {{error}}",
+    "empty": "В этом разговоре пока нечего экспортировать.",
+    "noSession": "Начните разговор, прежде чем экспортировать его."
   },
   "sponsorGated": {
     "message": "Небольшой знак благодарности нашим спонсорам",
@@ -359,6 +373,7 @@
       "openModelMenu": "Выбрать модель",
       "rotateModel": "Переключиться на следующую модель",
       "clearConversation": "Очистить беседу",
+      "searchConversation": "Поиск в разговоре",
       "refreshSessionList": "Обновить список сессий, пока он открыт",
       "zoomIn": "Увеличить масштаб",
       "zoomOut": "Уменьшить масштаб",

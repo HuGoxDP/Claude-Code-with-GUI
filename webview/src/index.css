@@ -1067,3 +1067,14 @@ body {
 .volume-slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 3px var(--accent-primary-subtle);
 }
+
+/* In-chat search (ConversationSearch). Painted with the CSS Custom Highlight
+   API, so the transcript's DOM is never rewritten to show a match. */
+::highlight(ccg-search-match) {
+  background-color: rgb(var(--accent-claude-rgb) / 0.28);
+}
+
+::highlight(ccg-search-current) {
+  background-color: rgb(var(--accent-claude-rgb) / 0.75);
+  color: #ffffff;
+}

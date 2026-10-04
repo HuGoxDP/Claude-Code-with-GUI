@@ -74,6 +74,7 @@
     "copyFrontLogDone": "Front-end log copied ({{count}} lines)",
     "copyFrontLogFailed": "No front-end log to copy",
     "keyboardShortcuts": "Keyboard shortcuts",
+    "searchConversation": "Search in conversation",
     "viewHelpDocs": "View help docs",
     "restartPlugin": "Restart plugin",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "Clear conversation",
-    "usageDescription": "Account & usage"
+    "usageDescription": "Account & usage",
+    "exportDescription": "Export the conversation to a file (Markdown, or raw JSONL for a .jsonl name)"
   },
   "panel": {
     "reportProblem": "Report a problem",

@@ -685,5 +685,18 @@
     "sponsorHint": "Das Wechseln zu Assets aus anderen Nachrichten ist leider ein kleines Dankeschön, das wir unseren Sponsoren vorbehalten",
     "pinToDock": "Am Dock anheften",
     "unpinFromDock": "Vom Dock lösen"
+  },
+  "conversationSearch": {
+    "label": "In der Unterhaltung suchen",
+    "placeholder": "In der Unterhaltung finden",
+    "counter": "{{current}} von {{total}}",
+    "noResults": "Keine Treffer",
+    "invalidRegex": "Ungültiger regulärer Ausdruck",
+    "matchCase": "Groß-/Kleinschreibung beachten (Alt+C)",
+    "wholeWord": "Ganzes Wort (Alt+W)",
+    "regex": "Regulärer Ausdruck (Alt+R)",
+    "previous": "Vorheriger Treffer (Shift+Enter)",
+    "next": "Nächster Treffer (Enter)",
+    "close": "Schließen (Esc)"
   }
 }

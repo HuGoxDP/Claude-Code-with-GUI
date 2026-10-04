@@ -209,7 +209,15 @@
     "refreshSessions": "セッションを更新",
     "renameSession": "セッション名を変更",
     "deleteSession": "セッションを削除",
+    "exportSession": "セッションをエクスポート",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "読みやすい会話の記録",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "CLI が書き出したセッションファイルそのまま",
+    "addFavorite": "お気に入りに追加",
+    "removeFavorite": "お気に入りから削除",
     "groups": {
+      "favorites": "お気に入り",
       "today": "今日",
       "yesterday": "昨日",
       "pastWeek": "過去1週間",
@@ -241,6 +249,12 @@
       "activeTitle": "回答待ち・作業中・未読のセッションだけを表示",
       "noneActive": "待っているセッションはありません"
     }
+  },
+  "sessionExport": {
+    "saved": "{{path}} に保存しました",
+    "failed": "セッションをエクスポートできませんでした: {{error}}",
+    "empty": "この会話にはまだエクスポートする内容がありません。",
+    "noSession": "エクスポートするには先に会話を始めてください。"
   },
   "sponsorGated": {
     "message": "恐れ入りますが、スポンサーの皆さまへのささやかな特典とさせていただいております",
@@ -357,6 +371,7 @@
       "openModelMenu": "モデルを選ぶ",
       "rotateModel": "次のモデルに切り替える",
       "clearConversation": "会話をクリア",
+      "searchConversation": "会話内を検索",
       "refreshSessionList": "セッション一覧が開いているときに更新",
       "zoomIn": "拡大",
       "zoomOut": "縮小",

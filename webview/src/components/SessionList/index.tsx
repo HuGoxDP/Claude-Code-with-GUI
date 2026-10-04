@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GroupedSessions, GROUP_ORDER, getSessionOriginLabel } from './utils';
+import { GroupedSessions, DISPLAY_GROUP_ORDER, getSessionOriginLabel, sessionsInGroup } from './utils';
 import { SessionItem } from './SessionItem';
 import { useSessionListScale } from './scale';
 import { useTranslation } from '@/i18n';
@@ -13,6 +13,8 @@ import {
   type StatusFilterKey,
 } from './SessionFilterBar';
 import { SessionActivity } from '@/shared';
+import type { SessionExportFormat } from '@/api/modules/SessionsApi';
+import { exportSessionWithFeedback } from '@/utils/sessionExportFeedback';
 
 interface Props {
   groupedSessions: GroupedSessions;
@@ -75,8 +77,8 @@ export function SessionList(props: Props) {
       [TabState.Open]: 0,
       [TabState.Closed]: 0,
     };
-    for (const key of GROUP_ORDER) {
-      for (const session of groupedSessions[key]) {
+    for (const key of DISPLAY_GROUP_ORDER) {
+      for (const session of sessionsInGroup(groupedSessions, key)) {
         const isOpen = open.has(session.id);
         if (isOpen) tally[TabState.Open]++;
         else tally[TabState.Closed]++;
@@ -124,14 +126,14 @@ export function SessionList(props: Props) {
   const visibleGroups = useMemo(() => {
     if (!hasFilter) return groupedSessions;
     const filtered = {} as GroupedSessions;
-    for (const key of GROUP_ORDER) {
-      filtered[key] = groupedSessions[key].filter((session) => passesFilters(session.id));
+    for (const key of DISPLAY_GROUP_ORDER) {
+      filtered[key] = sessionsInGroup(groupedSessions, key).filter((session) => passesFilters(session.id));
     }
     return filtered;
   }, [hasFilter, groupedSessions, passesFilters]);
 
   const visibleCount = useMemo(
-    () => GROUP_ORDER.reduce((n, key) => n + visibleGroups[key].length, 0),
+    () => DISPLAY_GROUP_ORDER.reduce((n, key) => n + sessionsInGroup(visibleGroups, key).length, 0),
     [visibleGroups],
   );
 
@@ -150,14 +152,24 @@ export function SessionList(props: Props) {
   // there is nothing to disambiguate and no reason to spend a second line on
   // every row. The count answers both, because the backend only counts
   // directories that actually contributed a session.
-  const scopeDirCount = useSessionContextOrNull()?.scopeDirCount ?? null;
+  const sessionContext = useSessionContextOrNull();
+  const scopeDirCount = sessionContext?.scopeDirCount ?? null;
+  // Asked of the context rather than passed down, like the activity markers:
+  // both surfaces that render this list get the export action for free.
+  const exportSession = sessionContext?.exportSession;
+  const favoriteSessionIds = sessionContext?.favoriteSessionIds;
+  const setSessionFavorite = sessionContext?.setSessionFavorite;
+  const handleExport = useCallback((sessionId: string, format: SessionExportFormat) => {
+    if (!exportSession) return;
+    void exportSessionWithFeedback(() => exportSession(sessionId, { format }));
+  }, [exportSession]);
   const isMerged = useMemo(() => {
     // A backend that reported a count has settled it; nothing here overrides.
     if (scopeDirCount !== null) return scopeDirCount > 1;
     // Nobody said, so fall back on the only evidence available locally. Right
     // whenever a foreign row is already loaded, and no worse than the guess
     // this replaced when one is not.
-    return GROUP_ORDER.flatMap((key) => groupedSessions[key]).some(
+    return DISPLAY_GROUP_ORDER.flatMap((key) => sessionsInGroup(groupedSessions, key)).some(
       (s) => s.sessionDir && s.sessionDir !== rootDir,
     );
   }, [scopeDirCount, groupedSessions, rootDir]);
@@ -205,16 +217,16 @@ export function SessionList(props: Props) {
             {t('sessionList.filter.noneActive')}
           </div>
         )}
-        {GROUP_ORDER.map((groupKey) => {
-        const sessionsInGroup = visibleGroups[groupKey];
-        if (sessionsInGroup.length === 0) return null;
+        {DISPLAY_GROUP_ORDER.map((groupKey) => {
+        const groupSessions = sessionsInGroup(visibleGroups, groupKey);
+        if (groupSessions.length === 0) return null;
 
         return (
           <div key={groupKey}>
             <div className={`${scale.groupHeader} text-text-tertiary`}>
               {t(`sessionList.groups.${groupKey}`)}
             </div>
-            {sessionsInGroup.map((session) => (
+            {groupSessions.map((session) => (
               <SessionItem
                 key={session.id}
                 session={session}
@@ -228,6 +240,13 @@ export function SessionList(props: Props) {
                 onSelect={() => onSelectSession(session.id)}
                 onDelete={() => onDeleteSession(session.id)}
                 onRename={(title) => onRenameSession(session.id, title)}
+                onExport={exportSession ? (format) => handleExport(session.id, format) : undefined}
+                isFavorite={favoriteSessionIds?.has(session.id) ?? false}
+                onToggleFavorite={
+                  setSessionFavorite
+                    ? () => void setSessionFavorite(session.id, !(favoriteSessionIds?.has(session.id) ?? false))
+                    : undefined
+                }
               />
             ))}
           </div>

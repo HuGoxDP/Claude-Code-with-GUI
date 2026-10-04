@@ -74,6 +74,7 @@
     "copyFrontLogDone": "Journal front-end copié ({{count}} lignes)",
     "copyFrontLogFailed": "Aucun journal front-end à copier",
     "keyboardShortcuts": "Raccourcis clavier",
+    "searchConversation": "Rechercher dans la conversation",
     "viewHelpDocs": "Consulter la documentation d'aide",
     "restartPlugin": "Redémarrer le plugin",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "Effacer la conversation",
-    "usageDescription": "Compte et utilisation"
+    "usageDescription": "Compte et utilisation",
+    "exportDescription": "Exporter la conversation dans un fichier (Markdown, ou JSONL brut pour un nom en .jsonl)"
   },
   "panel": {
     "reportProblem": "Signaler un problème",

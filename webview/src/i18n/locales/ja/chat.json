@@ -685,5 +685,18 @@
     "sponsorHint": "恐れ入りますが、他のメッセージのアセットへ移動できるのは、スポンサーの皆さまへのささやかな特典とさせていただいております",
     "pinToDock": "ドックに固定",
     "unpinFromDock": "ドックの固定を解除"
+  },
+  "conversationSearch": {
+    "label": "会話内を検索",
+    "placeholder": "会話内を検索",
+    "counter": "{{current}} / {{total}}",
+    "noResults": "結果なし",
+    "invalidRegex": "無効な正規表現",
+    "matchCase": "大文字と小文字を区別 (Alt+C)",
+    "wholeWord": "単語単位 (Alt+W)",
+    "regex": "正規表現 (Alt+R)",
+    "previous": "前の結果 (Shift+Enter)",
+    "next": "次の結果 (Enter)",
+    "close": "閉じる (Esc)"
   }
 }

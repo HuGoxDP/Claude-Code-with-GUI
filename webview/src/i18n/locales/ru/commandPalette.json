@@ -74,6 +74,7 @@
     "copyFrontLogDone": "Журнал фронтенда скопирован ({{count}} строк)",
     "copyFrontLogFailed": "Нет журнала фронтенда для копирования",
     "keyboardShortcuts": "Горячие клавиши",
+    "searchConversation": "Поиск в разговоре",
     "viewHelpDocs": "Открыть справочную документацию",
     "restartPlugin": "Перезапустить плагин",
     "restartConfirm": {
@@ -84,7 +85,8 @@
   },
   "slashCommands": {
     "clearDescription": "Очистить разговор",
-    "usageDescription": "Аккаунт и использование"
+    "usageDescription": "Аккаунт и использование",
+    "exportDescription": "Экспортировать разговор в файл (Markdown, или исходный JSONL для имени .jsonl)"
   },
   "panel": {
     "reportProblem": "Сообщить о проблеме",

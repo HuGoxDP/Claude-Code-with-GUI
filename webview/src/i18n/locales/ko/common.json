@@ -209,7 +209,15 @@
     "refreshSessions": "세션 새로고침",
     "renameSession": "세션 이름 바꾸기",
     "deleteSession": "세션 삭제",
+    "exportSession": "세션 내보내기",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "읽기 쉬운 대화 기록",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "CLI가 기록한 세션 파일 원본 그대로",
+    "addFavorite": "즐겨찾기에 추가",
+    "removeFavorite": "즐겨찾기에서 제거",
     "groups": {
+      "favorites": "즐겨찾기",
       "today": "오늘",
       "yesterday": "어제",
       "pastWeek": "지난주",
@@ -241,6 +249,12 @@
       "activeTitle": "답변이 필요하거나 작업 중이거나 읽지 않은 세션만 보기",
       "noneActive": "기다리는 세션이 없습니다"
     }
+  },
+  "sessionExport": {
+    "saved": "{{path}}에 저장했습니다",
+    "failed": "세션을 내보내지 못했습니다: {{error}}",
+    "empty": "이 대화에는 아직 내보낼 내용이 없습니다.",
+    "noSession": "대화를 시작한 뒤에 내보낼 수 있습니다."
   },
   "sponsorGated": {
     "message": "아쉽게도 후원자 분들을 위한 작은 혜택으로 제공하고 있는 기능입니다",
@@ -357,6 +371,7 @@
       "openModelMenu": "모델 고르기",
       "rotateModel": "다음 모델로 바꾸기",
       "clearConversation": "대화 비우기",
+      "searchConversation": "대화에서 검색",
       "refreshSessionList": "세션 목록이 열려 있을 때 새로고침",
       "zoomIn": "확대",
       "zoomOut": "축소",

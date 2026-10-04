@@ -689,5 +689,18 @@
     "sponsorHint": "Moving to other messages’ assets is a little perk I keep for sponsors",
     "pinToDock": "Pin to dock",
     "unpinFromDock": "Unpin from dock"
+  },
+  "conversationSearch": {
+    "label": "Search in conversation",
+    "placeholder": "Find in conversation",
+    "counter": "{{current}} of {{total}}",
+    "noResults": "No results",
+    "invalidRegex": "Invalid regex",
+    "matchCase": "Match case (Alt+C)",
+    "wholeWord": "Whole word (Alt+W)",
+    "regex": "Regular expression (Alt+R)",
+    "previous": "Previous match (Shift+Enter)",
+    "next": "Next match (Enter)",
+    "close": "Close (Esc)"
   }
 }

@@ -685,5 +685,18 @@
     "sponsorHint": "跨訊息瀏覽資源，是我們為贊助者準備的一點小心意，還請見諒",
     "pinToDock": "釘選到工具列",
     "unpinFromDock": "取消釘選"
+  },
+  "conversationSearch": {
+    "label": "在對話中搜尋",
+    "placeholder": "在對話中尋找",
+    "counter": "第 {{current}} 個，共 {{total}} 個",
+    "noResults": "沒有結果",
+    "invalidRegex": "無效的規則運算式",
+    "matchCase": "區分大小寫 (Alt+C)",
+    "wholeWord": "全字拼寫須相符 (Alt+W)",
+    "regex": "規則運算式 (Alt+R)",
+    "previous": "上一個 (Shift+Enter)",
+    "next": "下一個 (Enter)",
+    "close": "關閉 (Esc)"
   }
 }

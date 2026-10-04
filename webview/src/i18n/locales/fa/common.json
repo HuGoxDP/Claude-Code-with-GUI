@@ -209,7 +209,15 @@
     "refreshSessions": "تازه‌سازی نشست‌ها",
     "renameSession": "تغییر نام نشست",
     "deleteSession": "حذف نشست",
+    "exportSession": "خروجی گرفتن از جلسه",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "متن خوانای گفتگو",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "فایل جلسه دقیقاً همان‌طور که CLI نوشته است",
+    "addFavorite": "افزودن به علاقه‌مندی‌ها",
+    "removeFavorite": "حذف از علاقه‌مندی‌ها",
     "groups": {
+      "favorites": "علاقه‌مندی‌ها",
       "today": "امروز",
       "yesterday": "دیروز",
       "pastWeek": "هفته گذشته",
@@ -241,6 +249,12 @@
       "activeTitle": "فقط نشست‌هایی که پاسخ می‌خواهند، در حال کارند یا خوانده‌نشده‌اند",
       "noneActive": "هیچ نشستی منتظر شما نیست"
     }
+  },
+  "sessionExport": {
+    "saved": "در {{path}} ذخیره شد",
+    "failed": "خروجی گرفتن از جلسه ممکن نشد: {{error}}",
+    "empty": "این گفتگو هنوز چیزی برای خروجی گرفتن ندارد.",
+    "noSession": "پیش از خروجی گرفتن، یک گفتگو را شروع کنید."
   },
   "sponsorGated": {
     "message": "با عرض پوزش، این هدیه‌ای کوچک برای حامیان ماست",
@@ -357,6 +371,7 @@
       "openModelMenu": "انتخاب مدل",
       "rotateModel": "رفتن به مدل بعدی",
       "clearConversation": "پاک کردن گفتگو",
+      "searchConversation": "جستجو در گفتگو",
       "refreshSessionList": "تازه‌سازی فهرست نشست‌ها هنگام باز بودن آن",
       "zoomIn": "بزرگ‌نمایی",
       "zoomOut": "کوچک‌نمایی",
