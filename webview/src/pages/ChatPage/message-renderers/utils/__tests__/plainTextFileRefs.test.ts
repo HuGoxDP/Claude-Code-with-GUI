@@ -20,6 +20,12 @@ describe('linkifyPlainTextFileRefs', () => {
     );
   });
 
+  it('reads a #L range in the CLI\'s own form (#L10-25)', () => {
+    expect(linkifyPlainTextFileRefs('see src/app.ts#L10-25 here')).toBe(
+      'see [src/app.ts#L10-25](src/app.ts#L10) here',
+    );
+  });
+
   it('carries a #LxxCyy column anchor', () => {
     expect(linkifyPlainTextFileRefs('src/a.ts#L3C9')).toBe('[src/a.ts#L3C9](src/a.ts#L3C9)');
   });

@@ -18,7 +18,7 @@ const MASKED_SPANS =
  * starting in the middle of a larger token.
  */
 const PLAINTEXT_FILE_REF =
-  /(?<![\w@/.\-#])((?:\.{0,2}\/)?(?:[\w.-]+\/)*[\w.-]+\.[A-Za-z0-9]+)(?::(\d+)(?::(\d+))?|#L(\d+)(?:C(\d+))?(?:-L\d+(?:C\d+)?)?)/g;
+  /(?<![\w@/.\-#])((?:\.{0,2}\/)?(?:[\w.-]+\/)*[\w.-]+\.[A-Za-z0-9]+)(?::(\d+)(?::(\d+))?|#L(\d+)(?:C(\d+))?(?:-L?\d+(?:C\d+)?)?)/g;
 
 /**
  * NUL wrapper for a masked span. A raw NUL never appears in chat markdown, so a

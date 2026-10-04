@@ -213,6 +213,17 @@
             <keyboard-shortcut keymap="$default" first-keystroke="alt K"/>
         </action>
 
+        <!-- Mention files and folders from the project view (or an editor tab) in the
+             Claude Code chat input, the same way Alt+K mentions the open file -->
+        <action
+            id="ClaudeCode.SendFiles"
+            class="com.github.yhk1038.claudecodegui.actions.SendFilesToClaudeAction"
+            text="Send to Claude Code"
+            description="Mention the selected files or folders in the Claude Code chat input">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
+        </action>
+
         <!-- Rename a chat tab by hand, so its label stops following the
              conversation title (issue #301). One action per host mode, because
              a tool window tab and an editor tab are reached through different

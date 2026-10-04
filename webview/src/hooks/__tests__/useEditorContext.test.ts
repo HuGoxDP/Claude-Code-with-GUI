@@ -60,16 +60,32 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('buildEditorContextText', () => {
-  it('prefixes @ and appends #L range when both start and end lines are numbers', () => {
+  it('writes one line as #L{line}, the CLI\'s short form', () => {
+    expect(
+      buildEditorContextText({ absolutePath: '/abs/a.ts', relativePath: 'a.ts', startLine: 7, endLine: 7 }),
+    ).toBe('@a.ts#L7');
+  });
+
+  it('quotes a path holding a space, so the CLI does not cut it there', () => {
+    expect(
+      buildEditorContextText({ absolutePath: '/abs/my notes.md', relativePath: 'docs/my notes.md', startLine: 2, endLine: 4 }),
+    ).toBe('@"docs/my notes.md#L2-4"');
+    expect(
+      buildEditorContextText({ absolutePath: '/abs/My Folder/', relativePath: 'My Folder/', startLine: null, endLine: null }),
+    ).toBe('@"My Folder/"');
+  });
+
+  // The CLI reads `#L(\d+)(?:-(\d+))?`. `#L10-L25` does not match it, and the CLI
+  // then attaches the whole file instead of the lines.
+  it('prefixes @ and appends the #L range in the form the CLI reads', () => {
     expect(
       buildEditorContextText({
         absolutePath: '/abs/src/file.ts',
         relativePath: 'src/file.ts',
         startLine: 10,
         endLine: 25,
-        workingDir: '/abs',
       }),
-    ).toBe('@src/file.ts#L10-L25');
+    ).toBe('@src/file.ts#L10-25');
   });
 
   it('returns @relativePath only when there is no selection (endLine null)', () => {
@@ -79,7 +95,6 @@ describe('buildEditorContextText', () => {
         relativePath: 'src/file.ts',
         startLine: 10,
         endLine: null,
-        workingDir: '/abs',
       }),
     ).toBe('@src/file.ts');
   });
@@ -91,7 +106,6 @@ describe('buildEditorContextText', () => {
         relativePath: 'src/file.ts',
         startLine: null,
         endLine: 25,
-        workingDir: '/abs',
       }),
     ).toBe('@src/file.ts');
   });
@@ -199,7 +213,32 @@ describe('useEditorContext — handler', () => {
     });
 
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith('ab@src/file.ts#L10-L25 cd');
+    expect(onChange).toHaveBeenCalledWith('ab@src/file.ts#L10-25 cd');
+  });
+
+  it('inserts several paths at once, in order, from one message', () => {
+    const onChange = vi.fn();
+    const onInsertToken = vi.fn();
+    renderEditorContext({ value: 'look at ', currentWorkingDir: '/work', onInsertToken }, onChange);
+
+    act(() => {
+      emitEditorContext({
+        absolutePath: '/work/src/a.ts',
+        relativePath: 'src/a.ts',
+        startLine: null,
+        endLine: null,
+        workingDir: '/work',
+        items: [
+          { absolutePath: '/work/src/a.ts', relativePath: 'src/a.ts', startLine: null, endLine: null },
+          { absolutePath: '/work/src/lib', relativePath: 'src/lib/', startLine: null, endLine: null },
+          { absolutePath: '/work/My Notes.md', relativePath: 'My Notes.md', startLine: null, endLine: null },
+        ],
+      });
+    });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith('look at @src/a.ts @src/lib/ @"My Notes.md" ');
+    expect(onInsertToken.mock.calls.map(([token]) => token)).toEqual(['@src/a.ts', '@src/lib/', '@"My Notes.md"']);
   });
 
   it('inserts @relativePath only when there is no selection', () => {
@@ -238,7 +277,7 @@ describe('useEditorContext — handler', () => {
     });
 
     expect(onInsertToken).toHaveBeenCalledTimes(1);
-    expect(onInsertToken).toHaveBeenCalledWith('@src/file.ts#L10-L25');
+    expect(onInsertToken).toHaveBeenCalledWith('@src/file.ts#L10-25');
   });
 
   it('fires onInsertToken with @relativePath when there is no selection', () => {

@@ -2,6 +2,9 @@ package com.github.yhk1038.claudecodegui.actions
 
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -210,6 +213,47 @@ class SendSelectionToClaudeActionTest {
             )
             assertEquals(JsonPrimitive("src/main.kt"), payload["relativePath"])
             assertEquals(JsonPrimitive(absolutePath), payload["absolutePath"])
+        }
+    }
+
+    @Nested
+    inner class FilesPayload {
+        private fun file(path: String) = EditorContextPayload.FileRef(path, isDirectory = false)
+        private fun folder(path: String) = EditorContextPayload.FileRef(path, isDirectory = true)
+
+        @Test
+        fun `mentions a folder with a trailing slash, as the CLI completes it`() {
+            assertEquals("src/lib/", EditorContextPayload.mentionPath(folder("/abs/src/lib"), "/abs"))
+            assertEquals("src/a.ts", EditorContextPayload.mentionPath(file("/abs/src/a.ts"), "/abs"))
+        }
+
+        @Test
+        fun `mentions the project folder itself as dot slash`() {
+            assertEquals("./", EditorContextPayload.mentionPath(folder("/abs"), "/abs/"))
+        }
+
+        @Test
+        fun `keeps a path outside the project absolute`() {
+            assertEquals("/elsewhere/x.md", EditorContextPayload.mentionPath(file("/elsewhere/x.md"), "/abs"))
+        }
+
+        @Test
+        fun `lists every file in items and repeats the first at the top level`() {
+            val payload = EditorContextPayload.buildFilesPayload(
+                listOf(file("/abs/src/a.ts"), folder("/abs/src/lib")),
+                "/abs",
+            )!!
+            assertEquals(JsonPrimitive("src/a.ts"), payload["relativePath"])
+            assertEquals(JsonPrimitive("/abs"), payload["workingDir"])
+            assertEquals(JsonNull, payload["startLine"])
+            val items = payload["items"]!!.jsonArray
+            assertEquals(listOf("src/a.ts", "src/lib/"), items.map { it.jsonObject["relativePath"]!!.jsonPrimitive.content })
+            assertEquals(JsonNull, items[1].jsonObject["endLine"])
+        }
+
+        @Test
+        fun `builds nothing for no files`() {
+            assertNull(EditorContextPayload.buildFilesPayload(emptyList(), "/abs"))
         }
     }
 }

@@ -199,3 +199,18 @@ describe('tokenizeMessagePaths — session mentions are not paths', () => {
     expect(segments.map((s) => s.text).join('')).toBe(text);
   });
 });
+
+describe('line ranges in the CLI\'s own form, and quoted paths', () => {
+  it('reads #L10-25 like #L10-L25', () => {
+    expect(pathFromToken('@src/file.ts#L10-25')).toBe('src/file.ts');
+    expect(lineFromToken('@src/file.ts#L10-25')).toBe(10);
+  });
+
+  it('keeps a quoted path with spaces as one mention', () => {
+    const segments = tokenizeMessagePaths('read @"docs/my notes.md#L2-4" and @src/a.ts please');
+    expect(segments.filter((s) => s.isPath).map((s) => s.text)).toEqual(['@"docs/my notes.md#L2-4"', '@src/a.ts']);
+    expect(pathFromToken('@"docs/my notes.md#L2-4"')).toBe('docs/my notes.md');
+    expect(lineFromToken('@"docs/my notes.md#L2-4"')).toBe(2);
+    expect(pathFromToken('@"My Folder/"')).toBe('My Folder/');
+  });
+});

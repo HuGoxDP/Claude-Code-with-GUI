@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { handleEditorContextRequest } from '../editor-context-route';
+import { MAX_EDITOR_CONTEXT_ITEMS, handleEditorContextRequest } from '../editor-context-route';
 import { ConnectionManager } from '../connection-manager';
 import { ClientEnv, MessageType } from '../../shared';
 
@@ -72,6 +72,45 @@ describe('handleEditorContextRequest', () => {
       endLine: 25,
       workingDir: '/abs',
     });
+  });
+
+  it('forwards the files picked in the project view, dropping entries it cannot use', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+
+    const body = JSON.stringify({
+      absolutePath: '/abs/src/a.ts',
+      relativePath: 'src/a.ts',
+      startLine: null,
+      endLine: null,
+      workingDir: '/abs',
+      items: [
+        { absolutePath: '/abs/src/a.ts', relativePath: 'src/a.ts', startLine: null, endLine: null },
+        { absolutePath: '/abs/src/lib', relativePath: 'src/lib/', extra: 'dropped' },
+        { relativePath: 42 },
+        'nonsense',
+      ],
+    });
+    expect(handleEditorContextRequest(cm, body).status).toBe(200);
+
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.payload.items).toEqual([
+      { absolutePath: '/abs/src/a.ts', relativePath: 'src/a.ts', startLine: null, endLine: null },
+      { absolutePath: '/abs/src/lib', relativePath: 'src/lib/', startLine: null, endLine: null },
+    ]);
+  });
+
+  it('caps how many paths one request may name', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+    const items = Array.from({ length: MAX_EDITOR_CONTEXT_ITEMS + 5 }, (_, i) => ({ absolutePath: `/abs/f${i}`, relativePath: `f${i}` }));
+
+    handleEditorContextRequest(cm, JSON.stringify({ absolutePath: '/abs/f0', relativePath: 'f0', workingDir: '/abs', items }));
+
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.payload.items).toHaveLength(MAX_EDITOR_CONTEXT_ITEMS);
   });
 
   it('reports the focused JCEF panel as the reveal target', () => {

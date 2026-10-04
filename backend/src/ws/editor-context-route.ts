@@ -9,18 +9,28 @@ export interface EditorContextRouteResult {
   body: Record<string, unknown>;
 }
 
-/**
- * Validated editor-context payload pushed to the webview as EDITOR_CONTEXT.
- * Kotlin sends this when the user invokes "Add to Claude" on an editor selection.
- * `startLine`/`endLine` are null when the action fires without a selection.
- */
-interface EditorContextPayload extends Record<string, unknown> {
+/** One path to mention, with its selected lines when there is a selection. */
+interface EditorContextItem extends Record<string, unknown> {
   absolutePath: string;
   relativePath: string;
   startLine: number | null;
   endLine: number | null;
-  workingDir: string;
 }
+
+/**
+ * Validated editor-context payload pushed to the webview as EDITOR_CONTEXT.
+ * Kotlin sends this when the user invokes "Send to Claude Code" on an editor
+ * selection (one path) or on files in the project view (`items`, every path,
+ * the first of which is repeated at the top level).
+ * `startLine`/`endLine` are null when the action fires without a selection.
+ */
+interface EditorContextPayload extends EditorContextItem {
+  workingDir: string;
+  items?: EditorContextItem[];
+}
+
+/** The most paths one request may name; a selection beyond it is cut. */
+export const MAX_EDITOR_CONTEXT_ITEMS = 200;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -28,6 +38,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeLine(value: unknown): number | null {
   return typeof value === 'number' ? value : null;
+}
+
+function parseItem(value: unknown): EditorContextItem | null {
+  if (!isRecord(value)) return null;
+  const { absolutePath, relativePath } = value;
+  if (typeof absolutePath !== 'string' || typeof relativePath !== 'string' || relativePath.length === 0) return null;
+  return {
+    absolutePath,
+    relativePath,
+    startLine: normalizeLine(value.startLine),
+    endLine: normalizeLine(value.endLine),
+  };
 }
 
 /**
@@ -72,6 +94,13 @@ export function handleEditorContextRequest(
     endLine: normalizeLine(parsed.endLine),
     workingDir: typeof parsed.workingDir === 'string' ? parsed.workingDir : '',
   };
+  if (Array.isArray(parsed.items)) {
+    const items = parsed.items
+      .slice(0, MAX_EDITOR_CONTEXT_ITEMS)
+      .map(parseItem)
+      .filter((item): item is EditorContextItem => item !== null);
+    if (items.length > 0) payload.items = items;
+  }
 
   // What the launcher (Kotlin) should reveal on this Alt+K, decided from the
   // most-recently-focused live panel: focus a JCEF tab, do nothing for a browser

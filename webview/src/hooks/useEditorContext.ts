@@ -16,6 +16,9 @@ export interface EditorContextPayload {
   workingDir: string;
 }
 
+/** One path to mention. The top-level fields of the payload are the first one. */
+export type EditorContextItem = Pick<EditorContextPayload, 'absolutePath' | 'relativePath' | 'startLine' | 'endLine'>;
+
 export interface UseEditorContextParams {
   value: string;
   onChange: (next: string) => void;
@@ -40,19 +43,26 @@ function normalizeDir(dir: string): string {
 }
 
 /**
- * Build the text inserted into the composer for an editor-context payload.
- * The token is prefixed with `@` so Claude Code CLI can recognise it as a
- * file reference.
- * With a selection (both lines numeric): `@relativePath#L{start}-L{end}`.
- * Without a selection (either line null): `@relativePath`.
+ * Build the text inserted into the composer for one path, in the form the
+ * Claude Code CLI reads as a file reference:
+ *
+ * - `@relativePath` without a selection;
+ * - `@relativePath#L{start}-{end}` with one, or `#L{line}` for a single line.
+ *   The CLI's own pattern is `#L(\d+)(?:-(\d+))?`: a second `L` (`#L10-L25`)
+ *   does not match it, and the CLI then attaches the WHOLE file instead of the
+ *   lines (checked against the CLI).
+ * - `@"…"` around a path holding whitespace, which the CLI would otherwise cut
+ *   at the first space.
+ *
  * The trailing space is added by the caller at insertion time.
  */
-export function buildEditorContextText(payload: EditorContextPayload): string {
+export function buildEditorContextText(payload: EditorContextItem): string {
   const { relativePath, startLine, endLine } = payload;
+  let reference = relativePath;
   if (typeof startLine === 'number' && typeof endLine === 'number') {
-    return `@${relativePath}#L${startLine}-L${endLine}`;
+    reference += startLine === endLine ? `#L${startLine}` : `#L${startLine}-${endLine}`;
   }
-  return `@${relativePath}`;
+  return /\s/.test(reference) ? `@"${reference}"` : `@${reference}`;
 }
 
 export interface InsertAtCursorResult {
@@ -74,21 +84,35 @@ export function insertAtCursor(
   return { nextValue, nextCaret: pos + insertText.length };
 }
 
-/** Validate an unknown IPC payload as an EditorContextPayload. */
-function parseEditorContextPayload(
-  raw: Record<string, unknown> | undefined,
-): EditorContextPayload | null {
-  if (!raw) return null;
-  const { absolutePath, relativePath, startLine, endLine, workingDir } = raw;
+function parseItem(raw: unknown): EditorContextItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { absolutePath, relativePath, startLine, endLine } = raw as Record<string, unknown>;
   if (typeof relativePath !== 'string' || relativePath.length === 0) return null;
-  if (typeof workingDir !== 'string') return null;
   return {
     absolutePath: typeof absolutePath === 'string' ? absolutePath : '',
     relativePath,
     startLine: typeof startLine === 'number' ? startLine : null,
     endLine: typeof endLine === 'number' ? endLine : null,
-    workingDir,
   };
+}
+
+/**
+ * Validate an unknown IPC payload and return the paths it names: the `items`
+ * the project view sends for several files at once, or the single path at the
+ * top level otherwise.
+ */
+export function parseEditorContextPayload(
+  raw: Record<string, unknown> | undefined,
+): { workingDir: string; items: EditorContextItem[] } | null {
+  if (!raw) return null;
+  if (typeof raw.workingDir !== 'string') return null;
+  const listed = Array.isArray(raw.items)
+    ? raw.items.map(parseItem).filter((item): item is EditorContextItem => item !== null)
+    : [];
+  const single = parseItem(raw);
+  const items = listed.length > 0 ? listed : single ? [single] : [];
+  if (items.length === 0) return null;
+  return { workingDir: raw.workingDir, items };
 }
 
 /**
@@ -131,7 +155,7 @@ export function useEditorContext(params: UseEditorContextParams): void {
       }
 
       // Dedup identical payloads within the time window.
-      const key = `${payload.relativePath}:${payload.startLine}:${payload.endLine}`;
+      const key = payload.items.map((item) => `${item.relativePath}:${item.startLine}:${item.endLine}`).join('|');
       const now = Date.now();
       if (lastKeyRef.current === key && now - lastTimeRef.current < DEDUP_WINDOW_MS) {
         return;
@@ -139,15 +163,17 @@ export function useEditorContext(params: UseEditorContextParams): void {
       lastKeyRef.current = key;
       lastTimeRef.current = now;
 
-      const token = buildEditorContextText(payload);
-      const insertText = token + ' ';
+      // Every path goes in at once: inserting them one message at a time would
+      // read the composer before the previous insertion has rendered.
+      const tokens = payload.items.map(buildEditorContextText);
+      const insertText = tokens.join(' ') + ' ';
       const el = textareaRef.current;
       const currentValue = valueRef.current;
       const cursorPos = el ? getCaretOffset(el) : currentValue.length;
 
       const { nextValue, nextCaret } = insertAtCursor(currentValue, insertText, cursorPos);
       onChangeRef.current(nextValue);
-      onInsertTokenRef.current?.(token);
+      for (const token of tokens) onInsertTokenRef.current?.(token);
 
       if (shouldFocusRef.current) {
         requestAnimationFrame(() => {

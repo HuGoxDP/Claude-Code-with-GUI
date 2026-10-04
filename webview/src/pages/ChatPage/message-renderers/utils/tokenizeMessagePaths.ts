@@ -32,8 +32,11 @@ export interface MessageSegment {
  *
  * Folder mentions end in `/`, which is intentionally NOT in the excluded set,
  * so `@src/utils/` keeps its trailing slash.
+ *
+ * A path holding a space is written `@"…"`, the CLI's quoted form, and is
+ * matched whole by the first alternative.
  */
-const PATH_TOKEN_PATTERN = /@\S*[^\s.,;:!?)\]}]/g;
+const PATH_TOKEN_PATTERN = /@"[^"\n]+"|@\S*[^\s.,;:!?)\]}]/g;
 
 /**
  * A match that is a session mention rather than a file one, and so is not a
@@ -122,12 +125,18 @@ function tokenizePaths(text: string): MessageSegment[] {
 
 /**
  * Trailing GitHub-style line anchor on a path token or link href: `#L10`,
- * `#L10-L25`, or with a column, `#L10C5` / `#L10C5-L20C15`. Capture group 1 is
- * the (1-based) start line and group 2 the (1-based) start column, if present.
- * Shared by the `@`-mention helpers and the assistant markdown-link parser so
- * the recognized syntax lives in one place.
+ * `#L10-L25` or the CLI's own `#L10-25`, or with a column, `#L10C5` /
+ * `#L10C5-L20C15`. Capture group 1 is the (1-based) start line and group 2 the
+ * (1-based) start column, if present. Shared by the `@`-mention helpers and the
+ * assistant markdown-link parser so the recognized syntax lives in one place.
  */
-export const LINE_ANCHOR = /#L(\d+)(?:C(\d+))?(?:-L\d+(?:C\d+)?)?$/;
+export const LINE_ANCHOR = /#L(\d+)(?:C(\d+))?(?:-L?\d+(?:C\d+)?)?$/;
+
+/** An `@`-token without its `@` and, for the quoted form `@"…"`, its quotes. */
+function tokenBody(token: string): string {
+  const body = token.replace(/^@/, '');
+  return body.length >= 2 && body.startsWith('"') && body.endsWith('"') ? body.slice(1, -1) : body;
+}
 
 /**
  * Normalize an `@`-path token into the path to open in the IDE.
@@ -140,9 +149,7 @@ export const LINE_ANCHOR = /#L(\d+)(?:C(\d+))?(?:-L\d+(?:C\d+)?)?$/;
  * @example pathFromToken('@src/utils/')          // 'src/utils/'
  */
 export function pathFromToken(token: string): string {
-  return token
-    .replace(/^@/, '')
-    .replace(LINE_ANCHOR, '');
+  return tokenBody(token).replace(LINE_ANCHOR, '');
 }
 
 /**
@@ -154,7 +161,7 @@ export function pathFromToken(token: string): string {
  * @example lineFromToken('@src/file.ts')         // undefined
  */
 export function lineFromToken(token: string): number | undefined {
-  const match = LINE_ANCHOR.exec(token);
+  const match = LINE_ANCHOR.exec(tokenBody(token));
   return match ? Number(match[1]) : undefined;
 }
 
