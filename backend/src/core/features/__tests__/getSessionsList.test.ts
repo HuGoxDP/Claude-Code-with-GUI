@@ -23,12 +23,18 @@ vi.mock('../sessionTitleOverrides', () => ({
   readSessionTitleOverrides: vi.fn(),
 }));
 
+vi.mock('../sessionAiTitles', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../sessionAiTitles')>()),
+  readSessionAiTitles: vi.fn(async () => ({})),
+}));
+
 import { readdir, stat } from 'fs/promises';
 import { existsSync } from 'fs';
 import { getSessionsList, resolvePage } from '../getSessionsList';
 import { getProjectSessionsPath } from '../getProjectSessionsPath';
-import { extractSessionInfo, scanTail } from '../extractSessionInfo';
+import { extractSessionInfo, scanTail, type SessionTitleSource } from '../extractSessionInfo';
 import { readSessionTitleOverrides } from '../sessionTitleOverrides';
+import { readSessionAiTitles } from '../sessionAiTitles';
 
 const mockReaddir = vi.mocked(readdir);
 const mockStat = vi.mocked(stat);
@@ -50,7 +56,7 @@ function baseName(file: string): string {
 function tailTimestamps(byFile: Record<string, string | null>) {
   mockScanTail.mockImplementation(async (file: string) => {
     const name = baseName(file);
-    return { lastTimestamp: byFile[name] ?? null, summary: null, customTitle: null };
+    return { lastTimestamp: byFile[name] ?? null, summary: null, customTitle: null, aiTitle: null, agentName: null };
   });
 }
 
@@ -66,6 +72,7 @@ function headInfo(byId: Record<string, Partial<ReturnType<typeof info>>>) {
 
 function info(overrides: Partial<{
   title: string;
+  titleSource: SessionTitleSource | null;
   lastTimestamp: string | null;
   createdAt: string;
   messageCount: number | null;
@@ -73,6 +80,7 @@ function info(overrides: Partial<{
 }> = {}) {
   return {
     title: 'Session',
+    titleSource: 'prompt' as SessionTitleSource | null,
     lastTimestamp: '2025-01-01T00:00:00Z',
     createdAt: '2025-01-01T00:00:00Z',
     messageCount: null,
@@ -161,6 +169,29 @@ describe('getSessionsList', () => {
 
     const result = await getSessionsList('/test');
     expect(result.sessions[0].title).toBe('Original');
+  });
+
+  it('shows a generated title in place of the first prompt, but never over a name', async () => {
+    mockReaddir.mockResolvedValue(['plain.jsonl', 'named.jsonl', 'mine.jsonl'] as unknown as Awaited<ReturnType<typeof readdir>>);
+    tailTimestamps({
+      'plain.jsonl': '2025-01-03T00:00:00Z',
+      'named.jsonl': '2025-01-02T00:00:00Z',
+      'mine.jsonl': '2025-01-01T00:00:00Z',
+    });
+    headInfo({
+      plain: { title: 'fix the login form pls', titleSource: 'prompt' },
+      named: { title: 'Renamed in the CLI', titleSource: 'custom-title' },
+      mine: { title: 'fix it', titleSource: 'prompt' },
+    });
+    mockReadOverrides.mockResolvedValue({ mine: 'Renamed here' });
+    vi.mocked(readSessionAiTitles).mockResolvedValue({ plain: 'Fix login form', named: 'Generated', mine: 'Generated' });
+
+    const result = await getSessionsList('/test');
+    expect(result.sessions.map((s) => [s.sessionId, s.title])).toEqual([
+      ['plain', 'Fix login form'],
+      ['named', 'Renamed in the CLI'],
+      ['mine', 'Renamed here'],
+    ]);
   });
 
   it('states the directory each session belongs to', async () => {

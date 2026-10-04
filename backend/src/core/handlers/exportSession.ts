@@ -7,6 +7,7 @@ import { getProjectSessionsPath } from '../features/getProjectSessionsPath';
 import { loadActiveChain } from '../features/loadSessionMessages';
 import { extractSessionInfo } from '../features/extractSessionInfo';
 import { readSessionTitleOverrides } from '../features/sessionTitleOverrides';
+import { displayTitle, readSessionAiTitles } from '../features/sessionAiTitles';
 import {
   exportFileName,
   formatForFileName,
@@ -70,8 +71,11 @@ export async function exportSessionHandler(
     }
 
     const info = await extractSessionInfo(join(sessionsDir, `${sessionId}.jsonl`));
-    const overrides = await readSessionTitleOverrides(sessionsDir);
-    const title = overrides[sessionId] ?? info.title;
+    const [overrides, generated] = await Promise.all([
+      readSessionTitleOverrides(sessionsDir),
+      readSessionAiTitles(sessionsDir),
+    ]);
+    const title = displayTitle(info, overrides[sessionId], generated[sessionId]);
 
     let contents: string;
     if (format === 'jsonl') {

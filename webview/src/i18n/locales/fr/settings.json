@@ -183,6 +183,10 @@
       "label": "Reprise automatique à la limite d'utilisation",
       "description": "Lorsque vous atteignez la limite de session, la reprise s'effectue automatiquement une fois le quota réinitialisé. C'est la valeur par défaut pour les nouvelles sessions ; chaque session peut toujours la modifier."
     },
+    "aiSessionTitles": {
+      "label": "Titres de session par IA",
+      "description": "Claude donne un titre court à chaque nouvelle session après la première réponse."
+    },
     "showThinkingSummaries": {
       "label": "Afficher les résumés de réflexion",
       "description": "Demande à Claude un résumé de sa réflexion et l'affiche dans le bloc de réflexion.\nClé: showThinkingSummaries"

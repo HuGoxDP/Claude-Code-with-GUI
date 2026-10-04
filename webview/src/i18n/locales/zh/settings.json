@@ -183,6 +183,10 @@
       "label": "达到用量上限时自动恢复",
       "description": "当您达到会话上限时，在额度重置后自动恢复。这是新会话的默认值；每个会话仍可单独切换。"
     },
+    "aiSessionTitles": {
+      "label": "AI 会话标题",
+      "description": "新会话在第一次回复后，由 Claude 起一个简短标题。"
+    },
     "showThinkingSummaries": {
       "label": "显示思考摘要",
       "description": "请求 Claude 提供思考内容的摘要,并显示在思考块中。\n键: showThinkingSummaries"

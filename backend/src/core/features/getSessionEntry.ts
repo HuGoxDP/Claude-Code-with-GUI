@@ -2,6 +2,7 @@ import { join } from 'path';
 import { extractSessionInfo } from './extractSessionInfo';
 import { getProjectSessionsPath } from './getProjectSessionsPath';
 import { readSessionTitleOverrides } from './sessionTitleOverrides';
+import { displayTitle, readSessionAiTitles } from './sessionAiTitles';
 import type { SessionListEntry } from './getSessionsList';
 
 /**
@@ -30,14 +31,16 @@ export async function getSessionEntry(
     const info = await extractSessionInfo(join(sessionsPath, `${sessionId}.jsonl`));
     if (info.isSidechain) return null;
 
-    const overrides = await readSessionTitleOverrides(sessionsPath);
-    const override = overrides[sessionId];
+    const [overrides, generated] = await Promise.all([
+      readSessionTitleOverrides(sessionsPath),
+      readSessionAiTitles(sessionsPath),
+    ]);
 
     return {
       sessionId,
       sessionDir: workingDir,
       ...info,
-      ...(override ? { title: override } : {}),
+      title: displayTitle(info, overrides[sessionId], generated[sessionId]),
     };
   } catch (err) {
     console.error('[node-backend]', 'Failed to build session entry:', sessionId, err);

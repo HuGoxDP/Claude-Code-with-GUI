@@ -183,6 +183,10 @@
       "label": "Auto-Fortsetzung bei Nutzungslimit",
       "description": "Wenn Sie Ihr Sitzungslimit erreichen, wird nach dem Zurücksetzen des Kontingents automatisch fortgesetzt. Dies ist die Voreinstellung für neue Sitzungen; jede Sitzung kann es weiterhin umschalten."
     },
+    "aiSessionTitles": {
+      "label": "KI-Sitzungstitel",
+      "description": "Neue Sitzungen erhalten nach der ersten Antwort einen kurzen Titel von Claude."
+    },
     "showThinkingSummaries": {
       "label": "Zusammenfassungen des Denkens anzeigen",
       "description": "Bittet Claude um eine Zusammenfassung seines Denkens und zeigt sie im Denkblock an.\nSchlüssel: showThinkingSummaries"

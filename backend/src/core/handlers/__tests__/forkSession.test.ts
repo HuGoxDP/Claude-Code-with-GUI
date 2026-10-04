@@ -8,6 +8,7 @@ vi.mock('../../features/getProjectSessionsPath', () => ({
 }));
 
 import { forkSessionHandler } from '../forkSession';
+import { readSessionAiTitles, writeSessionAiTitle } from '../../features/sessionAiTitles';
 import { getProjectSessionsPath } from '../../features/getProjectSessionsPath';
 import type { ConnectionManager } from '../../../ws/connection-manager';
 import type { Bridge } from '../../../bridge/bridge-interface';
@@ -142,6 +143,17 @@ describe('forkSessionHandler', () => {
     const { sessionId } = ackOf(connections)!;
     expect(sessionId).toMatch(/^[0-9a-f-]{36}$/);
     expect(sessionId).not.toBe('origin');
+  });
+
+  it('names the branch with the title generated for the session it came from', async () => {
+    const dir = await writeSession('origin', [user('u1', 'a'), assistant('a1', 'b'), user('u2', 'c')]);
+    await writeSessionAiTitle(dir, 'origin', 'Fix login form');
+    const connections = createMockConnections();
+
+    await fork(connections, { sessionId: 'origin', sendUuid: 'u2', workingDir: '/repo' });
+
+    const { sessionId } = ackOf(connections)!;
+    expect(await readSessionAiTitles(dir)).toEqual({ origin: 'Fix login form', [sessionId as string]: 'Fix login form' });
   });
 
   // The session list is where the user checks that the branch exists.

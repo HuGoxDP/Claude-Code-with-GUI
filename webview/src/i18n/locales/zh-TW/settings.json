@@ -183,6 +183,10 @@
       "label": "達到用量上限時自動恢復",
       "description": "當您達到工作階段上限時，在額度重置後自動恢復。這是新工作階段的預設值；每個工作階段仍可個別切換。"
     },
+    "aiSessionTitles": {
+      "label": "AI 工作階段標題",
+      "description": "新工作階段在第一次回覆後，由 Claude 取一個簡短標題。"
+    },
     "showThinkingSummaries": {
       "label": "顯示思考摘要",
       "description": "請 Claude 提供思考內容的摘要,並顯示在思考區塊中。\n鍵: showThinkingSummaries"

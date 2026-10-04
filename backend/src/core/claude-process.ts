@@ -23,6 +23,7 @@ import { readRegistry } from './features/account-store';
 import { getProjectSessionsPath } from './features/getProjectSessionsPath';
 import { removeSessionTitleOverride } from './features/sessionTitleOverrides';
 import { renamedSessionTitle } from './features/sessionRenamedReply';
+import { generateSessionTitle } from './features/session-title';
 import { MessageType, SessionActivity } from '../shared';
 import { ingestRateLimitWindows } from './handlers/getUsage';
 
@@ -278,6 +279,11 @@ const SESSION_RESTART_KILL_TIMEOUT_MS = 3000;
 // --session-id: 새 세션 전용 (JSONL 이미 존재하면 "already in use" 에러)
 // --resume: 기존 세션 이어받기 (JSONL이 있어야 동작)
 const spawnedSessions = new Set<string>();
+
+// Sessions this backend started fresh (`--session-id`) that have not finished a
+// turn yet. The first one that does is named (session-title.ts), as the CLI
+// names the sessions it starts itself; a resumed session already has its name.
+const sessionsAwaitingTitle = new Set<string>();
 
 /**
  * 외부에서 세션을 spawned로 마킹 (다음 spawn 시 --resume 사용).
@@ -546,6 +552,7 @@ export async function ensureClaudeProcess(
 
   const useResume = spawnedSessions.has(targetSessionId);
   const sessionFlag = useResume ? '--resume' : '--session-id';
+  if (!useResume) sessionsAwaitingTitle.add(targetSessionId);
 
 
   console.error('[node-backend]', `Starting Claude CLI process (-p interactive)...`);
@@ -1213,6 +1220,34 @@ export async function preparePermissionReview(params: {
    */
 }
 
+/**
+ * Name a new session once its first turn succeeds. A failed turn leaves it
+ * waiting for the next one. Fire-and-forget: the name arrives as a rename, and
+ * a session that cannot be named keeps its first prompt as before.
+ */
+function maybeNameSession(
+  targetSessionId: string,
+  event: Record<string, unknown>,
+  connections: ConnectionManager,
+  workingDir: string,
+): void {
+  if (!sessionsAwaitingTitle.has(targetSessionId)) return;
+  if (event.subtype !== 'success' || event.is_error === true) return;
+  sessionsAwaitingTitle.delete(targetSessionId);
+
+  generateSessionTitle(workingDir, targetSessionId)
+    .then((title) => {
+      if (!title) return;
+      connections.broadcastToAll(MessageType.SESSIONS_UPDATED, {
+        action: 'rename',
+        session: { sessionId: targetSessionId, title },
+      });
+    })
+    .catch((err) => {
+      console.error('[node-backend]', 'Failed to name session:', targetSessionId, err);
+    });
+}
+
 function handleStreamEvent(
   targetSessionId: string,
   event: Record<string, unknown>,
@@ -1287,6 +1322,7 @@ function handleStreamEvent(
 
   if (eventType === 'result') {
     sessionsWithResult.add(targetSessionId);
+    maybeNameSession(targetSessionId, event, connections, workingDir);
     // The session's activity is NOT set here, though it used to be. A `result`
     // does end the turn, but the screen showing the session says so itself the
     // moment its animation stops, and it is the only one of the two that also

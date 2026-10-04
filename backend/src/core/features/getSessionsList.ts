@@ -4,6 +4,7 @@ import { join } from 'path';
 import { extractSessionInfo, scanTail, type SessionInfo } from './extractSessionInfo';
 import { getProjectSessionsPath } from './getProjectSessionsPath';
 import { readSessionTitleOverrides } from './sessionTitleOverrides';
+import { displayTitle, readSessionAiTitles } from './sessionAiTitles';
 
 /**
  * [sessionDir] is the working directory the session was recorded under. It is
@@ -161,13 +162,19 @@ export async function resolvePage(
   const offset = Math.max(0, options.offset ?? 0);
   const limit = options.limit;
 
-  // One override file per directory, read once each rather than per session.
-  const overridesByPath = new Map<string, Record<string, string>>();
-  const overridesFor = async (sessionsPath: string): Promise<Record<string, string>> => {
-    const cached = overridesByPath.get(sessionsPath);
+  // One override file and one generated-title file per directory, read once
+  // each rather than per session.
+  type Titles = { overrides: Record<string, string>; generated: Record<string, string> };
+  const titlesByPath = new Map<string, Titles>();
+  const titlesFor = async (sessionsPath: string): Promise<Titles> => {
+    const cached = titlesByPath.get(sessionsPath);
     if (cached) return cached;
-    const loaded = await readSessionTitleOverrides(sessionsPath);
-    overridesByPath.set(sessionsPath, loaded);
+    const [overrides, generated] = await Promise.all([
+      readSessionTitleOverrides(sessionsPath),
+      readSessionAiTitles(sessionsPath),
+    ]);
+    const loaded = { overrides, generated };
+    titlesByPath.set(sessionsPath, loaded);
     return loaded;
   };
 
@@ -205,13 +212,13 @@ export async function resolvePage(
       // unable to tell a short page from the end of the list.
       if (resolved.info.isSidechain) continue;
       if (limit !== undefined && sessions.length >= limit) break;
-      const overrides = await overridesFor(resolved.key.sessionsPath);
-      const override = overrides[resolved.key.sessionId];
+      const { overrides, generated } = await titlesFor(resolved.key.sessionsPath);
+      const id = resolved.key.sessionId;
       sessions.push({
-        sessionId: resolved.key.sessionId,
+        sessionId: id,
         sessionDir: resolved.key.sessionDir,
         ...resolved.info,
-        ...(override ? { title: override } : {}),
+        title: displayTitle(resolved.info, overrides[id], generated[id]),
       });
     }
   }

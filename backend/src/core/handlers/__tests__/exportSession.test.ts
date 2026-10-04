@@ -47,6 +47,7 @@ describe('exportSessionHandler', () => {
     vi.mocked(getProjectSessionsPath).mockResolvedValue('/home/me/.claude/projects/-p');
     vi.mocked(extractSessionInfo).mockResolvedValue({
       title: 'Original title',
+      titleSource: 'prompt',
       lastTimestamp: null,
       createdAt: '',
       messageCount: null,

@@ -183,6 +183,10 @@
       "label": "Retomada automática no limite de uso",
       "description": "Quando você atingir o limite da sessão, a retomada ocorrerá automaticamente após a redefinição da cota. Este é o padrão para novas sessões; cada sessão ainda pode alterná-lo."
     },
+    "aiSessionTitles": {
+      "label": "Títulos de sessão com IA",
+      "description": "O Claude dá um título curto a cada sessão nova depois da primeira resposta."
+    },
     "showThinkingSummaries": {
       "label": "Mostrar resumos do raciocínio",
       "description": "Pede ao Claude um resumo do raciocínio e o mostra dentro do bloco de raciocínio.\nChave: showThinkingSummaries"

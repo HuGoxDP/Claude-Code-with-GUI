@@ -40,6 +40,7 @@ describe('getSessionFavoritesHandler', () => {
       sessionId: id,
       sessionDir: dir,
       title: `t-${id}`,
+      titleSource: 'prompt',
       lastTimestamp: null,
       createdAt: '',
       messageCount: null,

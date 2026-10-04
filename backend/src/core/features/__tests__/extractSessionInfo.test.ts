@@ -712,4 +712,52 @@ describe('extractSessionInfo', () => {
       expect((await extractSessionInfo(await writeJsonl([user, assistant]))).title).toBe('First prompt');
     });
   });
+
+  describe('ai-title and agent-name (the CLI\'s own names)', () => {
+    const user = JSON.stringify({
+      uuid: 'u1',
+      parentUuid: null,
+      type: 'user',
+      timestamp: '2025-01-01T00:00:00Z',
+      message: { content: [{ type: 'text', text: 'First prompt' }] },
+    });
+    const assistant = JSON.stringify({
+      uuid: 'u2',
+      parentUuid: 'u1',
+      type: 'assistant',
+      timestamp: '2025-01-01T00:01:00Z',
+      message: { content: [{ type: 'text', text: 'Reply' }] },
+    });
+    const aiTitle = (value: string | number) => JSON.stringify({ type: 'ai-title', aiTitle: value, sessionId: 's1' });
+    const agentName = (value: string) => JSON.stringify({ type: 'agent-name', agentName: value, sessionId: 's1' });
+    const customTitle = (value: string) => JSON.stringify({ type: 'custom-title', customTitle: value, sessionId: 's1' });
+    const summary = JSON.stringify({ type: 'summary', leafUuid: 'u2', summary: 'Auto summary' });
+
+    it('uses the CLI\'s generated title over a summary and the first prompt', async () => {
+      const result = await extractSessionInfo(await writeJsonl([summary, user, assistant, aiTitle('Fix the login form')]));
+      expect(result).toMatchObject({ title: 'Fix the login form', titleSource: 'ai-title' });
+    });
+
+    it('keeps the newest generated title', async () => {
+      const filePath = await writeJsonl([aiTitle('Old'), user, assistant, aiTitle('Older'), aiTitle('Newest')]);
+      expect((await extractSessionInfo(filePath)).title).toBe('Newest');
+    });
+
+    it('ranks a /rename above the generated title, and a --name above both, like claude --resume', async () => {
+      expect((await extractSessionInfo(await writeJsonl([user, assistant, aiTitle('Generated'), customTitle('Renamed')]))))
+        .toMatchObject({ title: 'Renamed', titleSource: 'custom-title' });
+      expect((await extractSessionInfo(await writeJsonl([agentName('release-bot'), user, assistant, customTitle('Renamed')]))))
+        .toMatchObject({ title: 'release-bot', titleSource: 'agent-name' });
+    });
+
+    it('ignores empty and non-string generated titles', async () => {
+      const filePath = await writeJsonl([user, assistant, aiTitle(''), aiTitle(7)]);
+      expect(await extractSessionInfo(filePath)).toMatchObject({ title: 'First prompt', titleSource: 'prompt' });
+    });
+
+    it('says where every other title came from', async () => {
+      expect((await extractSessionInfo(await writeJsonl([user, assistant, summary]))).titleSource).toBe('summary');
+      expect((await extractSessionInfo(await writeJsonl([user, assistant]))).titleSource).toBe('prompt');
+    });
+  });
 });

@@ -43,6 +43,12 @@ export interface ClaudePrintOptions {
   systemPrompt: string;
   /** Project directory: the CLI's cwd and the profile whose credentials it uses. */
   workingDir?: string;
+  /**
+   * Run the CLI here instead of in [workingDir], which still picks the
+   * credentials. For a call that needs nothing from the project, not even its
+   * CLAUDE.md.
+   */
+  cwd?: string;
   /** Passed as `--model` when it is a plain model id or alias. */
   model?: string | null;
   /** Kill the CLI and reject after this long. */
@@ -148,7 +154,7 @@ export async function runClaudePrint(options: ClaudePrintOptions): Promise<strin
       buildClaudePrintArgs({ systemPromptFile, settingsFile }, options.model),
       options.workingDir,
       {
-        cwd: options.workingDir,
+        cwd: options.cwd ?? options.workingDir,
         stdio: ['pipe', 'pipe', 'pipe'],
         env: { TERM: 'dumb', CI: 'true', CLAUDECODE: undefined },
       },

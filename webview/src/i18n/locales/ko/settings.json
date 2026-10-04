@@ -183,6 +183,10 @@
       "label": "사용량 한도 시 자동 재개",
       "description": "세션 한도에 도달하면 한도가 리셋될 때 자동으로 재개합니다. 새 세션의 기본값이며, 세션마다 켜고 끌 수 있습니다."
     },
+    "aiSessionTitles": {
+      "label": "AI 세션 제목",
+      "description": "새 세션의 첫 응답이 끝나면 Claude가 짧은 제목을 지어 붙입니다."
+    },
     "showThinkingSummaries": {
       "label": "생각 요약 보기",
       "description": "Claude에게 생각 내용의 요약을 요청해서 생각 블록 안에 보여줍니다.\n키: showThinkingSummaries"

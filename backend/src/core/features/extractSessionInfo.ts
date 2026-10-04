@@ -18,8 +18,16 @@ import { createInterface } from 'readline';
 type ContentBlock = { type: string; text?: string; [key: string]: unknown };
 type MessageContent = ContentBlock[] | string | null;
 
+/**
+ * Which entry the title came from, named by the CLI's own entry types, or
+ * 'prompt' for the first thing the user typed. Null for a session the list
+ * does not show.
+ */
+export type SessionTitleSource = 'agent-name' | 'custom-title' | 'ai-title' | 'summary' | 'prompt';
+
 export interface SessionInfo {
   title: string;
+  titleSource: SessionTitleSource | null;
   lastTimestamp: string | null;
   createdAt: string;
   /**
@@ -112,6 +120,10 @@ interface HeadScan {
   summary: string | null;
   /** The last `/rename` seen in the part of the file the scan read. */
   customTitle: string | null;
+  /** The last title the CLI generated itself (`ai-title`), likewise. */
+  aiTitle: string | null;
+  /** The last session name given with `--name` (`agent-name`), likewise. */
+  agentName: string | null;
   messageCount: number;
   hasUserOrAssistant: boolean;
   isSidechain: boolean;
@@ -139,6 +151,8 @@ function scanHead(file: string): Promise<HeadScan> {
     let firstUserPrompt: string | null = null;
     let firstSummary: string | null = null;
     let lastCustomTitle: string | null = null;
+    let lastAiTitle: string | null = null;
+    let lastAgentName: string | null = null;
     let hasUserOrAssistant = false;
     let sidechainGateSeen = false;
     let isSidechainFromGate = false;
@@ -164,6 +178,8 @@ function scanHead(file: string): Promise<HeadScan> {
         title: firstUserPrompt,
         summary: firstSummary,
         customTitle: lastCustomTitle,
+        aiTitle: lastAiTitle,
+        agentName: lastAgentName,
         messageCount,
         hasUserOrAssistant,
         isSidechain: isSidechainFromGate,
@@ -223,6 +239,21 @@ function scanHead(file: string): Promise<HeadScan> {
         return;
       }
 
+      // The CLI's own generated title and a `--name`, recorded the same way:
+      // the CLI keeps the last of each.
+      if (type === 'ai-title') {
+        if (typeof entry.aiTitle === 'string' && entry.aiTitle) {
+          lastAiTitle = entry.aiTitle;
+        }
+        return;
+      }
+      if (type === 'agent-name') {
+        if (typeof entry.agentName === 'string' && entry.agentName) {
+          lastAgentName = entry.agentName;
+        }
+        return;
+      }
+
       if (!type || !COUNTED_TYPES.has(type)) return;
 
       messageCount++;
@@ -271,7 +302,11 @@ export interface TailScan {
   lastTimestamp: string | null;
   summary: string | null;
   customTitle: string | null;
+  aiTitle: string | null;
+  agentName: string | null;
 }
+
+const EMPTY_TAIL: TailScan = { lastTimestamp: null, summary: null, customTitle: null, aiTitle: null, agentName: null };
 
 /**
  * Read the last window of the file for the values the forward scan skipped.
@@ -284,9 +319,9 @@ export async function scanTail(file: string): Promise<TailScan> {
   const handle = await open(file, 'r');
   try {
     const { size } = await handle.stat();
-    if (size === 0) return { lastTimestamp: null, summary: null, customTitle: null };
+    if (size === 0) return { ...EMPTY_TAIL };
 
-    let result: TailScan = { lastTimestamp: null, summary: null, customTitle: null };
+    let result: TailScan = { ...EMPTY_TAIL };
 
     for (const windowSize of TAIL_WINDOW_SIZES) {
       const length = Math.min(windowSize, size);
@@ -312,6 +347,8 @@ function readWindow(buffer: Buffer): TailScan {
   let lastTimestamp: string | null = null;
   let summary: string | null = null;
   let customTitle: string | null = null;
+  let aiTitle: string | null = null;
+  let agentName: string | null = null;
 
   for (let i = lines.length - 1; i >= 0; i--) {
     const line = lines[i].trim();
@@ -341,6 +378,18 @@ function readWindow(buffer: Buffer): TailScan {
       }
       continue;
     }
+    if (type === 'ai-title') {
+      if (aiTitle === null && typeof entry.aiTitle === 'string' && entry.aiTitle) {
+        aiTitle = entry.aiTitle;
+      }
+      continue;
+    }
+    if (type === 'agent-name') {
+      if (agentName === null && typeof entry.agentName === 'string' && entry.agentName) {
+        agentName = entry.agentName;
+      }
+      continue;
+    }
 
     // Same rule as the forward scan: only a counted entry moves the clock.
     if (lastTimestamp === null && type && COUNTED_TYPES.has(type)) {
@@ -349,7 +398,27 @@ function readWindow(buffer: Buffer): TailScan {
     }
   }
 
-  return { lastTimestamp, summary, customTitle };
+  return { lastTimestamp, summary, customTitle, aiTitle, agentName };
+}
+
+/**
+ * Pick the title the way `claude --resume` does: a `--name`, then a `/rename`,
+ * then the CLI's generated title, then a summary, then the first prompt. For
+ * each of the first three the tail holds the newest when the scan stopped
+ * early, and the head's last value covers the rest.
+ */
+function pickTitle(head: HeadScan, tail: TailScan): { title: string; titleSource: SessionTitleSource | null } {
+  const candidates: Array<[string | null, SessionTitleSource]> = [
+    [tail.agentName ?? head.agentName, 'agent-name'],
+    [tail.customTitle ?? head.customTitle, 'custom-title'],
+    [tail.aiTitle ?? head.aiTitle, 'ai-title'],
+    [head.summary ?? tail.summary, 'summary'],
+    [head.title, 'prompt'],
+  ];
+  for (const [value, source] of candidates) {
+    if (value) return { title: value, titleSource: source };
+  }
+  return { title: 'No title', titleSource: null };
 }
 
 export async function extractSessionInfo(file: string): Promise<SessionInfo> {
@@ -358,6 +427,7 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
   if (head.skipSession) {
     return {
       title: 'Sidechain Session',
+      titleSource: null,
       lastTimestamp: null,
       createdAt: head.createdAt,
       messageCount: head.readToEnd ? head.messageCount : null,
@@ -367,7 +437,7 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
 
   // Reading to the end already produced every value, so opening the file a
   // second time would only re-read bytes the scan has seen.
-  const tail = head.readToEnd ? { lastTimestamp: null, summary: null, customTitle: null } : await scanTail(file);
+  const tail = head.readToEnd ? { ...EMPTY_TAIL } : await scanTail(file);
 
   // The scan stops early only once a real user prompt has settled the title, so
   // any session that stopped early demonstrably holds a conversation. That is
@@ -377,6 +447,7 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
   if (!head.hasUserOrAssistant) {
     return {
       title: 'Empty Session',
+      titleSource: null,
       lastTimestamp: null,
       createdAt: head.createdAt,
       messageCount: head.messageCount,
@@ -384,13 +455,11 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
     };
   }
 
-  // A rename made in the CLI outranks everything. The tail holds the newest one
-  // when the scan stopped early, and the head's last value covers the rest.
-  const title =
-    tail.customTitle ?? head.customTitle ?? head.summary ?? tail.summary ?? head.title ?? 'No title';
+  const { title, titleSource } = pickTitle(head, tail);
 
   return {
     title,
+    titleSource,
     lastTimestamp: head.readToEnd ? head.lastTimestamp : (tail.lastTimestamp ?? head.lastTimestamp),
     createdAt: head.createdAt,
     messageCount: head.readToEnd ? head.messageCount : null,

@@ -84,6 +84,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   notificationSoundVolume: 5,
   focusInputOnEditorContext: true,
   autoResumeOnLimit: false,
+  aiSessionTitles: true,
   attachEditorContext: true,
   autoOpenDiffOnPermission: true,
   diffSurface: DiffSurface.IDE,
@@ -149,6 +150,7 @@ const COMMENT_MAP: Record<string, string> = {
   notificationSoundVolume: '알림음의 음량(1~10, 미설정 시 5). 한 눈금의 절대 크기는 운영체제마다 다르다 — 맥은 1이 원음이고 10이 원음의 10배(afplay 게인), 윈도우와 리눅스는 증폭이 안 되므로 10이 원음이고 1이 그 10분의 1이다',
   focusInputOnEditorContext: 'true면 Alt+K로 파일 경로 삽입 후 채팅 입력창으로 포커스 이동',
   autoResumeOnLimit: '사용량 리밋 리셋 시 자동 재개(후원자 전용). 기본 off. 리밋 배너의 기본 동작을 seed',
+  aiSessionTitles: '새 세션의 첫 응답이 끝나면 Claude(haiku)가 짧은 제목을 지어 세션 목록에 쓴다(CLI가 자기 세션에 붙이는 ai-title과 같은 자리). 제목은 우리 파일에만 저장하고 트랜스크립트는 건드리지 않는다. 기본 on',
   attachEditorContext: '세션 시작 시 에디터 컨텍스트 칩을 활성 상태로 둘지. false면 칩은 뜨되 비활성으로 시작(세션 중 클릭 변경은 저장되지 않음)',
   autoOpenDiffOnPermission: '파일 편집 권한을 물을 때 diff를 저절로 열지. false면 승인 패널만 뜨고, 프롬프트의 파일명을 눌렀을 때만 diff가 열린다(변경 내용은 어느 쪽이든 보관되므로 나중에 눌러도 볼 수 있다)',
   diffSurface: '파일 편집 권한을 물을 때 변경 내용을 어디에 그릴지: "ide"(IDE 자체 diff 뷰어) | "built-in"(우리 diff 페이지). IDE 없이 실행 중이면 항상 "built-in"으로 동작한다',
@@ -533,6 +535,7 @@ function validateSetting(key: string, value: unknown): string | null {
     case 'useCtrlEnterToSend':
     case 'focusInputOnEditorContext':
     case 'autoResumeOnLimit':
+    case 'aiSessionTitles':
     case 'attachEditorContext':
     case 'syncModelToDefault':
       if (typeof value !== 'boolean') {

@@ -2,10 +2,16 @@ import { randomUUID } from 'crypto';
 import { readFile, writeFile, rename, unlink } from 'fs/promises';
 import { basename, join } from 'path';
 import { getProjectSessionsPath } from '../features/getProjectSessionsPath';
+import { readSessionAiTitles, writeSessionAiTitle } from '../features/sessionAiTitles';
 import type { ConnectionManager } from '../../ws/connection-manager';
 import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
 import { MessageType } from '../../shared';
+
+async function copySessionAiTitle(sessionsDir: string, from: string, to: string): Promise<void> {
+  const title = (await readSessionAiTitles(sessionsDir))[from];
+  if (title) await writeSessionAiTitle(sessionsDir, to, title);
+}
 
 /**
  * The transcript a branch of `sendUuid` starts from, copied from the original.
@@ -137,6 +143,11 @@ export async function forkSessionHandler(
       await unlink(temp).catch(() => {});
       throw writeError;
     }
+
+    // The branch shares the original's opening, so it shares the title this app
+    // generated for it. Best effort: without it the branch is named by its
+    // first prompt, which is what the list would show anyway.
+    await copySessionAiTitle(sessionsDir, sessionId, forkedSessionId).catch(() => {});
 
     connections.sendTo(connectionId, MessageType.ACK, {
       requestId: message.requestId,
