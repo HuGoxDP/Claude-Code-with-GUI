@@ -125,6 +125,18 @@ export enum MessageType {
    */
   GENERATE_COMMIT_MESSAGE = 'GENERATE_COMMIT_MESSAGE',
   /**
+   * The user's and the project's skills ({ workingDir? }) with the visibility the
+   * CLI's `skillOverrides` setting gives each. The ACK carries { skills }.
+   * inbound webview→backend
+   */
+  GET_SKILLS = 'GET_SKILLS',
+  /**
+   * Change one skill's visibility ({ workingDir?, name, scope, state }) by writing
+   * the CLI's `skillOverrides` setting, as the CLI's /skills does. The ACK carries
+   * { file, skills }. inbound webview→backend
+   */
+  SET_SKILL_STATE = 'SET_SKILL_STATE',
+  /**
    * Tells the webview the uuid the CLI recorded for the send whose turn just
    * ended, and whether the code can be rewound to it (issue #356).
    *

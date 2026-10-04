@@ -10,6 +10,7 @@
     "appearance": "모양",
     "model": "모델",
     "permissions": "권한",
+    "skills": "스킬",
     "privacy": "개인정보",
     "cli": "CLI",
     "browser": "브라우저",
@@ -355,6 +356,33 @@
       "label": "기본 입력 모드",
       "description": "새 세션을 열 때의 초기 권한 모드"
     }
+  },
+  "skills": {
+    "title": "스킬",
+    "description": "각 스킬을 Claude와 슬래시 메뉴에 얼마나 보여 줄지 고릅니다. 터미널의 /skills와 같습니다.",
+    "refresh": "스킬 다시 읽기",
+    "state": {
+      "on": "켜짐",
+      "name-only": "이름만",
+      "user-invocable-only": "슬래시 명령만",
+      "off": "꺼짐"
+    },
+    "stateHint": {
+      "on": "Claude가 이름과 설명을 보고, /이름으로 실행됩니다.",
+      "name-only": "Claude가 설명 없이 이름만 봅니다.",
+      "user-invocable-only": "Claude에게는 숨기고, /이름으로는 실행됩니다.",
+      "off": "Claude와 슬래시 메뉴 모두에서 숨깁니다."
+    },
+    "project": "이 프로젝트",
+    "user": "개인",
+    "empty": "{{location}}에 스킬이 없습니다.",
+    "noDescription": "설명 없음",
+    "open": "SKILL.md 열기",
+    "openFailed": "파일을 열지 못했습니다",
+    "setIn": "{{file}}에서 설정됨",
+    "stateLabel": "/{{name}} 표시 범위",
+    "saveFailed": "저장하지 못했습니다: {{error}}",
+    "filter": "스킬 검색"
   },
   "about": {
     "heading": "정보",

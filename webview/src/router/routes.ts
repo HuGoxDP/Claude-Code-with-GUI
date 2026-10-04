@@ -15,6 +15,7 @@ import {
   HeartIcon,
   CodeBracketSquareIcon,
   CpuChipIcon,
+  PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 import type { ComponentType, SVGProps } from 'react';
 // Imported from the parameter module rather than WorkingDirContext: that
@@ -42,6 +43,7 @@ export enum IconName {
   HEART = 'HeartIcon',
   CODE_BRACKET_SQUARE = 'CodeBracketSquareIcon',
   CPU_CHIP = 'CpuChipIcon',
+  PUZZLE_PIECE = 'PuzzlePieceIcon',
 }
 
 /**
@@ -65,6 +67,7 @@ export enum Route {
   SETTINGS_APPEARANCE = 'settings/appearance',
   SETTINGS_MODEL = 'settings/model',
   SETTINGS_PERMISSIONS = 'settings/permissions',
+  SETTINGS_SKILLS = 'settings/skills',
   SETTINGS_CLI = 'settings/cli',
   SETTINGS_ADVANCED = 'settings/advanced',
   SETTINGS_TUNNEL = 'settings/tunnel',
@@ -167,6 +170,13 @@ export const ROUTE_META: Record<Route, RouteMeta> = {
     description: 'Tool approval settings',
     scopeSupport: 'both',
   },
+  [Route.SETTINGS_SKILLS]: {
+    path: '/settings/skills',
+    label: 'Skills',
+    icon: IconName.PUZZLE_PIECE,
+    description: 'Skill visibility (skillOverrides)',
+    scopeSupport: 'none',
+  },
   [Route.SETTINGS_CLI]: {
     path: '/settings/cli',
     label: 'CLI',
@@ -266,6 +276,7 @@ export const ICON_COMPONENTS: Record<IconName, ComponentType<SVGProps<SVGSVGElem
   [IconName.HEART]: HeartIcon,
   [IconName.CODE_BRACKET_SQUARE]: CodeBracketSquareIcon,
   [IconName.CPU_CHIP]: CpuChipIcon,
+  [IconName.PUZZLE_PIECE]: PuzzlePieceIcon,
 };
 
 /**
@@ -420,6 +431,7 @@ export const SETTINGS_SUB_ROUTES: Route[] = [
   Route.SETTINGS_APPEARANCE,
   Route.SETTINGS_MODEL,
   Route.SETTINGS_PERMISSIONS,
+  Route.SETTINGS_SKILLS,
   Route.SETTINGS_PRIVACY,
   Route.SETTINGS_CLI,
   // Route.SETTINGS_ADVANCED,  // TODO: not yet implemented

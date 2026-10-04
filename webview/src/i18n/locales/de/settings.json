@@ -10,6 +10,7 @@
     "appearance": "Erscheinungsbild",
     "model": "Modell",
     "permissions": "Berechtigungen",
+    "skills": "Skills",
     "privacy": "Datenschutz",
     "cli": "CLI",
     "browser": "Browser",
@@ -359,6 +360,33 @@
       "label": "Standard-Eingabemodus",
       "description": "Anfänglicher Berechtigungsmodus beim Öffnen einer neuen Sitzung"
     }
+  },
+  "skills": {
+    "title": "Skills",
+    "description": "Lege fest, wie viel Claude und das Slash-Menü von jedem Skill sehen. Wie /skills im Terminal.",
+    "refresh": "Skills neu laden",
+    "state": {
+      "on": "An",
+      "name-only": "Nur Name",
+      "user-invocable-only": "Nur Slash-Befehl",
+      "off": "Aus"
+    },
+    "stateHint": {
+      "on": "Claude sieht Name und Beschreibung, /name funktioniert.",
+      "name-only": "Claude sieht den Namen ohne Beschreibung.",
+      "user-invocable-only": "Vor Claude verborgen; /name funktioniert weiterhin.",
+      "off": "Vor Claude und im Slash-Menü verborgen."
+    },
+    "project": "Dieses Projekt",
+    "user": "Persönlich",
+    "empty": "Keine Skills in {{location}}.",
+    "noDescription": "Keine Beschreibung",
+    "open": "SKILL.md öffnen",
+    "openFailed": "Die Datei konnte nicht geöffnet werden",
+    "setIn": "Festgelegt in {{file}}",
+    "stateLabel": "Sichtbarkeit von /{{name}}",
+    "saveFailed": "Speichern fehlgeschlagen: {{error}}",
+    "filter": "Skills filtern"
   },
   "about": {
     "heading": "Über",

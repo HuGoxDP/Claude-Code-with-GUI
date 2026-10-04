@@ -10,6 +10,7 @@
     "appearance": "ظاهر",
     "model": "مدل",
     "permissions": "مجوزها",
+    "skills": "مهارت‌ها",
     "privacy": "حریم خصوصی",
     "cli": "CLI",
     "browser": "مرورگر",
@@ -355,6 +356,33 @@
       "label": "حالت ورودی پیش‌فرض",
       "description": "حالت مجوز اولیه هنگام باز کردن یک نشست جدید"
     }
+  },
+  "skills": {
+    "title": "مهارت‌ها",
+    "description": "انتخاب کنید Claude و منوی اسلش چه مقدار از هر مهارت را ببینند. مانند ‎/skills در ترمینال.",
+    "refresh": "خواندن دوبارهٔ مهارت‌ها",
+    "state": {
+      "on": "روشن",
+      "name-only": "فقط نام",
+      "user-invocable-only": "فقط فرمان اسلش",
+      "off": "خاموش"
+    },
+    "stateHint": {
+      "on": "Claude نام و توضیح را می‌بیند و ‎/نام کار می‌کند.",
+      "name-only": "Claude نام را بدون توضیح می‌بیند.",
+      "user-invocable-only": "از Claude پنهان است؛ ‎/نام همچنان کار می‌کند.",
+      "off": "از Claude و از منوی اسلش پنهان است."
+    },
+    "project": "این پروژه",
+    "user": "شخصی",
+    "empty": "در {{location}} مهارتی نیست.",
+    "noDescription": "بدون توضیح",
+    "open": "باز کردن SKILL.md",
+    "openFailed": "باز کردن فایل ممکن نشد",
+    "setIn": "تنظیم‌شده در {{file}}",
+    "stateLabel": "نمایش ‎/{{name}}",
+    "saveFailed": "ذخیره ممکن نشد: {{error}}",
+    "filter": "جست‌وجوی مهارت"
   },
   "about": {
     "heading": "درباره",

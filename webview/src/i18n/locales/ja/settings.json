@@ -10,6 +10,7 @@
     "appearance": "外観",
     "model": "モデル",
     "permissions": "権限",
+    "skills": "スキル",
     "privacy": "プライバシー",
     "cli": "CLI",
     "browser": "ブラウザ",
@@ -355,6 +356,33 @@
       "label": "デフォルト入力モード",
       "description": "新しいセッションを開いたときの初期権限モード"
     }
+  },
+  "skills": {
+    "title": "スキル",
+    "description": "各スキルを Claude とスラッシュメニューにどこまで見せるかを選びます。ターミナルの /skills と同じです。",
+    "refresh": "スキルを再読み込み",
+    "state": {
+      "on": "オン",
+      "name-only": "名前のみ",
+      "user-invocable-only": "スラッシュコマンドのみ",
+      "off": "オフ"
+    },
+    "stateHint": {
+      "on": "Claude に名前と説明を見せ、/名前 で実行できます。",
+      "name-only": "Claude には説明なしで名前だけを見せます。",
+      "user-invocable-only": "Claude からは隠し、/名前 では実行できます。",
+      "off": "Claude とスラッシュメニューの両方から隠します。"
+    },
+    "project": "このプロジェクト",
+    "user": "個人",
+    "empty": "{{location}} にスキルはありません。",
+    "noDescription": "説明なし",
+    "open": "SKILL.md を開く",
+    "openFailed": "ファイルを開けませんでした",
+    "setIn": "{{file}} で設定",
+    "stateLabel": "/{{name}} の表示範囲",
+    "saveFailed": "保存できませんでした: {{error}}",
+    "filter": "スキルを絞り込む"
   },
   "about": {
     "heading": "情報",

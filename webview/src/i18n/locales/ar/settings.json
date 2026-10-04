@@ -10,6 +10,7 @@
     "appearance": "المظهر",
     "model": "النموذج",
     "permissions": "الأذونات",
+    "skills": "المهارات",
     "privacy": "الخصوصية",
     "cli": "CLI",
     "browser": "المتصفح",
@@ -355,6 +356,33 @@
       "label": "وضع الإدخال الافتراضي",
       "description": "وضع الأذونات الأولي عند فتح جلسة جديدة"
     }
+  },
+  "skills": {
+    "title": "المهارات",
+    "description": "اختر مقدار ما يراه Claude وقائمة الشرطة المائلة من كل مهارة. مثل ‎/skills في الطرفية.",
+    "refresh": "إعادة قراءة المهارات",
+    "state": {
+      "on": "مفعّلة",
+      "name-only": "الاسم فقط",
+      "user-invocable-only": "أمر الشرطة المائلة فقط",
+      "off": "معطّلة"
+    },
+    "stateHint": {
+      "on": "يرى Claude الاسم والوصف، ويعمل ‎/الاسم.",
+      "name-only": "يرى Claude الاسم دون الوصف.",
+      "user-invocable-only": "مخفية عن Claude؛ ولا يزال ‎/الاسم يعمل.",
+      "off": "مخفية عن Claude وعن قائمة الشرطة المائلة."
+    },
+    "project": "هذا المشروع",
+    "user": "شخصية",
+    "empty": "لا توجد مهارات في {{location}}.",
+    "noDescription": "بلا وصف",
+    "open": "فتح SKILL.md",
+    "openFailed": "تعذّر فتح الملف",
+    "setIn": "مضبوطة في {{file}}",
+    "stateLabel": "ظهور ‎/{{name}}",
+    "saveFailed": "تعذّر الحفظ: {{error}}",
+    "filter": "تصفية المهارات"
   },
   "about": {
     "heading": "حول",

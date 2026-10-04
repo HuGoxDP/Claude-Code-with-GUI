@@ -10,6 +10,7 @@
     "appearance": "Apparence",
     "model": "Modèle",
     "permissions": "Autorisations",
+    "skills": "Skills",
     "privacy": "Confidentialité",
     "cli": "CLI",
     "browser": "Navigateur",
@@ -359,6 +360,33 @@
       "label": "Mode de saisie par défaut",
       "description": "Mode d'autorisation initial lors de l'ouverture d'une nouvelle session"
     }
+  },
+  "skills": {
+    "title": "Skills",
+    "description": "Choisissez ce que Claude et le menu slash voient de chaque skill. Comme /skills dans le terminal.",
+    "refresh": "Recharger les skills",
+    "state": {
+      "on": "Activé",
+      "name-only": "Nom seul",
+      "user-invocable-only": "Commande slash seule",
+      "off": "Désactivé"
+    },
+    "stateHint": {
+      "on": "Claude voit le nom et la description, et /nom fonctionne.",
+      "name-only": "Claude voit le nom sans la description.",
+      "user-invocable-only": "Masqué pour Claude ; /nom fonctionne toujours.",
+      "off": "Masqué pour Claude et dans le menu slash."
+    },
+    "project": "Ce projet",
+    "user": "Personnels",
+    "empty": "Aucun skill dans {{location}}.",
+    "noDescription": "Pas de description",
+    "open": "Ouvrir SKILL.md",
+    "openFailed": "Impossible d'ouvrir le fichier",
+    "setIn": "Défini dans {{file}}",
+    "stateLabel": "Visibilité de /{{name}}",
+    "saveFailed": "Échec de l'enregistrement : {{error}}",
+    "filter": "Filtrer les skills"
   },
   "about": {
     "heading": "À propos",

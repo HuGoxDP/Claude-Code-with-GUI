@@ -23,6 +23,7 @@ import { renameSessionHandler } from './renameSession';
 import { exportSessionHandler } from './exportSession';
 import { enhancePromptHandler } from './enhancePrompt';
 import { generateCommitMessageHandler } from './generateCommitMessage';
+import { getSkillsHandler, setSkillStateHandler } from './skills';
 import { getSessionFavoritesHandler, setSessionFavoriteHandler } from './sessionFavorites';
 import { getAgentTranscriptHandler } from './getAgentTranscript';
 import { watchBackgroundTaskOutputHandler, unwatchBackgroundTaskOutputHandler } from './watchBackgroundTaskOutput';
@@ -278,6 +279,12 @@ export async function handleMessage(
       break;
     case MessageType.GENERATE_COMMIT_MESSAGE:
       await generateCommitMessageHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_SKILLS:
+      await getSkillsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SET_SKILL_STATE:
+      await setSkillStateHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_AGENT_TRANSCRIPT:
       await getAgentTranscriptHandler(connectionId, message, connections, bridge);

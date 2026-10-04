@@ -6,6 +6,7 @@ import { GeneralSettings } from './General';
 import { AppearanceSettings } from './Appearance';
 import { ModelSettings } from './Model';
 import { PermissionsSettings } from './Permissions';
+import { SkillsSettings } from './Skills';
 import { CliSettings } from './Cli';
 import { AdvancedSettings } from './Advanced';
 import { TunnelSettings } from './Tunnel';
@@ -62,6 +63,8 @@ export function SettingsPage({ asOverlay = false }: SettingsPageProps = {}) {
         return <ModelSettings />;
       case Route.SETTINGS_PERMISSIONS:
         return <PermissionsSettings />;
+      case Route.SETTINGS_SKILLS:
+        return <SkillsSettings />;
       case Route.SETTINGS_PRIVACY:
         return <PrivacySettings />;
       case Route.SETTINGS_CLI:

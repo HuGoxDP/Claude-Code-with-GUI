@@ -10,6 +10,7 @@
     "appearance": "外观",
     "model": "模型",
     "permissions": "权限",
+    "skills": "技能",
     "privacy": "隐私",
     "cli": "CLI",
     "browser": "浏览器",
@@ -355,6 +356,33 @@
       "label": "默认输入模式",
       "description": "打开新会话时的初始权限模式"
     }
+  },
+  "skills": {
+    "title": "技能",
+    "description": "选择每个技能对 Claude 和斜杠菜单可见的程度。与终端中的 /skills 相同。",
+    "refresh": "重新读取技能",
+    "state": {
+      "on": "开启",
+      "name-only": "仅名称",
+      "user-invocable-only": "仅斜杠命令",
+      "off": "关闭"
+    },
+    "stateHint": {
+      "on": "Claude 能看到名称和描述，/名称 可以运行。",
+      "name-only": "Claude 只看到名称，看不到描述。",
+      "user-invocable-only": "对 Claude 隐藏，仍可用 /名称 运行。",
+      "off": "对 Claude 和斜杠菜单都隐藏。"
+    },
+    "project": "此项目",
+    "user": "个人",
+    "empty": "{{location}} 中没有技能。",
+    "noDescription": "无描述",
+    "open": "打开 SKILL.md",
+    "openFailed": "无法打开文件",
+    "setIn": "在 {{file}} 中设置",
+    "stateLabel": "/{{name}} 的可见范围",
+    "saveFailed": "无法保存：{{error}}",
+    "filter": "筛选技能"
   },
   "about": {
     "heading": "关于",
