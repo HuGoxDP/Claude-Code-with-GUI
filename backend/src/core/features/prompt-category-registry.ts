@@ -1,14 +1,9 @@
 import { randomUUID } from 'crypto';
-import { readFile, mkdir } from 'fs/promises';
-import { dirname } from 'path';
-import {
-  PROMPT_CATEGORY_MAX_LENGTH,
-  parseCategoryRecords,
-  resolvePromptStoreFile,
-  type PromptCategory,
-  type PromptScope,
-} from './prompts';
-import { updateJsonFile } from './atomic-json';
+import { PromptCategoryCollection } from '../entities/prompt/PromptCategory.collection';
+import { PromptCategory as PromptCategoryEntity } from '../entities/prompt/PromptCategory.entity';
+import { EntityChange } from '../entities/AbstractEntityCollection';
+import { PromptCategoryItemLinkCollection } from '../entities/prompt/PromptCategoryItemLink.collection';
+import { PROMPT_ALL_CATEGORIES_ID, PROMPT_CATEGORY_MAX_LENGTH, PromptCategory } from './prompts';
 
 /**
  * The category records, kept apart from the prompts that reference them.
@@ -17,16 +12,12 @@ import { updateJsonFile } from './atomic-json';
  * user creates from the sidebar has no prompt in it yet, so a name written only
  * on prompts would have nothing to hang on and would vanish when the screen
  * closed. And a name written on every prompt would have to be rewritten on all
- * of them whenever it changed, across both scopes — a rewrite that fails halfway
- * leaves the two disagreeing. The name lives here, once.
+ * of them whenever it changed. The name lives here, once.
  *
- * The records live in the GLOBAL store even for project prompts, because a
- * category is a dimension of its own, independent of scope, and the global store
- * is the one that exists whether or not a project is open.
+ * The rows are in `prompt_categories` with no `cwd`, because a category is a
+ * dimension of its own, independent of scope. The webview is handed the `uuid`
+ * as the category's id; the integer id stays in this process.
  */
-
-/** Where the records are read and written. Project scope has no list of its own. */
-const REGISTRY_SCOPE: PromptScope = 'global';
 
 export type CategoryResult =
   | { status: 'ok'; categories: PromptCategory[] }
@@ -51,44 +42,24 @@ function validateName(name: string): string | null {
   return null;
 }
 
-/**
- * Read the stored records.
- *
- * An absent or unreadable file is an empty list, because a READ has nothing to
- * lose; the write path below refuses rather than replacing (see atomic-json).
- */
-export async function listCategories(): Promise<PromptCategory[]> {
-  const resolved = resolvePromptStoreFile(REGISTRY_SCOPE);
-  if (resolved.status === 'error') return [];
-  try {
-    const raw = await readFile(resolved.filePath, 'utf-8');
-    return parseCategoryRecords((JSON.parse(raw) as Record<string, unknown>).categories);
-  } catch {
-    return [];
-  }
+function toWire(category: PromptCategoryEntity): PromptCategory {
+  return new PromptCategory(category.uuid, category.name, category.createdAt, category.priority);
 }
 
-/** Run a read-modify-write over the stored records. */
-async function mutateRegistry(
-  mutate: (categories: PromptCategory[]) => PromptCategory[] | string,
-): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
-  const resolved = resolvePromptStoreFile(REGISTRY_SCOPE);
-  if (resolved.status === 'error') return resolved;
+/**
+ * Every category in the order of the category column.
+ *
+ * Throws when the entity file exists and cannot be read: an empty list would look
+ * like every category was lost.
+ */
+export async function listCategories(): Promise<PromptCategory[]> {
+  return (await new PromptCategoryCollection().inColumnOrder()).map(toWire);
+}
 
-  let mutationError: string | null = null;
+async function guarded(run: () => Promise<void>): Promise<{ status: 'ok' } | { status: 'error'; error: string }> {
   try {
-    await mkdir(dirname(resolved.filePath), { recursive: true });
-    const result = await updateJsonFile(resolved.filePath, (current) => {
-      const next = mutate(parseCategoryRecords(current.categories));
-      if (typeof next === 'string') {
-        mutationError = next;
-        return null;
-      }
-      current.categories = next as unknown as Record<string, unknown>[];
-      return current;
-    });
-    if (mutationError !== null) return { status: 'error', error: mutationError };
-    return result.status === 'ok' ? { status: 'ok' } : { status: 'error', error: result.error };
+    await run();
+    return { status: 'ok' };
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err);
     console.error('[node-backend]', 'Failed to write prompt categories:', err);
@@ -96,26 +67,31 @@ async function mutateRegistry(
   }
 }
 
+/** The row after the last one, which is where a category made later has always sat. */
+function bottomPriority(categories: PromptCategoryEntity[]): number {
+  return categories.reduce((lowest, category) => Math.max(lowest, category.priority), 0) + 1;
+}
+
 /** Add a category, which starts with no prompts in it. */
 export async function createCategory(name: string): Promise<CategoryResult> {
   const invalid = validateName(name);
   if (invalid) return { status: 'error', error: invalid };
-
-  const record: PromptCategory = {
-    id: randomUUID(),
-    name: name.trim(),
-    createdAt: Date.now(),
-  };
+  const trimmed = name.trim();
 
   let rejected: string | null = null;
-  const written = await mutateRegistry((categories) => {
-    if (categories.some((category) => isSameCategoryName(category.name, record.name))) {
+  const written = await guarded(async () => {
+    const collection = new PromptCategoryCollection();
+    const existing = await collection.all();
+    if (existing.some((category) => isSameCategoryName(category.name, trimmed))) {
       rejected = 'Category already exists';
-      return rejected;
+      return;
     }
-    return [...categories, record];
+    await collection.insert(
+      PromptCategoryEntity.draft(randomUUID(), trimmed, bottomPriority(existing), Date.now()),
+    );
   });
   if (written.status === 'error') return written;
+  if (rejected !== null) return { status: 'error', error: rejected };
   return { status: 'ok', categories: await listCategories() };
 }
 
@@ -132,39 +108,95 @@ export async function renameCategory(id: string, name: string): Promise<Category
   const trimmed = name.trim();
 
   let failure: string | null = null;
-  const written = await mutateRegistry((categories) => {
-    const index = categories.findIndex((category) => category.id === id);
-    if (index === -1) {
+  const written = await guarded(async () => {
+    const collection = new PromptCategoryCollection();
+    const existing = await collection.all();
+    const target = existing.find((category) => category.uuid === id);
+    if (!target) {
       failure = `Category not found: ${id}`;
-      return failure;
+      return;
     }
-    const clash = categories.some(
-      (category) => category.id !== id && isSameCategoryName(category.name, trimmed),
-    );
-    if (clash) {
+    if (existing.some((category) => category.id !== target.id && isSameCategoryName(category.name, trimmed))) {
       failure = 'Category already exists';
-      return failure;
+      return;
     }
-    const next = [...categories];
-    next[index] = { ...(categories[index] as PromptCategory), name: trimmed };
-    return next;
+    target.name = trimmed;
+    await collection.save(target);
   });
   if (written.status === 'error') return written;
+  if (failure !== null) return { status: 'error', error: failure };
   return { status: 'ok', categories: await listCategories() };
 }
 
 /**
  * Remove a category.
  *
- * Only the record goes. The prompts that referenced it keep a dangling id,
- * which reads as uncategorised — deleting the saved phrases along with a
- * grouping the user tidied up would be a surprise nobody asked for, and
- * rewriting every prompt to strip the id is the very work ids exist to avoid.
+ * The category row and the links into it go; the prompts stay, and one that sat
+ * in no other category reads as uncategorised. Deleting the saved phrases along
+ * with a grouping the user tidied up would be a surprise nobody asked for.
  */
 export async function deleteCategory(id: string): Promise<CategoryResult> {
-  const written = await mutateRegistry((categories) =>
-    categories.filter((category) => category.id !== id),
-  );
+  const written = await guarded(async () => {
+    const collection = new PromptCategoryCollection();
+    const target = (await collection.all()).find((category) => category.uuid === id);
+    if (!target) return;
+    await collection.delete(target.id);
+    await new PromptCategoryItemLinkCollection().mutate((links) =>
+      EntityChange.write(
+        links.filter((link) => link.categoryId !== target.id),
+        undefined,
+      ),
+    );
+  });
+  if (written.status === 'error') return written;
+  return { status: 'ok', categories: await listCategories() };
+}
+
+/**
+ * Put the category column in the order [orderedIds] gives.
+ *
+ * The "All" row is part of the column: [orderedIds] holds
+ * {@link PROMPT_ALL_CATEGORIES_ID} at the place it should sit. It has no row of
+ * its own and is fixed at priority 0, so the categories above it are stored with
+ * negative priorities (the one nearest "All" is -1) and the ones below it with
+ * positive ones (the one nearest is 1). A list without it keeps "All" on top.
+ *
+ * Categories the order does not mention keep their relative places below the
+ * named ones, and ids that are not categories are ignored, so a stale drag cannot
+ * fail the whole move. Answers with the column as it now stands.
+ */
+export async function reorderCategories(orderedIds: string[]): Promise<CategoryResult> {
+  const written = await guarded(async () => {
+    const collection = new PromptCategoryCollection();
+    const existing = await collection.inColumnOrder();
+    const idByUuid = new Map(existing.map((category) => [category.uuid, category.id]));
+
+    // The column as a list of internal ids, with null standing for "All".
+    const sequence: Array<number | null> = [];
+    for (const uuid of orderedIds) {
+      if (uuid === PROMPT_ALL_CATEGORIES_ID) {
+        if (!sequence.includes(null)) sequence.push(null);
+        continue;
+      }
+      const id = idByUuid.get(uuid);
+      if (id !== undefined && !sequence.includes(id)) sequence.push(id);
+    }
+    const rest = existing.map((category) => category.id).filter((id) => !sequence.includes(id));
+    // Not named: "All" stays where it has always been, on top.
+    const column = sequence.includes(null) ? [...sequence, ...rest] : [null, ...sequence, ...rest];
+
+    const allAt = column.indexOf(null);
+    const priorityOf = new Map<number, number>();
+    column.forEach((id, index) => {
+      if (id !== null) priorityOf.set(id, index - allAt);
+    });
+    await collection.mutate((categories) => {
+      for (const category of categories) {
+        category.priority = priorityOf.get(category.id) ?? category.priority;
+      }
+      return EntityChange.write(categories, undefined);
+    });
+  });
   if (written.status === 'error') return written;
   return { status: 'ok', categories: await listCategories() };
 }
@@ -174,8 +206,7 @@ export async function deleteCategory(id: string): Promise<CategoryResult> {
  *
  * This is the import path: a library arriving from another machine carries ids
  * that mean nothing here, so its categories are matched by NAME against what
- * this machine already has and created when there is no match. Matching by name
- * is right precisely because the id is local.
+ * this machine already has and created when there is no match.
  */
 export async function resolveCategoryIdsByName(names: string[]): Promise<Map<string, string>> {
   const wanted: string[] = [];
@@ -186,16 +217,17 @@ export async function resolveCategoryIdsByName(names: string[]): Promise<Map<str
   }
   if (wanted.length === 0) return new Map();
 
-  const created: PromptCategory[] = [];
-  await mutateRegistry((categories) => {
-    const next = [...categories];
+  await guarded(async () => {
+    const collection = new PromptCategoryCollection();
+    const known = await collection.all();
     for (const name of wanted) {
-      if (next.some((category) => isSameCategoryName(category.name, name))) continue;
-      const record: PromptCategory = { id: randomUUID(), name, createdAt: Date.now() };
-      next.push(record);
-      created.push(record);
+      if (known.some((category) => isSameCategoryName(category.name, name))) continue;
+      known.push(
+        await collection.insert(
+          PromptCategoryEntity.draft(randomUUID(), name, bottomPriority(known), Date.now()),
+        ),
+      );
     }
-    return next;
   });
 
   const all = await listCategories();

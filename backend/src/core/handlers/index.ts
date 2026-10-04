@@ -54,6 +54,9 @@ import {
   cancelSponsorSubscriptionHandler,
 } from './sponsorAccount';
 import { getProjectsHandler } from './getProjects';
+import { getMigrationStatusHandler } from './getMigrationStatus';
+import { retryUnreadFoldersHandler } from './retryUnreadFolders';
+import { retryMigrationsHandler } from './retryMigrations';
 import { setProjectFavoriteHandler } from './projectFavorite';
 import { deleteProjectHandler } from './deleteProject';
 import { setProjectMetaHandler } from './projectMeta';
@@ -166,6 +169,8 @@ import {
   createPromptCategoryHandler,
   renamePromptCategoryHandler,
   deletePromptCategoryHandler,
+  reorderPromptsHandler,
+  reorderPromptCategoriesHandler,
 } from './prompts';
 import { getSessionAssetsHandler } from './getSessionAssets';
 import { getSessionSendsHandler } from './getSessionSends';
@@ -350,6 +355,15 @@ export async function handleMessage(
       break;
     case MessageType.GET_PROJECTS:
       await getProjectsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_MIGRATION_STATUS:
+      await getMigrationStatusHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.RETRY_UNREAD_FOLDERS:
+      await retryUnreadFoldersHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.RETRY_MIGRATIONS:
+      await retryMigrationsHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.SET_PROJECT_FAVORITE:
       await setProjectFavoriteHandler(connectionId, message, connections, bridge);
@@ -680,6 +694,12 @@ export async function handleMessage(
       break;
     case MessageType.DELETE_PROMPT_CATEGORY:
       await deletePromptCategoryHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.REORDER_PROMPTS:
+      await reorderPromptsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.REORDER_PROMPT_CATEGORIES:
+      await reorderPromptCategoriesHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SESSION_ASSETS:
       await getSessionAssetsHandler(connectionId, message, connections, bridge);

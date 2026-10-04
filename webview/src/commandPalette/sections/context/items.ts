@@ -25,6 +25,13 @@ export const OPEN_SCHEDULE_SEND_EVENT = 'command-palette:open-schedule-send';
  */
 export const OPEN_PROMPT_LIBRARY_EVENT = 'command-palette:open-prompt-library';
 
+/**
+ * Announced when the library modal that was opened straight on a prompt's edit
+ * screen (from the `!!` panel) goes away, however it went. The panel it came from
+ * listens, to re-read the prompts and give the composer its focus back.
+ */
+export const PROMPT_EDIT_CLOSED_EVENT = 'prompt-library:edit-closed';
+
 export interface OpenPromptLibraryDetail {
   view?: 'list' | 'create';
   /**

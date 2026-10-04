@@ -6,18 +6,31 @@ import { useWorkingDir } from '@/contexts/WorkingDirContext';
 import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import {
   INSERT_PROMPT_EVENT,
+  PROMPT_EDIT_CLOSED_EVENT,
   type InsertPromptDetail,
 } from '@/commandPalette/sections/context/items';
-import type { ConflictStrategy, ImportItem, PromptScope, SavedPrompt } from '@/types/prompt';
+import type {
+  ConflictStrategy,
+  ImportItem,
+  PromptLink,
+  PromptScope,
+  SavedPrompt,
+} from '@/types/prompt';
 import { usePromptStore } from './usePromptStore';
 import { PromptList, buildPromptRows, matchesPromptQuery } from './PromptList';
 import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
 import { PromptForm } from './PromptForm';
 import { PromptExportDialog, PromptImportDialog } from './PromptTransferDialog';
+import { usePromptReorder } from '@/hooks/usePromptReorder';
+import { useCategoryReorder } from '@/hooks/useCategoryReorder';
 import { categoriesAfterDrop, readCategoryDrop, readPromptDrag } from '@/utils/promptDrag';
-import { PromptCategorySidebar, buildSidebarRows } from './PromptCategorySidebar';
+import { orderViewOf } from '@/utils/promptOrder';
+import { PROMPT_SENSORS } from '@/utils/promptSensors';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
+import { PromptCategorySidebar, RenameRequest, buildSidebarRows } from './PromptCategorySidebar';
 import {
   ALL_CATEGORIES,
+  UNCATEGORISED,
   matchesCategorySelection,
   countByCategory,
   type CategorySelection,
@@ -45,6 +58,7 @@ type TransferState =
       items: ImportItem[];
       newCount: number;
       updateCount: number;
+      links: PromptLink[];
     };
 
 /**
@@ -71,6 +85,25 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     return initialView === 'create' ? { kind: 'create', scope: 'global' } : { kind: 'list' };
   });
   const [formBusy, setFormBusy] = useState(false);
+  /**
+   * Leave the edit screen for wherever it was reached from.
+   *
+   * Opened from inside the library, it goes back to the library's list. Opened
+   * from the `!!` panel, the library was never on screen, so there is no list to
+   * go back to: the whole modal closes and the panel underneath is what is left.
+   */
+  const leaveEdit = () => {
+    if (initialEdit) onClose();
+    else setView({ kind: 'list' });
+  };
+  useEffect(() => {
+    if (!initialEdit) return;
+    return () => {
+      window.dispatchEvent(new CustomEvent(PROMPT_EDIT_CLOSED_EVENT));
+    };
+    // The origin is fixed for the life of the modal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   /**
    * The transfer screen on top of the library, or null when none is open.
    *
@@ -115,6 +148,28 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   };
   /** True while a category name is being typed, so the arrows leave the caret alone. */
   const [renamingCategory, setRenamingCategory] = useState(false);
+  /** The category the keyboard asked to put into edit mode, if any. */
+  const [renameRequest, setRenameRequest] = useState<RenameRequest | null>(null);
+  /**
+   * The delete handlers, made fresh on every render further down. The key
+   * listener reads them from here so it keeps the newest ones without having to
+   * re-subscribe whenever a render makes new functions.
+   */
+  /**
+   * True between the `e` key going down and coming back up.
+   *
+   * Edit mode is entered on the key coming UP, not down. Under an IME the key
+   * going down is also the start of a composition, and the text it produces
+   * (`ㄷ` on a Korean layout) is delivered to whatever has the focus after the key
+   * handler returns. Moving the focus into a name field on the keydown therefore
+   * typed the key into the field it had just opened. The keydown is only held
+   * back, and the field opens when the key is released.
+   */
+  const editKeyDown = useRef(false);
+  const deleteActions = useRef({
+    prompt: (_scope: PromptScope, _prompt: SavedPrompt) => {},
+    category: (_category: { id: string; name: string }) => {},
+  });
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // The cards in the order they are drawn, which is also the order the arrow
@@ -124,22 +179,54 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
   const inCategory = (prompt: SavedPrompt) =>
     matchesCategorySelection(prompt, selectedCategory, store.categories) &&
     matchesPromptQuery(prompt, query);
-  const globalPrompts = store.globalPrompts.filter(inCategory);
-  const projectPrompts = store.projectPrompts.filter(inCategory);
+  // The order the user has dragged the cards into comes before the narrowing, so
+  // the arrow keys and the screen both walk the same list.
+  const reorder = usePromptReorder(
+    { global: store.globalPrompts, project: store.projectPrompts },
+    {
+      isShown: inCategory,
+      isMember: (prompt) => matchesCategorySelection(prompt, selectedCategory, store.categories),
+      view: orderViewOf(selectedCategory),
+    },
+  );
+  const globalPrompts = reorder.lists.global;
+  const projectPrompts = reorder.lists.project;
   const rows = buildPromptRows(globalPrompts, projectPrompts);
 
   // Counted over everything, not over what the search left: a count that moved
   // as the user typed would stop meaning "how much is in here".
   const counts = countByCategory([...store.globalPrompts, ...store.projectPrompts], store.categories);
-  const sidebarRows = buildSidebarRows(store.categories, counts, {
-    all: t('promptLibrary.allCategories'),
-    uncategorised: t('promptLibrary.uncategorised'),
-  });
+  // The column in the order the user dragged it into, so the arrow keys and the
+  // screen walk the same rows.
+  const categoryReorder = useCategoryReorder(store.categories);
+  const sidebarRows = buildSidebarRows(
+    categoryReorder.categories,
+    counts,
+    {
+      all: t('promptLibrary.allCategories'),
+      uncategorised: t('promptLibrary.uncategorised'),
+    },
+    categoryReorder.allIndex,
+  );
   const selectedCategoryIndex = Math.max(
     0,
     sidebarRows.findIndex((row) => row.key === selectedCategory),
   );
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // The library opens on the top row of the column, whichever row that is: with
+  // "All" dragged to the bottom, the first category is where the user starts, and
+  // its first prompt is the highlighted one. Once, when the first read lands; a
+  // later read (after an edit) must not move the user off where they are.
+  const openedOnFirstRow = useRef(false);
+  useEffect(() => {
+    if (openedOnFirstRow.current || store.loading) return;
+    openedOnFirstRow.current = true;
+    const first = sidebarRows[0]?.key;
+    if (first !== undefined) setSelectedCategory(first);
+    // Reads the rows of the render the load finished in, once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.loading]);
 
   // A reload can shorten the list under the selection — deleting the last card
   // is the everyday way — so pull it back inside the list rather than leaving it
@@ -198,6 +285,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
       items: ack.items,
       newCount: ack.newCount ?? 0,
       updateCount: ack.updateCount ?? 0,
+      links: ack.links ?? [],
     });
   };
 
@@ -230,9 +318,10 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     scope: PromptScope,
     prompts: SavedPrompt[],
     strategy: ConflictStrategy,
+    links: PromptLink[],
   ) => {
     setTransfer(null);
-    const ack = await store.importPrompts(scope, prompts, strategy);
+    const ack = await store.importPrompts(scope, prompts, strategy, links);
     if (ack?.status === 'error') {
       setTransferNote(transferError(ack.error));
       return;
@@ -280,24 +369,103 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     };
   }, []);
 
+  // Escape belongs to whatever is on top: this modal, or the confirm dialog and
+  // the transfer dialogs above it. The layer takes the key before the composer
+  // does, so closing the library or leaving the edit screen never also stops a
+  // response that is still streaming behind it.
+  useEscapeLayer(() => {
+    if (formBusy) return true; // locked while a save is in flight
+    if (view.kind === 'edit') {
+      leaveEdit();
+    } else if (view.kind !== 'list') {
+      setView({ kind: 'list' });
+    } else {
+      onClose();
+    }
+    return true;
+  });
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        if (formBusy) return; // locked while a save is in flight
-        if (view.kind !== 'list') {
-          setView({ kind: 'list' });
-        } else {
-          onClose();
-        }
-        return;
-      }
 
       // Arrow navigation belongs to the list only. While a form is open the
       // arrows move the caret inside the name and content fields, which is what
       // the user means by them there — and the same goes for a category name
       // being typed in the sidebar.
       if (view.kind !== 'list' || formBusy || renamingCategory) return;
+
+      // With Alt held, up and down move the highlighted row itself instead of the
+      // highlight. The same move a drag makes, for someone who is not using a
+      // pointer: whichever column has the arrows is the one that is rearranged.
+      if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        if (focusedPaneRef.current === 'categories') {
+          // "All" sorts with the categories; "uncategorised" is fixed at the bottom.
+          const row = sidebarRows[selectedCategoryIndex];
+          if (row && row.key !== UNCATEGORISED) categoryReorder.moveBy(String(row.key), delta);
+        } else if (selectedRow && reorder.moveBy(selectedRow.scope, selectedRow.prompt.id, delta)) {
+          // The highlight goes with the card it was on.
+          setSelectedIndex(boundedIndex + delta);
+        }
+        return;
+      }
+
+      // A letter or a backspace typed into the search box is text, not a command.
+      const typing =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable);
+
+      // Up and down are the user leaving the search box for the list. Taking the
+      // focus out of it is what makes the next `e` an edit instead of a letter.
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && typing) {
+        dialogRef.current?.focus();
+      }
+
+      // Edit and delete act on whichever row the highlight is on. `e` is matched
+      // by its physical key, so it works under any layout: the key that types
+      // "e" on a Latin keyboard types a different letter on a Korean one.
+      // A held `e` keeps repeating; none of the repeats is typed anywhere.
+      if (e.code === 'KeyE' && editKeyDown.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      const bare = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && !e.repeat;
+      if (!typing && bare) {
+        const pressedE = e.code === 'KeyE';
+        const wantsDelete = e.key === 'Backspace';
+        // Right edits a prompt, but never a category: in the category column it
+        // is the key that crosses into that category's prompts.
+        const wantsEdit = pressedE || (e.key === 'ArrowRight' && focusedPaneRef.current === 'prompts');
+        if (wantsEdit || wantsDelete) {
+          const category =
+            focusedPaneRef.current === 'categories' ? sidebarRows[selectedCategoryIndex]?.category : undefined;
+          // "All" and "uncategorised" are not categories and cannot be edited or
+          // deleted.
+          const target = focusedPaneRef.current === 'categories' ? category : selectedRow;
+          if (target) {
+            e.preventDefault();
+            if (pressedE) {
+              // Held back until the key is released, see `editKeyDown`.
+              e.stopPropagation();
+              editKeyDown.current = true;
+            } else if (category) {
+              if (wantsEdit) setRenameRequest(new RenameRequest(category.id));
+              else deleteActions.current.category(category);
+            } else if (selectedRow) {
+              if (wantsEdit) {
+                setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
+              } else {
+                deleteActions.current.prompt(selectedRow.scope, selectedRow.prompt);
+              }
+            }
+            return;
+          }
+        }
+      }
 
       // Left and right cross between the two columns; up and down move within
       // whichever one they last crossed into.
@@ -344,8 +512,25 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
         usePrompt(selectedRow.prompt.content);
       }
     };
+    // The `e` key coming back up is what opens the edit, see `editKeyDown`.
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyE' || !editKeyDown.current) return;
+      editKeyDown.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      if (focusedPaneRef.current === 'categories') {
+        const category = sidebarRows[selectedCategoryIndex]?.category;
+        if (category) setRenameRequest(new RenameRequest(category.id));
+      } else if (selectedRow) {
+        setView({ kind: 'edit', scope: selectedRow.scope, prompt: selectedRow.prompt });
+      }
+    };
     window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('keyup', handleKeyUp, true);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      window.removeEventListener('keyup', handleKeyUp, true);
+    };
   }, [
     onClose,
     view,
@@ -356,6 +541,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     renamingCategory,
     sidebarRows,
     selectedCategoryIndex,
+    boundedIndex,
+    reorder,
+    categoryReorder,
   ]);
 
   /**
@@ -426,7 +614,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     categoryIds: string[],
   ) => {
     await store.update(scope, id, name, content, categoryIds);
-    setView({ kind: 'list' });
+    leaveEdit();
   };
 
   const handleDelete = async (scope: PromptScope, prompt: SavedPrompt) => {
@@ -438,6 +626,10 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
     });
     if (!confirmed) return;
     await store.remove(scope, prompt.id);
+  };
+  deleteActions.current = {
+    prompt: (scope, prompt) => void handleDelete(scope, prompt),
+    category: (category) => void handleDeleteCategory(category),
   };
 
   const isListView = view.kind === 'list';
@@ -505,7 +697,23 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
               /* Two columns from `sm` up, stacked below it. The sidebar decides
                  which slice of the library the lists show, so it sits beside
                  them rather than above the search box that narrows within it. */
-              <DragDropProvider onDragEnd={(event) => void handlePromptDrop(event)}>
+              <DragDropProvider
+                sensors={PROMPT_SENSORS}
+                onDragOver={(event) => {
+                  // Each handler looks only at its own kind of drag.
+                  reorder.onDragOver(event);
+                  categoryReorder.onDragOver(event);
+                }}
+                onDragEnd={(event) => {
+                  // One drop is one of three things, decided by what was held and
+                  // where it landed: a card among the cards reorders them, a card
+                  // on a category files it, a category among the categories
+                  // reorders the column.
+                  reorder.onDragEnd(event);
+                  categoryReorder.onDragEnd(event);
+                  void handlePromptDrop(event);
+                }}
+              >
               <div className="flex min-h-0 flex-1 flex-col px-4 sm:flex-row sm:gap-3">
                 <PromptCategorySidebar
                   rows={sidebarRows}
@@ -520,8 +728,15 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                   onRename={(id, name) => store.renameCategory(id, name)}
                   onDelete={(category) => void handleDeleteCategory(category)}
                   onEditingChange={setRenamingCategory}
+                  renameRequest={renameRequest}
                 />
                 <PromptList
+                sortable={reorder.sortable}
+                note={
+                  orderViewOf(selectedCategory).kind === 'category'
+                    ? t('promptLibrary.categoryOrderNote')
+                    : undefined
+                }
                 globalPrompts={globalPrompts}
                 projectPrompts={projectPrompts}
                 projectAvailable={store.projectAvailable}
@@ -561,7 +776,7 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
                 onSubmit={(name, content, categoryIds) =>
                   handleUpdate(view.scope, view.prompt.id, name, content, categoryIds)
                 }
-                onCancel={() => setView({ kind: 'list' })}
+                onCancel={leaveEdit}
                 onBusyChange={setFormBusy}
               />
             )}
@@ -583,7 +798,9 @@ export function PromptLibraryModal({ onClose, initialView = 'list', initialEdit 
           items={transfer.items}
           newCount={transfer.newCount}
           updateCount={transfer.updateCount}
-          onConfirm={(prompts, strategy) => void confirmImport(transfer.scope, prompts, strategy)}
+          onConfirm={(prompts, strategy) =>
+            void confirmImport(transfer.scope, prompts, strategy, transfer.links)
+          }
           onCancel={() => setTransfer(null)}
         />
       )}

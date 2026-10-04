@@ -606,7 +606,7 @@ export enum MessageType {
   ASSET_ACTIVITY = 'ASSET_ACTIVITY',
 
   // -- Prompt library --
-  /** Ask for the saved prompts of one scope, as {scope, workingDir}. `scope` is 'global' (~/.claude-code-gui/prompts.json) or 'project' ({workingDir}/.claude-code-gui/prompts.json). The reply carries the stored entries unedited. inbound webview→backend */
+  /** Ask for the saved prompts of one scope, as {scope, workingDir}. `scope` is 'global' (rows with no cwd) or 'project' (rows whose cwd is {workingDir}). The reply carries {scope, prompts, orderByCategory}: the prompts in the library's own ("All") order, each with its uuid as `id` and its category uuids as `categories`, and `orderByCategory` mapping a category uuid to the uuids of this scope's prompts in that category's own order. inbound webview→backend */
   GET_PROMPTS = 'GET_PROMPTS',
   /** Create one saved prompt, as {scope, workingDir, name, content}. The backend assigns the id and timestamps and replies with the created entry. inbound webview→backend */
   CREATE_PROMPT = 'CREATE_PROMPT',
@@ -628,6 +628,10 @@ export enum MessageType {
   RENAME_PROMPT_CATEGORY = 'RENAME_PROMPT_CATEGORY',
   /** Remove a category, as {workingDir, name}. Its prompts are kept and fall back to uncategorised. inbound webview→backend */
   DELETE_PROMPT_CATEGORY = 'DELETE_PROMPT_CATEGORY',
+  /** Save a new order for the prompts of one scope, as {scope, workingDir, ids, categoryId?}. `ids` are prompt uuids, top first. Without `categoryId` the order is the library's own ("All") order; with it, only that category's own order changes. Prompts the list leaves out keep their relative places below the named ones. The reply carries {scope}. inbound webview→backend */
+  REORDER_PROMPTS = 'REORDER_PROMPTS',
+  /** Save a new order for the category column, as {ids}, category uuids top first. The "All" row is part of the column: the string '__all__' stands for it at the place it should sit, and the categories above it are stored with negative priorities and the ones below with positive ones. Without it "All" stays on top. Categories the list leaves out keep their relative places below the named ones. The reply carries the full {categories} list in the new order. inbound webview→backend */
+  REORDER_PROMPT_CATEGORIES = 'REORDER_PROMPT_CATEGORIES',
 
   // -- Attachments --
   /** The webview reports that the user attached an image, carrying { source, mimeType, size }. Purely a telemetry signal: the image itself still travels inline with SEND_MESSAGE, so the backend does nothing but record it. All three attach paths (button / paste / drop) are handled in the webview and never reach the backend otherwise, which is why attaching was invisible to telemetry until this. Never carries the file NAME. inbound webview→backend */
@@ -833,6 +837,20 @@ export enum MessageType {
   // -- Sleep guard push --
   /** Sleep-guard state changed. */
   SLEEP_GUARD_STATUS = 'SLEEP_GUARD_STATUS',
+
+  // -- Data migration status --
+  /** Ask for the current state of the data migrations run at backend start. Inbound (webview to backend). */
+  GET_MIGRATION_STATUS = 'GET_MIGRATION_STATUS',
+  /** Read again the old folders a migration could not read, because access may just have been allowed. Sent when the window becomes active while some are unread. Inbound (webview to backend). */
+  RETRY_UNREAD_FOLDERS = 'RETRY_UNREAD_FOLDERS',
+  /** Run the data migrations again after a run failed, in the running backend. Sent by the "Try again" button of the failure notice, and when the window becomes active while a run is failed. Answers once the run is over; its outcome reaches the window through MIGRATION_STATUS. Inbound (webview to backend). */
+  RETRY_MIGRATIONS = 'RETRY_MIGRATIONS',
+  /**
+   * State of the data migrations: running (and taking long enough to be worth
+   * showing), failed, or done with some old files that could not be read. Outbound,
+   * pushed to every client and sent in answer to GET_MIGRATION_STATUS.
+   */
+  MIGRATION_STATUS = 'MIGRATION_STATUS',
 
   // -- Settings change push --
   /** GUI settings changed on disk/externally; clients should refresh. */

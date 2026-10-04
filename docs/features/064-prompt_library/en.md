@@ -50,8 +50,8 @@ Every prompt lives in one of two places.
 
 | Scope | Stored in | Shown |
 |-------|-----------|-------|
-| **Global** | `~/.claude-code-gui/prompts.json` | In every project |
-| **Project** | `.claude-code-gui/prompts.json` inside the project | Only in that project |
+| **Global** | Files under `~/.claude-code-gui/entities/prompt/` | In every project |
+| **Project** | The same files, on rows tagged with the project folder's path | Only in that project |
 
 Project prompts are listed first, because when both match what you typed, the
 project-specific phrase is the more specific answer.
@@ -85,6 +85,126 @@ paste.
 
 The two lists scroll independently. A hundred global prompts will not push the
 project ones off the bottom of the screen.
+
+### Reordering
+
+Prompt rows are reordered by dragging. There is no separate handle: **the whole
+row is the handle**. Clicking a row pastes it into the input, as before, and the
+drag only starts once the mouse has moved a few pixels. The pencil and the
+trash can on a row are plain buttons and never start a drag.
+
+![The Prompt Library with a prompt row being dragged. "Explain a file" is lifted
+with a shadow, and "Release notes" and "Reproduce a re..." below it have slid
+down one place to leave a gap. "PR review" at the top has not moved.](./assets/reorder-rows.png)
+
+While you drag, the neighbouring rows slide aside and leave the place where the
+row will land. `Esc` puts the original order back. The global list and the
+project list move only within themselves; a row cannot be dragged from one list
+into the other.
+
+A new order is saved the moment you drop. It survives closing the library and
+restarting the IDE, and the `!!` panel lists the prompts in the same order.
+
+#### Which order changes
+
+| You are looking at | Dragging changes |
+|--------------------|------------------|
+| **All** | The order of the whole library |
+| **One category** | The order inside that category only. The overall order and every other category stay as they were |
+| **Uncategorised** | Nothing. The unfiled rows have no order of their own. Dragging a row onto a category to file it still works |
+
+The same prompt may sit in a different place in each category. When you pick a
+category, a line above the lists reads "This order applies inside this category
+only.", so you know the drag is not changing the overall order.
+
+![The Prompt Library with the Docs category picked. Above the lists the line
+"This order applies inside this category only." is shown, and Global Prompts
+holds just "Release notes" and "Explain a file". In the category column "Docs" is
+outlined in blue.](./assets/category-order.png)
+
+You can drag while a search is active. Only the rows that survived the search
+are there to drag, and the hidden rows keep their order relative to each other.
+The row lands next to the visible row you dropped it beside.
+
+#### Ordering categories
+
+Rows in the category column are dragged by the whole row too. **All** is
+sorted together with the categories. It starts at the top, but you can drag it
+between categories or to the bottom, and the place you leave it is saved. Only
+**Uncategorised** stays fixed at the bottom: it cannot be dragged, and nothing
+can be dropped below it. A row whose name you are editing does not drag. A
+category you create later always lands below **All**, at the end of the
+categories, wherever you left **All**.
+
+![The Prompt Library with a category being dragged. "Debug" is lifted and sits
+just under "All", and "Review" and "Docs" have slid down one place.](./assets/reorder-categories.png)
+
+A category row is also a place to drop prompts. Drop a prompt on it and the
+prompt is filed there; drop a category on it and the categories swap places. The
+two are never confused.
+
+#### Moving with the keyboard
+
+You can reorder without a mouse. With a row highlighted, **`Alt+↑`** and
+**`Alt+↓`** move it one place and the highlight follows. When the focus is in the
+category column, the same keys move the category. It works in the `!!` panel
+too, and does nothing at the very top or bottom.
+
+Where the IDE claims `Alt+↑↓` as one of its own shortcuts, the key may not reach
+the row. Use the mouse there.
+
+### Editing and deleting from the keyboard
+
+While a row is highlighted you can edit and delete without the mouse. It works
+the same in the library screen and in the `!!` panel.
+
+| Highlighted | Key | What happens |
+|-------------|-----|--------------|
+| A prompt | **`e`** or **`→`** | Same as pressing its pencil button: that prompt's edit screen opens |
+| A prompt | **`Backspace`** | Asks first whether to delete it. `Esc` on the question cancels |
+| A category | **`e`** | The category's name turns into a text field in place. `Enter` saves, `Esc` puts the old name back |
+| A category | **`Backspace`** | Asks first whether to delete it. Only the category goes; its prompts stay |
+
+- `e` is recognised by the **position of the key**, not by the letter it types.
+  The key that types `ㄷ` on a Korean keyboard works as `e` too. The edit screen
+  or the name field opens when the key is **released**, not when it goes down:
+  opening it on the press would type the key's character (`ㄷ`) into the field
+  that just opened.
+- While a category's name is being edited, `Enter` saves and `Esc` cancels
+  (the old name comes back). `Esc` works even when the cursor is not in the
+  field.
+- **Categories are not edited with `→`.** In the category column `→` crosses into
+  that category's prompts, and once there `→` opens the edit screen of the
+  highlighted prompt.
+- **All** and **Uncategorised** are not categories, so they cannot be edited or
+  deleted.
+- If you opened the edit screen from the `!!` panel, closing it (saving,
+  cancelling or `Esc`) brings you back to that `!!` panel. An edit screen opened
+  from inside the library returns to the library's list.
+- The library screen and the `!!` panel start on the **top category of the
+  column**, with the first prompt of that category highlighted. If you moved
+  **All** down, they open on the first category.
+- After a delete the library screen or the `!!` panel stays open, and only the
+  deleted row disappears.
+- In the library screen's search box, `e` and `Backspace` are ordinary
+  characters. Press the up or down arrow and the cursor leaves the box for the
+  list; from then on they are commands.
+- The `!!` panel shares its place with the text you were typing, so `e` and
+  `Backspace` become commands only **after you have moved a row with the up or
+  down arrow**. Type anything again and they go back to being part of the search.
+
+### `Esc` cancels only what you were doing
+
+`Esc` closes the one thing on top. If the question about deleting is open, that
+question closes; if a category name is being edited, that edit is cancelled; on
+the edit screen it goes back to the list; on the list it closes the library. The
+`!!` panel and the dialog that asks for `{{...}}` values behave the same.
+
+**That holds while Claude is answering, too.** Before, closing one of these with
+`Esc` during a response could let the same key reach the input as well, stopping
+the tools and cutting the response off. Now the `Esc` that closes a window or a
+panel ends there and does not stop the response. To stop a response, press `Esc`
+when no window or panel is open.
 
 ### Writing a prompt
 
@@ -191,15 +311,15 @@ This matches how the workflow agent list behaves at the same width.
 ### Filing by dragging
 
 Opening a prompt's form to file it is a lot of steps for a small decision, so
-the bookmark at the start of every row is a grab handle. Drag it onto a
-category and the prompt is filed there.
+you can drag the row itself onto a category and the prompt is filed there.
 
-![The Prompt Library mid-drag. "Explain a file" is faded because it is the row
-being dragged. In the category column "Docs" is outlined and carries a bookmark
-mark, while "All" and "Uncategorised" are faded because they would not take
-this prompt.](./assets/drag-to-category.png)
+![The Prompt Library mid-drag. The lifted "PR review" row floats over the
+category column and its original place is empty. "All" is faded because it
+would not take this prompt.](./assets/drag-to-category.png)
 
-It works the same way in the `!!` panel, on the category chips there.
+It works the same way in the `!!` panel. The prompt rows and the category chips
+there are dragged to reorder too, in the very order the library screen shows.
+The text in the input, and the `!!` itself, stay untouched while you drag.
 
 While you drag, a category lights up only if dropping would actually change
 something. The ones that would not stay faded, which is the screen telling you
@@ -225,8 +345,9 @@ file". At the bottom "4 selected", Cancel and Export.](./assets/export-dialog.pn
 
 Export writes one JSON file. Everything is ticked to begin with; untick whatever
 you do not want to hand over. The file is named for the moment you wrote it, as
-`prompts-20260913010203.json`, and the categories your chosen prompts actually
-use travel with them.
+`prompts-20260913010203.json`. The list is in the library's order, and the
+categories your chosen prompts actually use travel with them, together with the
+**order inside each category**.
 
 In the JetBrains IDE you get the IDE's own save dialog. Outside it you get your
 operating system's, which is the same dialog either way for you.
@@ -255,6 +376,15 @@ already have:
 New prompts are added under every choice. The three only decide what happens on
 a collision.
 
+Incoming prompts are put at the **top** of the library, in the order the file
+lists them. The prompts you already have do not move. The same goes inside a
+category: incoming prompts go on top of that category in the order the file
+recorded for it. **Replace** swaps the name, the content and the categories and
+leaves the place the prompt already had on this machine.
+
+"Already there" means the prompt's id matches. A file exported before an update
+still matches, because the ids carry over.
+
 If the file carries categories, they are matched to yours **by name**. A prompt
 arriving under "Review" joins the "Review" you already have rather than creating
 a second one, and a category you have never heard of is created.
@@ -266,7 +396,7 @@ because the file you want to bring over was probably not written by us.
 
 It accepts all of these:
 
-- Our own export file, with its format stamp
+- Our own export file, with its format stamp. Files exported by earlier versions read fine too; they just carry no order inside categories
 - Our on-disk store, which has no stamp
 - A file that keys its prompts by id in an object, rather than listing them in
   an array
@@ -289,6 +419,12 @@ failing silently.
   you need it.
 - **Prompts are not shared between machines.** They are files on your disk;
   export and import are how they travel.
+- **Moving or renaming a project folder detaches its prompts.** Project prompts
+  are stored against the folder's path, so the new path starts out like a
+  project with none, and the old path shows them again if you go back. If you
+  need them at the new path, export from the old one and import at the new one.
+- **Another machine's order does not follow along by itself.** An export file
+  carries the order, so importing puts the file's order at the top; that is all.
 - **Categories are global.** There is one set of category names, shared by the
   global and the project halves of the library. This is deliberate: a category
   you can only use on one side of the screen would be worse than no category.
@@ -296,12 +432,53 @@ failing silently.
 - **`{{...}}` placeholders are ours, not Claude's.** They are filled in before
   the text reaches the input. Claude never sees a `{{`.
 
+## Coming from an earlier version
+
+Earlier versions kept prompts in `~/.claude-code-gui/prompts.json` (global) and
+`<project>/.claude-code-gui/prompts.json` (project). This version moves those
+files into the new store **once**, when the plugin starts for the first time
+after the update. You do not have to do anything.
+
+- The shared prompts and categories go first, the projects after.
+- Names, contents and both times are not changed by a single character, and the
+  order on every screen is the one it had just before. Earlier versions listed
+  new prompts first, so they are still first after the move.
+- The projects it looks in are the ones the plugin knows: every folder you have
+  used Claude Code in, and every folder the plugin was asked about. Nothing walks
+  through your home folder, so macOS does not ask for access to `Desktop`,
+  `Documents` or `Downloads` out of nowhere.
+- While the move runs, the library waits for it. If it takes more than a second a
+  banner says your data is being updated. If it is quicker you see nothing.
+- **The old files are neither deleted nor edited.** They stay as they were and
+  serve as a backup.
+- If the move fails, the library and the project list show an error instead of an
+  empty list, a banner names the step that failed, and the next start tries again
+  from that step.
+- If some old files cannot be read (no permission, or the file is damaged), the
+  rest is moved and a banner lists the folders. Those prompts stay in the old
+  file; import it to bring them over.
+- Once a move is done it is never repeated, so prompts you delete do not come
+  back.
+- Prompts of a folder that has never had a Claude Code session and that the
+  plugin never opened are not found, because nothing knows that folder. They stay
+  in the old file, and import brings them over.
+
+If you go back to an earlier version, its files still read fine. Whatever you
+changed while you were back there does not follow into the new store; to bring
+it over, choose the old file in Import and merge it. Import reads the old
+stored-file shape as it is.
+
 ## Where the files are
 
 | What | Where |
 |------|-------|
-| Global prompts and every category | `~/.claude-code-gui/prompts.json` |
-| Project prompts | `<project>/.claude-code-gui/prompts.json` |
+| Prompts (global and every project) | `~/.claude-code-gui/entities/prompt/prompt_items.entity.jsonl` |
+| Categories | `~/.claude-code-gui/entities/prompt/prompt_categories.entity.jsonl` |
+| Which category a prompt is in, and at what place | `~/.claude-code-gui/entities/prompt/prompt_category_item_links.entity.jsonl` |
+| The project folders the plugin knows | `~/.claude-code-gui/entities/project/projects.entity.jsonl` |
+| Id counters and the record of the move | `~/.claude-code-gui/entities/system/` |
 
-Both are plain JSON and safe to read. `CCG_HOME` moves the first one, if you
-have set it.
+All of them are plain text with one JSON object per line, and safe to read. A
+project prompt is a row whose `projectId` is the number of a project in
+`projects.entity.jsonl`, and that file holds the project folder's path.
+`CCG_HOME` moves the whole location, if you have set it.

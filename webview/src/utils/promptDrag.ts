@@ -14,6 +14,26 @@ import type { PromptScope } from '@/types/prompt';
 export const PROMPT_DRAG_TYPE = 'prompt';
 /** The dnd-kit `type` a category row accepts. */
 export const CATEGORY_DROP_TYPE = 'prompt-category';
+/**
+ * The dnd-kit `type` of a category row being dragged to a new place in the
+ * column. Distinct from {@link CATEGORY_DROP_TYPE}, which is what a row accepts
+ * from a prompt: one row is two things at once, a place to file prompts and an
+ * item in a sortable column, and the two must never be mistaken for each other.
+ */
+export const CATEGORY_SORT_TYPE = 'prompt-category-sort';
+
+/**
+ * Marks the controls on a prompt card that must stay plain click targets.
+ *
+ * The whole card is the drag handle, so a press on edit or delete would
+ * otherwise be read as the start of a drag.
+ */
+export const PROMPT_NO_DRAG_ATTRIBUTE = 'data-prompt-no-drag';
+
+/** Whether a press landed on a control that must not start dragging the card. */
+export function isPromptDragBlocked(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`) !== null;
+}
 
 /** What a dragged prompt carries with it. */
 export interface PromptDragData {
