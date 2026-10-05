@@ -15,6 +15,7 @@ import { setCaretOffset } from '@/utils/domSelection';
 import { splitIntoSegments } from './segments';
 import { useIMEComposition, type IMEComposition } from './useIMEComposition';
 import { insertNewlineAtCursor } from './insertNewlineAtCursor';
+import { typedKeys } from '@/commandPalette/typedKeys';
 
 interface Props {
   value: string;
@@ -197,6 +198,9 @@ export const RichInput = forwardRef<HTMLDivElement, Props>((props: Props, ref) =
         isComposing: native.isComposing === true,
         inputType: native.inputType ?? '',
       });
+      // A paste, cut, undo or drop changes the line without a keystroke, so the
+      // keys written down no longer describe it.
+      typedKeys.noteInput(native.inputType ?? '');
       // During composition the intermediate text is not yet committed; defer
       // reporting to the parent until compositionend to avoid emitting partial
       // glyphs. The mirror still updates above so the user sees live feedback.

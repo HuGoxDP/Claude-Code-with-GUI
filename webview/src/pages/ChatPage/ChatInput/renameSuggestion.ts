@@ -1,4 +1,4 @@
-import { hangulToQwerty } from '@/commandPalette/hangulKeys';
+import { typedKeys } from '@/commandPalette/typedKeys';
 
 /** What the box holds once `/rename` and the space after it are typed. */
 const RENAME_COMMAND_PREFIX = '/rename ';
@@ -16,7 +16,7 @@ const RENAME_COMMAND_PREFIX = '/rename ';
  * @returns The title to show as a preview, or null when there is nothing to offer.
  */
 export function renameSuggestion(value: string, sessionTitle: string | undefined): string | null {
-  if (hangulToQwerty(value).toLowerCase() !== RENAME_COMMAND_PREFIX) return null;
+  if (typedKeys.keysFor(value).toLowerCase() !== RENAME_COMMAND_PREFIX) return null;
   const title = sessionTitle?.trim();
   return title ? title : null;
 }

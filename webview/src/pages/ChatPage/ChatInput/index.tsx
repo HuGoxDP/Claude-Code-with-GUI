@@ -59,6 +59,7 @@ import {
 } from '@/commandPalette/sections/context/items';
 import { replaceRangeWithText } from './RichInput/replaceRangeWithText';
 import { renameSuggestion } from './renameSuggestion';
+import { typedKeys } from '@/commandPalette/typedKeys';
 import {
   wrapChipForTranscript,
   readFirstSessionMention,
@@ -911,7 +912,12 @@ export function ChatInput() {
     return () => window.removeEventListener(INSERT_PROMPT_EVENT, handler);
   }, [value, onChange, textareaRef, requestFill]);
 
+  // The record of pressed keys follows the box: it starts over whenever the box
+  // is emptied or filled by something other than typing (submit, history).
+  useEffect(() => typedKeys.noteValue(value), [value]);
+
   const handleRichChange = useCallback((newValue: string) => {
+    typedKeys.noteTyped(newValue);
     onChange(newValue);
     // The caret decides which of the two dropdowns owns the slot above the
     // composer, so resolve it before either detector runs (issue #236).
@@ -930,6 +936,14 @@ export function ChatInput() {
     // Feed the IME truth: keyCode 229 means the IME is still processing this
     // keystroke, so mark composition active before any Enter decision runs.
     ime.noteKeyDown(e.nativeEvent.keyCode);
+
+    // Write down which physical key this is, so a command typed with another
+    // layout on can be read back as the keys that were pressed. A key only
+    // extends the record when it lands at the end of the line.
+    const editor = e.currentTarget;
+    const caretAtEnd = window.getSelection()?.isCollapsed === true
+      && getCaretOffset(editor) === (editor.textContent ?? '').length;
+    typedKeys.noteKeyDown(e.nativeEvent, caretAtEnd);
 
     // Accept the previewed title. Ahead of every panel below because the slash
     // panel is still open on `/rename ` and would claim Tab to pick a command.

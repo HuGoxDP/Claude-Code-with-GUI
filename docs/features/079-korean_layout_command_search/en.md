@@ -6,7 +6,7 @@ If you start a slash command while the keyboard is still on the Korean layout, t
 
 ## What it does
 
-Every Korean letter sits on a key that also types a Latin letter: ㄱ is the **R** key, ㄷ is **E**, ㅜ is **N**, and so on. The command list turns what you typed back into those keys and searches for that too.
+Every Korean letter sits on a key that also types a Latin letter: ㄱ is the **R** key, ㄷ is **E**, ㅜ is **N**, and so on. The command list turns what you typed back into those keys and searches for that too. It does this by remembering which physical keys you pressed, so it is not limited to Korean: the same works on a Russian, Greek or three-set Korean layout, or any other layout where the letters are not Latin.
 
 Type `/ㄱㄷ` and the list shows what `/re` would show: `/recap`, `/reload-plugins`, `/reload-skills`, `/rename`. The letters it matched are bold.
 
@@ -35,7 +35,8 @@ The list does not stop matching what you typed. Items with a Korean name, for ex
 ## What this does not do
 
 - **Slash commands only.** `@` file references and `!!` prompt search are unchanged.
-- **The standard Korean layout (two-set / dubeolsik) only.** Other Korean layouts such as three-set are not converted.
+- **The line has to be typed from its first character.** The keys are read as you press them, so they only describe a line that was typed from the `/` on, with the caret at the end. Once the line is pasted into, cut from, undone, deleted a word from, edited with the caret moved into the middle, or recalled from the history, the pressed keys no longer describe it. For that line the list falls back to the standard Korean layout (two-set / dubeolsik) table, and other layouts are not converted until the box is empty again.
+- **A `/` typed after other text** (`please /ㄱㄷ`) is read with the two-set table only, since the pressed keys are kept for lines that begin with the command.
 - **The list is one syllable behind while you are mid-syllable.** The Korean input method does not hand the box's text to the app until the syllable is finished, so the list reflects everything up to the last syllable you are still forming. It catches up as soon as you type the next letter or a space. English input has no such delay.
 - **Commands with no Latin name are not a target.** This only maps Korean letters to the keys they sit on. It does not translate words.
 - Sending a line that was never matched to a command, for example because the letters match nothing, sends it unchanged.

@@ -1,6 +1,6 @@
 import { SlashCommand } from '../../types';
 import type { SlashCommandInfo } from '@/types/slashCommand';
-import { restoreCommandName } from '../../hangulKeys';
+import { restoreCommandName } from '../../typedKeys';
 
 export class CliPassthroughCommand extends SlashCommand {
   readonly id: string;
