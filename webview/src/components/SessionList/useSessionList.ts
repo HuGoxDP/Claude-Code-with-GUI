@@ -3,6 +3,7 @@ import { groupSessionsByDate, GroupedSessions } from './utils';
 import { useSessionContext } from '@/contexts/SessionContext';
 import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import { SessionMetaDto } from '@/dto';
+import { useTranslation } from '@/i18n';
 
 interface UseSessionListResult {
   sessions: SessionMetaDto[];
@@ -12,6 +13,8 @@ interface UseSessionListResult {
   filteredSessions: SessionMetaDto[];
   groupedSessions: GroupedSessions;
   handleDeleteSession: (sessionId: string) => Promise<void>;
+  /** Delete several sessions after one confirmation. Answers whether they were deleted. */
+  handleDeleteSessions: (sessionIds: string[]) => Promise<boolean>;
   renameSession: (sessionId: string, title: string) => Promise<void>;
   confirmDialog: ReactNode;
   /** Fetch the next page; pass to SessionList for infinite scroll. */
@@ -37,6 +40,7 @@ export function useSessionList(): UseSessionListResult {
     favoriteSessionIds,
   } = useSessionContext();
   const { confirmDialog, confirm } = useConfirmDialog();
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Searching filters what the client holds, so it can only be honest once the
@@ -89,6 +93,22 @@ export function useSessionList(): UseSessionListResult {
     }
   }, [sessions, confirm, deleteSession]);
 
+  const handleDeleteSessions = useCallback(async (sessionIds: string[]) => {
+    if (sessionIds.length === 0) return false;
+    const confirmed = await confirm({
+      title: t('sessionList.select.deleteTitle', { count: sessionIds.length }),
+      message: t('sessionList.select.deleteMessage', { count: sessionIds.length }),
+      confirmLabel: t('sessionList.select.delete'),
+      cancelLabel: t('sessionList.select.cancel'),
+      variant: 'danger',
+    });
+    if (!confirmed) return false;
+    // One after another: each delete tells the other windows, and the open
+    // session is navigated away from only once its own delete has gone through.
+    for (const sessionId of sessionIds) await deleteSession(sessionId);
+    return true;
+  }, [confirm, deleteSession, t]);
+
   return {
     sessions,
     currentSessionId,
@@ -97,6 +117,7 @@ export function useSessionList(): UseSessionListResult {
     filteredSessions,
     groupedSessions,
     handleDeleteSession,
+    handleDeleteSessions,
     renameSession,
     confirmDialog,
     loadMoreSessions,

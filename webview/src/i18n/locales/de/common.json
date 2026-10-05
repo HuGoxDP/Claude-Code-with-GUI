@@ -248,6 +248,34 @@
       "countsTitle": "Sitzungen nach Status",
       "activeTitle": "Nur Sitzungen zeigen, die eine Antwort brauchen, arbeiten oder ungelesen sind",
       "noneActive": "Keine Sitzung wartet auf dich"
+    },
+    "copySessionId": "Sitzungs-ID kopieren",
+    "sessionIdCopied": "Sitzungs-ID kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen",
+    "select": {
+      "start": "Auswählen",
+      "startTitle": "Mehrere Sitzungen zum Löschen auswählen",
+      "count_one": "{{count}} ausgewählt",
+      "count_other": "{{count}} ausgewählt",
+      "all": "Alle",
+      "delete": "Löschen",
+      "cancel": "Abbrechen",
+      "deleteTitle_one": "{{count}} Sitzung löschen?",
+      "deleteTitle_other": "{{count}} Sitzungen löschen?",
+      "deleteMessage_one": "Das Transkript der Sitzung wird von der Festplatte gelöscht. Das lässt sich nicht rückgängig machen.",
+      "deleteMessage_other": "Ihre Transkripte werden von der Festplatte gelöscht. Das lässt sich nicht rückgängig machen."
+    },
+    "origin": {
+      "terminal": "Terminal",
+      "terminalHint": "Mit claude im Terminal gestartet",
+      "vscode": "VS Code",
+      "vscodeHint": "In der VS-Code-Erweiterung gestartet",
+      "desktop": "Desktop",
+      "desktopHint": "In der Claude-Desktop-App gestartet",
+      "remote": "Remote",
+      "remoteHint": "In einer entfernten Claude-Code-Sitzung gestartet",
+      "githubAction": "GitHub",
+      "githubActionHint": "Von der Claude-Code-GitHub-Action gestartet"
     }
   },
   "sessionExport": {

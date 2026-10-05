@@ -248,6 +248,34 @@
       "countsTitle": "按状态统计的会话数",
       "activeTitle": "仅显示需要答复、正在处理或未读的会话",
       "noneActive": "没有需要你处理的会话"
+    },
+    "copySessionId": "复制会话 ID",
+    "sessionIdCopied": "已复制会话 ID",
+    "copyFailed": "无法复制",
+    "select": {
+      "start": "选择",
+      "startTitle": "选择多个会话以删除",
+      "count_one": "已选 {{count}} 个",
+      "count_other": "已选 {{count}} 个",
+      "all": "全部",
+      "delete": "删除",
+      "cancel": "取消",
+      "deleteTitle_one": "删除 {{count}} 个会话？",
+      "deleteTitle_other": "删除 {{count}} 个会话？",
+      "deleteMessage_one": "会话记录将从磁盘删除，无法撤销。",
+      "deleteMessage_other": "会话记录将从磁盘删除，无法撤销。"
+    },
+    "origin": {
+      "terminal": "终端",
+      "terminalHint": "在终端中用 claude 启动",
+      "vscode": "VS Code",
+      "vscodeHint": "在 VS Code 扩展中启动",
+      "desktop": "桌面版",
+      "desktopHint": "在 Claude 桌面应用中启动",
+      "remote": "远程",
+      "remoteHint": "在远程 Claude Code 会话中启动",
+      "githubAction": "GitHub",
+      "githubActionHint": "由 Claude Code GitHub Action 启动"
     }
   },
   "sessionExport": {

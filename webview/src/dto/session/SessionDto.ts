@@ -34,6 +34,13 @@ export class SessionMetaDto {
    * one currently being browsed — they differ once nested sessions are listed.
    */
   sessionDir?: string;
+  /**
+   * Where the session was started, as the CLI recorded it (`entrypoint` on its
+   * entries): `cli` for a terminal, `sdk-cli` for a program driving the CLI
+   * (this app among them), `claude-vscode`, `remote`… Null when the
+   * transcript carries none.
+   */
+  entrypoint?: string | null;
 }
 
 /**

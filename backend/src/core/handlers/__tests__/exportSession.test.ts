@@ -52,6 +52,7 @@ describe('exportSessionHandler', () => {
       createdAt: '',
       messageCount: null,
       isSidechain: false,
+      entrypoint: null,
     });
     vi.mocked(readSessionTitleOverrides).mockResolvedValue({});
     vi.mocked(loadActiveChain).mockResolvedValue([

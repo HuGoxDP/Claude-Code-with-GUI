@@ -36,6 +36,8 @@ interface Props {
   /** Only sessions that need input, are working, or are unread are shown. */
   activeOnly: boolean;
   onActiveOnlyChange: (next: boolean) => void;
+  /** Start choosing sessions for a bulk action. Omitted, the bar has no Select button. */
+  onStartSelecting?: () => void;
 }
 
 const STATUS_ORDER: StatusFilterKey[] = [
@@ -95,6 +97,7 @@ export function SessionFilterBar(props: Props) {
     onTabFilterChange,
     activeOnly,
     onActiveOnlyChange,
+    onStartSelecting,
   } = props;
   const { t } = useTranslation('common');
   const scale = useSessionListScale();
@@ -189,6 +192,18 @@ export function SessionFilterBar(props: Props) {
           {t('sessionList.filter.active')} · {activeCount}
         </span>
       </button>
+
+      {onStartSelecting && (
+        <button
+          type="button"
+          onClick={onStartSelecting}
+          data-testid="session-select-start"
+          title={t('sessionList.select.startTitle')}
+          className={`${BAR_BUTTON} ms-auto ${scale.itemTime} text-text-tertiary hover:text-text-primary hover:bg-[var(--surface-selected)]`}
+        >
+          {t('sessionList.select.start')}
+        </button>
+      )}
 
     </div>
   );

@@ -248,6 +248,34 @@
       "countsTitle": "Sessões por estado",
       "activeTitle": "Mostrar apenas sessões que aguardam resposta, estão trabalhando ou não lidas",
       "noneActive": "Nenhuma sessão está esperando por você"
+    },
+    "copySessionId": "Copiar ID da sessão",
+    "sessionIdCopied": "ID da sessão copiado",
+    "copyFailed": "Não foi possível copiar",
+    "select": {
+      "start": "Selecionar",
+      "startTitle": "Escolher várias sessões para excluir",
+      "count_one": "{{count}} selecionada",
+      "count_other": "{{count}} selecionadas",
+      "all": "Todas",
+      "delete": "Excluir",
+      "cancel": "Cancelar",
+      "deleteTitle_one": "Excluir {{count}} sessão?",
+      "deleteTitle_other": "Excluir {{count}} sessões?",
+      "deleteMessage_one": "A transcrição da sessão é apagada do disco. Não é possível desfazer.",
+      "deleteMessage_other": "As transcrições são apagadas do disco. Não é possível desfazer."
+    },
+    "origin": {
+      "terminal": "Terminal",
+      "terminalHint": "Iniciada com claude em um terminal",
+      "vscode": "VS Code",
+      "vscodeHint": "Iniciada na extensão do VS Code",
+      "desktop": "Desktop",
+      "desktopHint": "Iniciada no app desktop do Claude",
+      "remote": "Remota",
+      "remoteHint": "Iniciada em uma sessão remota do Claude Code",
+      "githubAction": "GitHub",
+      "githubActionHint": "Iniciada pela GitHub Action do Claude Code"
     }
   },
   "sessionExport": {

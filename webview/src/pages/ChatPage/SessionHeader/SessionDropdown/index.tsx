@@ -39,6 +39,7 @@ export function SessionDropdown() {
     filteredSessions,
     groupedSessions,
     handleDeleteSession,
+    handleDeleteSessions,
     renameSession,
     confirmDialog,
     loadMoreSessions,
@@ -112,6 +113,7 @@ export function SessionDropdown() {
           highlightedSessionId={highlightedSessionId}
           onSelectSession={handleSelectSession}
           onDeleteSession={handleDeleteSession}
+          onDeleteSessions={handleDeleteSessions}
           onRenameSession={renameSession}
           sessionsServiceError={sessionsServiceError}
           isLoading={isLoading}

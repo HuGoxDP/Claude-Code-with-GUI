@@ -248,6 +248,34 @@
       "countsTitle": "تعداد نشست‌ها بر پایه وضعیت",
       "activeTitle": "فقط نشست‌هایی که پاسخ می‌خواهند، در حال کارند یا خوانده‌نشده‌اند",
       "noneActive": "هیچ نشستی منتظر شما نیست"
+    },
+    "copySessionId": "کپی شناسه نشست",
+    "sessionIdCopied": "شناسه نشست کپی شد",
+    "copyFailed": "کپی انجام نشد",
+    "select": {
+      "start": "انتخاب",
+      "startTitle": "انتخاب چند نشست برای حذف",
+      "count_one": "{{count}} انتخاب شد",
+      "count_other": "{{count}} انتخاب شد",
+      "all": "همه",
+      "delete": "حذف",
+      "cancel": "لغو",
+      "deleteTitle_one": "{{count}} نشست حذف شود؟",
+      "deleteTitle_other": "{{count}} نشست حذف شود؟",
+      "deleteMessage_one": "سابقه نشست از دیسک پاک می‌شود. قابل بازگشت نیست.",
+      "deleteMessage_other": "سوابق نشست‌ها از دیسک پاک می‌شوند. قابل بازگشت نیست."
+    },
+    "origin": {
+      "terminal": "ترمینال",
+      "terminalHint": "با claude در ترمینال آغاز شد",
+      "vscode": "VS Code",
+      "vscodeHint": "در افزونه VS Code آغاز شد",
+      "desktop": "دسکتاپ",
+      "desktopHint": "در برنامه دسکتاپ Claude آغاز شد",
+      "remote": "راه دور",
+      "remoteHint": "در یک نشست Claude Code راه دور آغاز شد",
+      "githubAction": "GitHub",
+      "githubActionHint": "توسط GitHub Action ‏Claude Code آغاز شد"
     }
   },
   "sessionExport": {

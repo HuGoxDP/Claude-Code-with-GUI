@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { SessionMetaDto } from '@/dto';
-import { getRelativeTime } from './utils';
+import { getRelativeTime, sessionOriginOf } from './utils';
 import { useSessionListScale } from './scale';
 import { useTranslation } from '@/i18n';
 import { SessionActivity } from '@/shared';
@@ -41,6 +41,13 @@ interface Props {
    * one anyway would say "idle" about a session that is merely absent.
    */
   isOpen?: boolean;
+  /** Copy the session's id. Omitted, the row has no copy action. */
+  onCopyId?: () => void;
+  /**
+   * The list is choosing sessions for a bulk action: the row shows a checkbox
+   * and a click toggles it instead of opening the session.
+   */
+  selection?: { checked: boolean; onToggle: () => void };
 }
 
 /** Dot colour per state. Only Running adds the turning ring. */
@@ -113,7 +120,10 @@ export function SessionItem(props: Props) {
     onExport,
     isFavorite = false,
     onToggleFavorite,
+    onCopyId,
+    selection,
   } = props;
+  const origin = sessionOriginOf(session.entrypoint);
   const { t } = useTranslation('common');
   const scale = useSessionListScale();
   const [isHovered, setIsHovered] = useState(false);
@@ -204,11 +214,19 @@ export function SessionItem(props: Props) {
   // act as one anyway — clicking into the field would otherwise also open the
   // session. The row keeps its looks and drops to a plain container instead.
   const Row = isEditing ? 'div' : 'button';
+  const showActions = isHovered && !isEditing && !selection;
+
+  const copyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCopyId?.();
+  };
 
   return (
     <Row
       ref={buttonRef as never}
-      onClick={isEditing ? undefined : onSelect}
+      onClick={isEditing ? undefined : selection ? selection.onToggle : onSelect}
+      role={selection ? 'checkbox' : undefined}
+      aria-checked={selection ? selection.checked : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
@@ -227,6 +245,17 @@ export function SessionItem(props: Props) {
           indented under the project path above it. Out here it is also outside
           the renaming branch entirely, so it cannot blink out while the field
           is open. */}
+      {selection && (
+        <input
+          type="checkbox"
+          checked={selection.checked}
+          readOnly
+          tabIndex={-1}
+          aria-hidden="true"
+          className="shrink-0 pointer-events-none accent-[var(--text-link)]"
+          data-testid="session-select-checkbox"
+        />
+      )}
       <ActivityDot activity={activity} isOpen={isOpen} />
       {/* The origin sits ABOVE the title rather than beside it: squeezed onto
           one row it competed with the title for the same horizontal space and
@@ -259,7 +288,18 @@ export function SessionItem(props: Props) {
           <span className="truncate">{session.title}</span>
         )}
       </span>
-      {isHovered && !isEditing && isChoosingExport && onExport ? (
+      {/* Beside the text column rather than inside it, so it never takes the
+          title's place in the column the rest of the row is measured against. */}
+      {origin && !isEditing && (
+        <span
+          className={`shrink-0 ${scale.itemTime} px-1 rounded border border-border-default text-text-tertiary leading-tight`}
+          title={t(`sessionList.origin.${origin}Hint`)}
+          data-testid="session-origin"
+        >
+          {t(`sessionList.origin.${origin}`)}
+        </span>
+      )}
+      {showActions && isChoosingExport && onExport ? (
         <span className="flex-shrink-0 flex items-center gap-1" data-testid="session-export-choice">
           <span
             role="button"
@@ -278,8 +318,22 @@ export function SessionItem(props: Props) {
             {t('sessionList.exportJsonl')}
           </span>
         </span>
-      ) : isHovered && !isEditing ? (
+      ) : showActions ? (
         <span className="flex-shrink-0 flex items-center gap-1.5">
+          {onCopyId && (
+            <span
+              role="button"
+              onClick={copyId}
+              className="text-text-tertiary hover:text-text-primary transition-colors flex items-center justify-center"
+              title={t('sessionList.copySessionId')}
+              aria-label={t('sessionList.copySessionId')}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="4" y="4" width="6.5" height="6.5" rx="1" stroke="currentColor" strokeWidth="1" />
+                <path d="M8 4V2.5a1 1 0 0 0-1-1H2.5a1 1 0 0 0-1 1V7a1 1 0 0 0 1 1H4" stroke="currentColor" strokeWidth="1" />
+              </svg>
+            </span>
+          )}
           {onToggleFavorite && (
             <span
               role="button"

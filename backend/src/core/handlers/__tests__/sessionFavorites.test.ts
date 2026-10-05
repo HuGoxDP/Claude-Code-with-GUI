@@ -46,6 +46,7 @@ describe('getSessionFavoritesHandler', () => {
       createdAt: '',
       messageCount: null,
       isSidechain: false,
+      entrypoint: null,
     }));
   });
 

@@ -248,6 +248,34 @@
       "countsTitle": "依狀態統計的工作階段數",
       "activeTitle": "僅顯示需要答覆、正在處理或未讀的工作階段",
       "noneActive": "沒有需要你處理的工作階段"
+    },
+    "copySessionId": "複製工作階段 ID",
+    "sessionIdCopied": "已複製工作階段 ID",
+    "copyFailed": "無法複製",
+    "select": {
+      "start": "選取",
+      "startTitle": "選取多個工作階段以刪除",
+      "count_one": "已選取 {{count}} 個",
+      "count_other": "已選取 {{count}} 個",
+      "all": "全部",
+      "delete": "刪除",
+      "cancel": "取消",
+      "deleteTitle_one": "刪除 {{count}} 個工作階段？",
+      "deleteTitle_other": "刪除 {{count}} 個工作階段？",
+      "deleteMessage_one": "工作階段紀錄將從磁碟刪除，無法復原。",
+      "deleteMessage_other": "工作階段紀錄將從磁碟刪除，無法復原。"
+    },
+    "origin": {
+      "terminal": "終端機",
+      "terminalHint": "在終端機以 claude 開始",
+      "vscode": "VS Code",
+      "vscodeHint": "在 VS Code 擴充功能中開始",
+      "desktop": "桌面版",
+      "desktopHint": "在 Claude 桌面應用程式中開始",
+      "remote": "遠端",
+      "remoteHint": "在遠端 Claude Code 工作階段中開始",
+      "githubAction": "GitHub",
+      "githubActionHint": "由 Claude Code GitHub Action 開始"
     }
   },
   "sessionExport": {

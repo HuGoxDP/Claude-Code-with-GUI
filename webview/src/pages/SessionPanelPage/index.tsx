@@ -28,6 +28,7 @@ export function SessionPanelPage() {
     filteredSessions,
     groupedSessions,
     handleDeleteSession,
+    handleDeleteSessions,
     renameSession,
     confirmDialog,
     loadMoreSessions,
@@ -84,6 +85,7 @@ export function SessionPanelPage() {
               highlightedSessionId={highlightedSessionId}
               onSelectSession={handleSelectSession}
               onDeleteSession={handleDeleteSession}
+              onDeleteSessions={handleDeleteSessions}
               onRenameSession={renameSession}
               onLoadMore={loadMoreSessions}
               hasMore={hasMoreSessions}

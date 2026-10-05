@@ -55,6 +55,36 @@ describe('extractSessionInfo', () => {
       expect(result.createdAt).toBe('2025-01-01T00:00:00Z');
     });
 
+    it('reports where the session was started, as the CLI recorded it', async () => {
+      const filePath = await writeJsonl([
+        JSON.stringify({ type: 'queue-operation', operation: 'enqueue', timestamp: '2025-01-01T00:00:00Z' }),
+        JSON.stringify({
+          uuid: 'u1',
+          parentUuid: null,
+          type: 'user',
+          entrypoint: 'cli',
+          timestamp: '2025-01-01T00:00:01Z',
+          message: { content: [{ type: 'text', text: 'Hello world' }] },
+        }),
+      ]);
+
+      expect((await extractSessionInfo(filePath)).entrypoint).toBe('cli');
+    });
+
+    it('reports no entrypoint for a file that carries none', async () => {
+      const filePath = await writeJsonl([
+        JSON.stringify({
+          uuid: 'u1',
+          parentUuid: null,
+          type: 'user',
+          timestamp: '2025-01-01T00:00:00Z',
+          message: { content: [{ type: 'text', text: 'Hello world' }] },
+        }),
+      ]);
+
+      expect((await extractSessionInfo(filePath)).entrypoint).toBeNull();
+    });
+
     it('should use first user prompt as title when no summary exists', async () => {
       const filePath = await writeJsonl([
         JSON.stringify({

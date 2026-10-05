@@ -248,6 +248,34 @@
       "countsTitle": "Session counts by state",
       "activeTitle": "Show only sessions that need input, are working, or are unread",
       "noneActive": "No session is waiting on you"
+    },
+    "copySessionId": "Copy session ID",
+    "sessionIdCopied": "Session ID copied",
+    "copyFailed": "Could not copy",
+    "select": {
+      "start": "Select",
+      "startTitle": "Choose several sessions to delete",
+      "count_one": "{{count}} selected",
+      "count_other": "{{count}} selected",
+      "all": "All",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "deleteTitle_one": "Delete {{count}} session?",
+      "deleteTitle_other": "Delete {{count}} sessions?",
+      "deleteMessage_one": "The session's transcript is deleted from disk. This cannot be undone.",
+      "deleteMessage_other": "Their transcripts are deleted from disk. This cannot be undone."
+    },
+    "origin": {
+      "terminal": "Terminal",
+      "terminalHint": "Started with claude in a terminal",
+      "vscode": "VS Code",
+      "vscodeHint": "Started in the VS Code extension",
+      "desktop": "Desktop",
+      "desktopHint": "Started in the Claude desktop app",
+      "remote": "Remote",
+      "remoteHint": "Started in a remote Claude Code session",
+      "githubAction": "GitHub",
+      "githubActionHint": "Started by the Claude Code GitHub Action"
     }
   },
   "sessionExport": {

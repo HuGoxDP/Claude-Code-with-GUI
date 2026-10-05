@@ -15,6 +15,7 @@ import {
 import { SessionActivity } from '@/shared';
 import type { SessionExportFormat } from '@/api/modules/SessionsApi';
 import { exportSessionWithFeedback } from '@/utils/sessionExportFeedback';
+import toast from 'react-hot-toast';
 
 interface Props {
   groupedSessions: GroupedSessions;
@@ -24,6 +25,11 @@ interface Props {
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onRenameSession: (sessionId: string, title: string) => void;
+  /**
+   * Delete several sessions at once, after asking; answers whether they were
+   * deleted. Omitted, the list offers no way to choose several.
+   */
+  onDeleteSessions?: (sessionIds: string[]) => Promise<boolean>;
   /** 스크롤 영역 높이 제어. 드롭다운은 max-h-80, 사이드 패널은 flex-1 min-h-0 */
   className?: string;
   /**
@@ -41,7 +47,7 @@ interface Props {
 const LOAD_MORE_THRESHOLD_PX = 200;
 
 export function SessionList(props: Props) {
-  const { groupedSessions, currentSessionId, highlightedSessionId = null, onSelectSession, onDeleteSession, onRenameSession, className = 'max-h-80', onLoadMore, hasMore = false } = props;
+  const { groupedSessions, currentSessionId, highlightedSessionId = null, onSelectSession, onDeleteSession, onRenameSession, onDeleteSessions, className = 'max-h-80', onLoadMore, hasMore = false } = props;
   const scale = useSessionListScale();
   const scrollRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation('common');
@@ -123,6 +129,30 @@ export function SessionList(props: Props) {
 
   const hasFilter = activeOnly || statusFilter.size > 0 || tabFilter.size > 0;
 
+  // Choosing several sessions for a bulk action. Null while not choosing.
+  const [chosen, setChosen] = useState<ReadonlySet<string> | null>(null);
+  const toggleChosen = useCallback((sessionId: string) => {
+    setChosen((prev) => {
+      if (prev === null) return prev;
+      const next = new Set(prev);
+      if (next.has(sessionId)) next.delete(sessionId);
+      else next.add(sessionId);
+      return next;
+    });
+  }, []);
+  const deleteChosen = useCallback(async () => {
+    if (!chosen || chosen.size === 0 || !onDeleteSessions) return;
+    // Backing out of the confirmation keeps the choice, to adjust and try again.
+    if (await onDeleteSessions([...chosen])) setChosen(null);
+  }, [chosen, onDeleteSessions]);
+
+  const copySessionId = useCallback((sessionId: string) => {
+    navigator.clipboard.writeText(sessionId).then(
+      () => toast.success(t('sessionList.sessionIdCopied')),
+      () => toast.error(t('sessionList.copyFailed')),
+    );
+  }, [t]);
+
   const visibleGroups = useMemo(() => {
     if (!hasFilter) return groupedSessions;
     const filtered = {} as GroupedSessions;
@@ -198,15 +228,27 @@ export function SessionList(props: Props) {
 
   return (
     <>
-      <SessionFilterBar
-        counts={counts}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        tabFilter={tabFilter}
-        onTabFilterChange={setTabFilter}
-        activeOnly={activeOnly}
-        onActiveOnlyChange={setActiveOnly}
-      />
+      {chosen === null ? (
+        <SessionFilterBar
+          counts={counts}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          tabFilter={tabFilter}
+          onTabFilterChange={setTabFilter}
+          activeOnly={activeOnly}
+          onActiveOnlyChange={setActiveOnly}
+          onStartSelecting={onDeleteSessions ? () => setChosen(new Set()) : undefined}
+        />
+      ) : (
+        <SelectionBar
+          count={chosen.size}
+          onSelectAll={() =>
+            setChosen(new Set(DISPLAY_GROUP_ORDER.flatMap((key) => sessionsInGroup(visibleGroups, key).map((s) => s.id))))
+          }
+          onDelete={() => void deleteChosen()}
+          onCancel={() => setChosen(null)}
+        />
+      )}
       <div
         ref={scrollRef}
         onScroll={requestMoreIfNeeded}
@@ -247,6 +289,12 @@ export function SessionList(props: Props) {
                     ? () => void setSessionFavorite(session.id, !(favoriteSessionIds?.has(session.id) ?? false))
                     : undefined
                 }
+                onCopyId={() => copySessionId(session.id)}
+                selection={
+                  chosen === null
+                    ? undefined
+                    : { checked: chosen.has(session.id), onToggle: () => toggleChosen(session.id) }
+                }
               />
             ))}
           </div>
@@ -254,5 +302,33 @@ export function SessionList(props: Props) {
         })}
       </div>
     </>
+  );
+}
+
+/** The bar that replaces the filters while sessions are being chosen for a bulk action. */
+function SelectionBar(props: { count: number; onSelectAll: () => void; onDelete: () => void; onCancel: () => void }) {
+  const { count, onSelectAll, onDelete, onCancel } = props;
+  const { t } = useTranslation('common');
+  const scale = useSessionListScale();
+  const button = 'flex items-center h-6 px-1.5 rounded transition-colors';
+  return (
+    <div className={`flex items-center gap-1 ${scale.searchPad} pt-0 ${scale.itemTime}`} data-testid="session-selection-bar">
+      <span className="text-text-secondary px-1">{t('sessionList.select.count', { count })}</span>
+      <button type="button" onClick={onSelectAll} className={`${button} text-text-tertiary hover:text-text-primary hover:bg-[var(--surface-selected)]`}>
+        {t('sessionList.select.all')}
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={count === 0}
+        className={`${button} ms-auto text-state-error-fg hover:bg-[var(--surface-selected)] disabled:opacity-40 disabled:pointer-events-none`}
+        data-testid="session-selection-delete"
+      >
+        {t('sessionList.select.delete')}
+      </button>
+      <button type="button" onClick={onCancel} className={`${button} text-text-tertiary hover:text-text-primary hover:bg-[var(--surface-selected)]`}>
+        {t('sessionList.select.cancel')}
+      </button>
+    </div>
   );
 }

@@ -248,6 +248,34 @@
       "countsTitle": "状態ごとのセッション数",
       "activeTitle": "回答待ち・作業中・未読のセッションだけを表示",
       "noneActive": "待っているセッションはありません"
+    },
+    "copySessionId": "セッション ID をコピー",
+    "sessionIdCopied": "セッション ID をコピーしました",
+    "copyFailed": "コピーできませんでした",
+    "select": {
+      "start": "選択",
+      "startTitle": "削除するセッションを複数選ぶ",
+      "count_one": "{{count}} 件選択",
+      "count_other": "{{count}} 件選択",
+      "all": "すべて",
+      "delete": "削除",
+      "cancel": "キャンセル",
+      "deleteTitle_one": "{{count}} 件のセッションを削除しますか？",
+      "deleteTitle_other": "{{count}} 件のセッションを削除しますか？",
+      "deleteMessage_one": "セッションの記録がディスクから削除されます。元に戻せません。",
+      "deleteMessage_other": "セッションの記録がディスクから削除されます。元に戻せません。"
+    },
+    "origin": {
+      "terminal": "ターミナル",
+      "terminalHint": "ターミナルの claude で開始",
+      "vscode": "VS Code",
+      "vscodeHint": "VS Code 拡張機能で開始",
+      "desktop": "デスクトップ",
+      "desktopHint": "Claude デスクトップアプリで開始",
+      "remote": "リモート",
+      "remoteHint": "リモートの Claude Code セッションで開始",
+      "githubAction": "GitHub",
+      "githubActionHint": "Claude Code GitHub Action が開始"
     }
   },
   "sessionExport": {

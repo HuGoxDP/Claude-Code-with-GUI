@@ -248,6 +248,34 @@
       "countsTitle": "상태별 세션 개수",
       "activeTitle": "답변이 필요하거나 작업 중이거나 읽지 않은 세션만 보기",
       "noneActive": "기다리는 세션이 없습니다"
+    },
+    "copySessionId": "세션 ID 복사",
+    "sessionIdCopied": "세션 ID를 복사했습니다",
+    "copyFailed": "복사하지 못했습니다",
+    "select": {
+      "start": "선택",
+      "startTitle": "삭제할 세션 여러 개 고르기",
+      "count_one": "{{count}}개 선택됨",
+      "count_other": "{{count}}개 선택됨",
+      "all": "전체",
+      "delete": "삭제",
+      "cancel": "취소",
+      "deleteTitle_one": "세션 {{count}}개를 삭제할까요?",
+      "deleteTitle_other": "세션 {{count}}개를 삭제할까요?",
+      "deleteMessage_one": "세션 기록이 디스크에서 지워집니다. 되돌릴 수 없습니다.",
+      "deleteMessage_other": "세션 기록이 디스크에서 지워집니다. 되돌릴 수 없습니다."
+    },
+    "origin": {
+      "terminal": "터미널",
+      "terminalHint": "터미널에서 claude로 시작한 세션",
+      "vscode": "VS Code",
+      "vscodeHint": "VS Code 확장에서 시작한 세션",
+      "desktop": "데스크톱",
+      "desktopHint": "Claude 데스크톱 앱에서 시작한 세션",
+      "remote": "원격",
+      "remoteHint": "원격 Claude Code 세션에서 시작한 세션",
+      "githubAction": "GitHub",
+      "githubActionHint": "Claude Code GitHub Action이 시작한 세션"
     }
   },
   "sessionExport": {

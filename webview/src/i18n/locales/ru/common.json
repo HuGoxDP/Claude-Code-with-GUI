@@ -250,6 +250,40 @@
       "countsTitle": "Сессии по состоянию",
       "activeTitle": "Показывать только сессии, которые ждут ответа, работают или не прочитаны",
       "noneActive": "Ни одна сессия вас не ждёт"
+    },
+    "copySessionId": "Копировать ID сессии",
+    "sessionIdCopied": "ID сессии скопирован",
+    "copyFailed": "Не удалось скопировать",
+    "select": {
+      "start": "Выбрать",
+      "startTitle": "Выбрать несколько сессий для удаления",
+      "count_one": "Выбрано: {{count}}",
+      "count_other": "Выбрано: {{count}}",
+      "all": "Все",
+      "delete": "Удалить",
+      "cancel": "Отмена",
+      "deleteTitle_one": "Удалить сессии ({{count}})?",
+      "deleteTitle_other": "Удалить сессии ({{count}})?",
+      "deleteMessage_one": "Записи сессий будут удалены с диска. Это нельзя отменить.",
+      "deleteMessage_other": "Записи сессий будут удалены с диска. Это нельзя отменить.",
+      "count_few": "Выбрано: {{count}}",
+      "count_many": "Выбрано: {{count}}",
+      "deleteTitle_few": "Удалить сессии ({{count}})?",
+      "deleteTitle_many": "Удалить сессии ({{count}})?",
+      "deleteMessage_few": "Записи сессий будут удалены с диска. Это нельзя отменить.",
+      "deleteMessage_many": "Записи сессий будут удалены с диска. Это нельзя отменить."
+    },
+    "origin": {
+      "terminal": "Терминал",
+      "terminalHint": "Запущена через claude в терминале",
+      "vscode": "VS Code",
+      "vscodeHint": "Запущена в расширении VS Code",
+      "desktop": "Desktop",
+      "desktopHint": "Запущена в приложении Claude для компьютера",
+      "remote": "Удалённая",
+      "remoteHint": "Запущена в удалённой сессии Claude Code",
+      "githubAction": "GitHub",
+      "githubActionHint": "Запущена GitHub Action Claude Code"
     }
   },
   "sessionExport": {

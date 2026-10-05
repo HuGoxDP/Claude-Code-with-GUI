@@ -17,6 +17,7 @@ interface Props {
   highlightedSessionId?: string | null;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onDeleteSessions?: (sessionIds: string[]) => Promise<boolean>;
   onRenameSession: (sessionId: string, title: string) => void;
   /** Non-fatal reason the backend couldn't list sessions (e.g. WSL host mismatch on win32). */
   sessionsServiceError?: SessionServiceError | null;
@@ -44,6 +45,7 @@ export function DropdownMenu(props: Props) {
     highlightedSessionId = null,
     onSelectSession,
     onDeleteSession,
+    onDeleteSessions,
     onRenameSession,
     sessionsServiceError = null,
     isLoading = false,
@@ -62,6 +64,7 @@ export function DropdownMenu(props: Props) {
           highlightedSessionId={highlightedSessionId}
           onSelectSession={onSelectSession}
           onDeleteSession={onDeleteSession}
+          onDeleteSessions={onDeleteSessions}
           onRenameSession={onRenameSession}
           onLoadMore={onLoadMore}
           hasMore={hasMore}

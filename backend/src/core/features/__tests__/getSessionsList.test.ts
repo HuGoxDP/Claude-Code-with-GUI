@@ -85,6 +85,7 @@ function info(overrides: Partial<{
     createdAt: '2025-01-01T00:00:00Z',
     messageCount: null,
     isSidechain: false,
+    entrypoint: null,
     ...overrides,
   };
 }

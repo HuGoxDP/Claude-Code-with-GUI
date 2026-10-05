@@ -151,3 +151,31 @@ export function groupSessionsByDate(
 
   return groups;
 }
+
+/** Where a session was started, as far as the session list names it. */
+export type SessionOrigin = 'terminal' | 'vscode' | 'desktop' | 'remote' | 'githubAction';
+
+/**
+ * The place a session was started, from the CLI's `entrypoint`, or null when
+ * the list should not name one.
+ *
+ * Sessions started by a program driving the CLI (`sdk-cli`, `sdk-ts`,
+ * `sdk-py`, which is how this app runs it) carry no badge: they are most of the
+ * list, and a badge on nearly every row says nothing. The badge marks the
+ * sessions that came from somewhere else.
+ */
+export function sessionOriginOf(entrypoint: string | null | undefined): SessionOrigin | null {
+  switch (entrypoint) {
+    case 'cli':
+      return 'terminal';
+    case 'claude-vscode':
+      return 'vscode';
+    case 'claude-desktop':
+    case 'claude-desktop-3p':
+      return 'desktop';
+    case 'claude-code-github-action':
+      return 'githubAction';
+  }
+  if (entrypoint && (entrypoint.startsWith('remote') || entrypoint === 'ssh-remote')) return 'remote';
+  return null;
+}

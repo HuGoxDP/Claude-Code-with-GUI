@@ -40,6 +40,13 @@ export interface SessionInfo {
    */
   messageCount: number | null;
   isSidechain: boolean;
+  /**
+   * Where the session was started, as the CLI records it on every entry
+   * (`entrypoint`): `cli` for a terminal, `sdk-cli` for a program driving the
+   * CLI (this app among them), `claude-vscode`, `claude-desktop`, `remote`…
+   * The first value the file carries, or null for a file with none.
+   */
+  entrypoint: string | null;
 }
 
 /**
@@ -127,6 +134,8 @@ interface HeadScan {
   messageCount: number;
   hasUserOrAssistant: boolean;
   isSidechain: boolean;
+  /** The first `entrypoint` an entry carried, or null. */
+  entrypoint: string | null;
   /** The sidechain gate tripped, so the session is not shown at all. */
   skipSession: boolean;
   /**
@@ -154,6 +163,7 @@ function scanHead(file: string): Promise<HeadScan> {
     let lastAiTitle: string | null = null;
     let lastAgentName: string | null = null;
     let hasUserOrAssistant = false;
+    let entrypoint: string | null = null;
     let sidechainGateSeen = false;
     let isSidechainFromGate = false;
     let skipSession = false;
@@ -183,6 +193,7 @@ function scanHead(file: string): Promise<HeadScan> {
         messageCount,
         hasUserOrAssistant,
         isSidechain: isSidechainFromGate,
+        entrypoint,
         skipSession,
         readToEnd: !stoppedEarly,
       });
@@ -214,6 +225,11 @@ function scanHead(file: string): Promise<HeadScan> {
 
       if (timestamp && firstTimestamp === null) {
         firstTimestamp = timestamp;
+      }
+      // Every user and assistant entry carries it, so the first one the scan
+      // reads is the session's, long before the title stops the scan.
+      if (entrypoint === null && typeof entry.entrypoint === 'string' && entry.entrypoint) {
+        entrypoint = entry.entrypoint;
       }
 
       // A summary outranks the first prompt as a title, but finding one is NOT
@@ -432,6 +448,7 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
       createdAt: head.createdAt,
       messageCount: head.readToEnd ? head.messageCount : null,
       isSidechain: true,
+      entrypoint: head.entrypoint,
     };
   }
 
@@ -452,6 +469,7 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
       createdAt: head.createdAt,
       messageCount: head.messageCount,
       isSidechain: true,
+      entrypoint: head.entrypoint,
     };
   }
 
@@ -464,5 +482,6 @@ export async function extractSessionInfo(file: string): Promise<SessionInfo> {
     createdAt: head.createdAt,
     messageCount: head.readToEnd ? head.messageCount : null,
     isSidechain: head.isSidechain,
+    entrypoint: head.entrypoint,
   };
 }
