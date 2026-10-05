@@ -1,20 +1,50 @@
 import type { ConnectionManager } from '../../ws/connection-manager';
 import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
+import { join, relative } from 'path';
 import {
   readSessionFavorites,
   setSessionFavorite,
-  type SessionFavorite,
+  type FavoriteSession,
 } from '../features/session-favorites-store';
 import { getSessionEntry } from '../features/getSessionEntry';
 import type { SessionListEntry } from '../features/getSessionsList';
+import { normalizeCwd } from '../entities/project/normalizeCwd';
 import { isInsideWorkingDir, isSameWorkingDir, MessageType } from '../../shared';
 
-/** Whether a starred session belongs in a list anchored at [rootDir] (itself or nested). */
-function inScope(favorite: SessionFavorite, rootDir: string, includeNested: boolean): boolean {
-  if (!favorite.sessionDir) return false;
-  if (isSameWorkingDir(favorite.sessionDir, rootDir)) return true;
-  return includeNested && isInsideWorkingDir(favorite.sessionDir, rootDir);
+/**
+ * The directory a starred session's row is built from, or null when the star
+ * does not belong in a list anchored at [rootDir] (itself, or below it when
+ * [includeNested]).
+ *
+ * A star names its directory in the project's settled spelling (links followed,
+ * see normalizeCwd), while the list is anchored at the directory the webview
+ * opened, which may be a link to it. Both spellings are compared, and the row
+ * is built under the list's own spelling so it reads the same sessions folder
+ * the list's rows do.
+ */
+export function rowDirFor(
+  favorite: FavoriteSession,
+  rootDir: string,
+  settledRoot: string,
+  includeNested: boolean,
+): string | null {
+  const dir = favorite.sessionDir;
+  if (!dir) return null;
+  if (isSameWorkingDir(dir, rootDir) || isSameWorkingDir(dir, settledRoot)) return rootDir;
+  if (!includeNested) return null;
+  if (isInsideWorkingDir(dir, rootDir)) return dir;
+  if (isInsideWorkingDir(dir, settledRoot)) return join(rootDir, relative(settledRoot, dir));
+  return null;
+}
+
+/** [rootDir] in the spelling stars are stored in, or as given when it cannot be settled. */
+function settle(rootDir: string): string {
+  try {
+    return normalizeCwd(rootDir);
+  } catch {
+    return rootDir;
+  }
 }
 
 /**
@@ -40,8 +70,12 @@ export async function getSessionFavoritesHandler(
 
   const sessions: SessionListEntry[] = [];
   if (rootDir) {
-    const wanted = favorites.filter((f) => inScope(f, rootDir, includeNested));
-    const rows = await Promise.all(wanted.map((f) => getSessionEntry(f.sessionDir, f.sessionId)));
+    const settledRoot = settle(rootDir);
+    const wanted = favorites.flatMap((favorite) => {
+      const dir = rowDirFor(favorite, rootDir, settledRoot, includeNested);
+      return dir === null ? [] : [{ dir, sessionId: favorite.sessionId }];
+    });
+    const rows = await Promise.all(wanted.map(({ dir, sessionId }) => getSessionEntry(dir, sessionId)));
     for (const row of rows) if (row) sessions.push(row);
   }
 

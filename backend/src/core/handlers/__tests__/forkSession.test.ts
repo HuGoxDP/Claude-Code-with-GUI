@@ -147,13 +147,23 @@ describe('forkSessionHandler', () => {
 
   it('names the branch with the title generated for the session it came from', async () => {
     const dir = await writeSession('origin', [user('u1', 'a'), assistant('a1', 'b'), user('u2', 'c')]);
-    await writeSessionAiTitle(dir, 'origin', 'Fix login form');
-    const connections = createMockConnections();
+    const originalCcgHome = process.env.CCG_HOME;
+    process.env.CCG_HOME = join(dir, 'ccg');
+    try {
+      await writeSessionAiTitle('/repo', 'origin', 'Fix login form');
+      const connections = createMockConnections();
 
-    await fork(connections, { sessionId: 'origin', sendUuid: 'u2', workingDir: '/repo' });
+      await fork(connections, { sessionId: 'origin', sendUuid: 'u2', workingDir: '/repo' });
 
-    const { sessionId } = ackOf(connections)!;
-    expect(await readSessionAiTitles(dir)).toEqual({ origin: 'Fix login form', [sessionId as string]: 'Fix login form' });
+      const { sessionId } = ackOf(connections)!;
+      expect(Object.fromEntries(await readSessionAiTitles())).toEqual({
+        origin: 'Fix login form',
+        [sessionId as string]: 'Fix login form',
+      });
+    } finally {
+      if (originalCcgHome === undefined) delete process.env.CCG_HOME;
+      else process.env.CCG_HOME = originalCcgHome;
+    }
   });
 
   // The session list is where the user checks that the branch exists.

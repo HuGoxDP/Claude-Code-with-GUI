@@ -71,15 +71,22 @@ describe('generateSessionTitle', () => {
     message: { role: 'assistant', content: [{ type: 'text', text: 'Done.' }] },
   };
 
+  const originalCcgHome = process.env.CCG_HOME;
+  const storedTitles = async () => Object.fromEntries(await readSessionAiTitles());
+
   beforeEach(async () => {
     vi.clearAllMocks();
     sessionsPath = await mkdtemp(join(tmpdir(), 'session-title-'));
+    // The generated titles go to the entity tables, kept in this test's own folder.
+    process.env.CCG_HOME = join(sessionsPath, 'ccg');
     vi.mocked(getProjectSessionsPath).mockResolvedValue(sessionsPath);
     vi.mocked(readMergedSettings).mockResolvedValue({ settings: {}, overrides: [] });
     mockPrint.mockResolvedValue('Fix login form validation');
   });
 
   afterEach(async () => {
+    if (originalCcgHome === undefined) delete process.env.CCG_HOME;
+    else process.env.CCG_HOME = originalCcgHome;
     await rm(sessionsPath, { recursive: true, force: true });
   });
 
@@ -87,7 +94,7 @@ describe('generateSessionTitle', () => {
     await writeFile(join(sessionsPath, 's1.jsonl'), transcript(user('the login form accepts empty emails, fix it'), assistant));
 
     expect(await generateSessionTitle('/project', 's1')).toBe('Fix login form validation');
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({ s1: 'Fix login form validation' });
+    expect(await storedTitles()).toEqual({ s1: 'Fix login form validation' });
 
     const call = mockPrint.mock.calls[0]?.[0];
     expect(call?.prompt).toContain('the login form accepts empty emails, fix it');
@@ -132,20 +139,20 @@ describe('generateSessionTitle', () => {
     });
 
     expect(await generateSessionTitle('/project', 's1')).toBeNull();
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({});
+    expect(await storedTitles()).toEqual({});
   });
 
   it('stores nothing when the model gives nothing usable', async () => {
     await writeFile(join(sessionsPath, 's1.jsonl'), transcript(user('fix it'), assistant));
     mockPrint.mockResolvedValue('   ');
     expect(await generateSessionTitle('/project', 's1')).toBeNull();
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({});
+    expect(await storedTitles()).toEqual({});
   });
 
   it('lets a failed call reach the caller', async () => {
     await writeFile(join(sessionsPath, 's1.jsonl'), transcript(user('fix it'), assistant));
     mockPrint.mockRejectedValue(new Error('claude timed out'));
     await expect(generateSessionTitle('/project', 's1')).rejects.toThrow('claude timed out');
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({});
+    expect(await storedTitles()).toEqual({});
   });
 });

@@ -1,7 +1,7 @@
 # Catalog
 
 Status: Implemented
-Last verified: 2026-10-04 on branch `feat/prompt-library-reorder` (PR #519, not yet merged)
+Last verified: 2026-10-05 on branch `claude/gracious-brahmagupta-j0aanw` (the `session` tables added)
 
 The tables of the entity system. Each row of this index points at the code that owns the table. What a table's columns mean is in its entity class; how a feature uses it is in that feature's documentation.
 
@@ -14,5 +14,7 @@ The tables of the entity system. Each row of this index points at the code that 
 | `prompt_items` | `prompt` | Saved prompts of the prompt library | `prompt/PromptItem.entity.ts`; `docs/features/064-prompt_library/` |
 | `prompt_categories` | `prompt` | Prompt categories, shared by every project | `prompt/PromptCategory.entity.ts` |
 | `prompt_category_item_links` | `prompt` | Which prompt sits in which category, and its place there | `prompt/PromptCategoryItemLink.entity.ts` |
+| `session_favorites` | `session` | Sessions the user starred, with the project each one runs in | `session/SessionFavorite.entity.ts`; `features/session-favorites-store.ts`; `docs/features/081-session_favorites/` |
+| `session_ai_titles` | `session` | Titles this app generated for sessions, by session id | `session/SessionAiTitle.entity.ts`; `features/sessionAiTitles.ts`; `docs/features/086-ai_session_titles/` |
 
 When you add a table, add a row here.

@@ -1,15 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtemp, rm, readFile, writeFile } from 'fs/promises';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import { MigrationGate } from '../../entities/migration/MigrationGate';
+import { SessionAiTitleCollection } from '../../entities/session/SessionAiTitle.collection';
 import {
+  AI_TITLES_READ_DEADLINE_MS,
   displayTitle,
   readSessionAiTitles,
   removeSessionAiTitle,
   writeSessionAiTitle,
 } from '../sessionAiTitles';
-
-const AI_TITLES_FILE = '.claude-code-gui-ai-titles.json';
 
 describe('displayTitle', () => {
   it('lets a rename made here win over everything', () => {
@@ -33,34 +34,77 @@ describe('displayTitle', () => {
 });
 
 describe('sessionAiTitles store', () => {
-  let sessionsPath: string;
+  const originalCcgHome = process.env.CCG_HOME;
+  let root: string;
 
   beforeEach(async () => {
-    sessionsPath = await mkdtemp(join(tmpdir(), 'session-ai-titles-'));
+    root = await mkdtemp(join(tmpdir(), 'session-ai-titles-'));
+    process.env.CCG_HOME = join(root, 'ccg');
   });
 
   afterEach(async () => {
-    await rm(sessionsPath, { recursive: true, force: true });
+    vi.useRealTimers();
+    MigrationGate.reset();
+    if (originalCcgHome === undefined) delete process.env.CCG_HOME;
+    else process.env.CCG_HOME = originalCcgHome;
+    await rm(root, { recursive: true, force: true });
   });
 
-  it('reads nothing from a missing or broken file', async () => {
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({});
-    await writeFile(join(sessionsPath, AI_TITLES_FILE), 'not json', 'utf-8');
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({});
+  const stored = async () => Object.fromEntries(await readSessionAiTitles());
+  const tableFile = () => new SessionAiTitleCollection().filePath;
+
+  it('reads nothing before anything is written', async () => {
+    expect(await stored()).toEqual({});
   });
 
   it('writes, reads back and removes one session at a time', async () => {
-    await writeSessionAiTitle(sessionsPath, 's1', 'Fix login form');
-    await writeSessionAiTitle(sessionsPath, 's2', 'Add dark mode');
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({ s1: 'Fix login form', s2: 'Add dark mode' });
+    await writeSessionAiTitle('/p', 's1', 'Fix login form');
+    await writeSessionAiTitle('/q', 's2', 'Add dark mode');
+    expect(await stored()).toEqual({ s1: 'Fix login form', s2: 'Add dark mode' });
 
-    await removeSessionAiTitle(sessionsPath, 's1');
-    expect(await readSessionAiTitles(sessionsPath)).toEqual({ s2: 'Add dark mode' });
+    await removeSessionAiTitle('s1');
+    expect(await stored()).toEqual({ s2: 'Add dark mode' });
   });
 
-  it('refuses to replace a file it cannot read, so other titles survive', async () => {
-    await writeFile(join(sessionsPath, AI_TITLES_FILE), '{ "s1": "Kept", ', 'utf-8');
-    await expect(writeSessionAiTitle(sessionsPath, 's2', 'New')).rejects.toThrow();
-    expect(await readFile(join(sessionsPath, AI_TITLES_FILE), 'utf-8')).toBe('{ "s1": "Kept", ');
+  it('replaces the title of a session instead of adding a second row', async () => {
+    await writeSessionAiTitle('/p', 's1', 'First');
+    await writeSessionAiTitle('/p', 's1', 'Second');
+
+    expect(await stored()).toEqual({ s1: 'Second' });
+    expect(await new SessionAiTitleCollection().count()).toBe(1);
+  });
+
+  it('stores a title as a row of the entity table, pointing at its project by number', async () => {
+    await writeSessionAiTitle('/p', 's1', 'Fix login form');
+
+    const [line] = (await readFile(tableFile(), 'utf-8')).trim().split('\n').map((l) => JSON.parse(l));
+    expect(line).toMatchObject({ id: 1, sessionId: 's1', title: 'Fix login form', projectId: expect.any(Number) });
+  });
+
+  it('refuses to write over a table it cannot read, so the caller never announces a title it lost', async () => {
+    await mkdir(tableFile(), { recursive: true });
+    await expect(writeSessionAiTitle('/p', 's2', 'New')).rejects.toThrow();
+    await expect(removeSessionAiTitle('s2')).resolves.toBeUndefined();
+    expect(await stored()).toEqual({});
+  });
+
+  it('keeps a line it does not understand when it writes', async () => {
+    await mkdir(join(root, 'ccg', 'entities', 'session'), { recursive: true });
+    await writeFile(tableFile(), '{ "s1": "Kept", \n');
+
+    await writeSessionAiTitle('/p', 's2', 'New');
+    await removeSessionAiTitle('s2');
+
+    expect(await readFile(tableFile(), 'utf-8')).toContain('{ "s1": "Kept", ');
+  });
+
+  it('answers without titles instead of holding a list back while migrations run', async () => {
+    vi.useFakeTimers();
+    MigrationGate.close(new Promise(() => {}));
+
+    const read = readSessionAiTitles();
+    await vi.advanceTimersByTimeAsync(AI_TITLES_READ_DEADLINE_MS);
+
+    expect(await read).toEqual(new Map());
   });
 });

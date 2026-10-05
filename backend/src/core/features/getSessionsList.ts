@@ -162,21 +162,19 @@ export async function resolvePage(
   const offset = Math.max(0, options.offset ?? 0);
   const limit = options.limit;
 
-  // One override file and one generated-title file per directory, read once
-  // each rather than per session.
-  type Titles = { overrides: Record<string, string>; generated: Record<string, string> };
-  const titlesByPath = new Map<string, Titles>();
-  const titlesFor = async (sessionsPath: string): Promise<Titles> => {
-    const cached = titlesByPath.get(sessionsPath);
+  // One override file per directory, read once each rather than per session,
+  // and the generated titles (one table for every project) read once per page,
+  // only when the page has a row to name.
+  const overridesByPath = new Map<string, Record<string, string>>();
+  const overridesFor = async (sessionsPath: string): Promise<Record<string, string>> => {
+    const cached = overridesByPath.get(sessionsPath);
     if (cached) return cached;
-    const [overrides, generated] = await Promise.all([
-      readSessionTitleOverrides(sessionsPath),
-      readSessionAiTitles(sessionsPath),
-    ]);
-    const loaded = { overrides, generated };
-    titlesByPath.set(sessionsPath, loaded);
+    const loaded = await readSessionTitleOverrides(sessionsPath);
+    overridesByPath.set(sessionsPath, loaded);
     return loaded;
   };
+  let generatedTitles: Promise<ReadonlyMap<string, string>> | null = null;
+  const generatedFor = (): Promise<ReadonlyMap<string, string>> => (generatedTitles ??= readSessionAiTitles());
 
   const sessions: SessionListEntry[] = [];
   let cursor = offset;
@@ -212,13 +210,16 @@ export async function resolvePage(
       // unable to tell a short page from the end of the list.
       if (resolved.info.isSidechain) continue;
       if (limit !== undefined && sessions.length >= limit) break;
-      const { overrides, generated } = await titlesFor(resolved.key.sessionsPath);
+      const [overrides, generated] = await Promise.all([
+        overridesFor(resolved.key.sessionsPath),
+        generatedFor(),
+      ]);
       const id = resolved.key.sessionId;
       sessions.push({
         sessionId: id,
         sessionDir: resolved.key.sessionDir,
         ...resolved.info,
-        title: displayTitle(resolved.info, overrides[id], generated[id]),
+        title: displayTitle(resolved.info, overrides[id], generated.get(id)),
       });
     }
   }

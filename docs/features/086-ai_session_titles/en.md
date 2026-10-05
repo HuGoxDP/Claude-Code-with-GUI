@@ -60,15 +60,17 @@ claude -p --model haiku --no-session-persistence --tools "" …
 
 ## Where the title is kept
 
-In a file of this app beside your sessions:
+In the app's own data files, in your user data folder:
 
 ```
-~/.claude/projects/<project>/.claude-code-gui-ai-titles.json
+~/.claude-code-gui/entities/session/session_ai_titles.entity.jsonl
 ```
 
-It sits next to `.claude-code-gui-session-titles.json`, which holds the renames you make in the session dropdown. **Your transcripts are not changed**: the title is not written into the session's `.jsonl` file. That also means a title generated here shows in this app but not in `claude --resume`; a name you want everywhere is best given with `/rename`.
+Each line is one title: the session's id, the title, when it was stored, and the number of the project the session runs in. If you set `CCG_HOME`, the folder follows it. **Your transcripts are not changed**: the title is not written into the session's `.jsonl` file. That also means a title generated here shows in this app but not in `claude --resume`; a name you want everywhere is best given with `/rename`. (The renames you make in the session dropdown are kept apart from these, in `.claude-code-gui-session-titles.json` beside your sessions.)
 
-Deleting a session from the list removes its title from this file too.
+Deleting a session from the list removes its title too.
+
+**Titles from an earlier version are kept.** Earlier builds kept them in `~/.claude/projects/<project>/.claude-code-gui-ai-titles.json`. The first start of this version moves them into the file above and leaves the old files as they were. A title the move cannot read is skipped rather than reported: the session then shows its first prompt, as it did before it had a title.
 
 ## Limits
 

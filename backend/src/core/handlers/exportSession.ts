@@ -73,9 +73,9 @@ export async function exportSessionHandler(
     const info = await extractSessionInfo(join(sessionsDir, `${sessionId}.jsonl`));
     const [overrides, generated] = await Promise.all([
       readSessionTitleOverrides(sessionsDir),
-      readSessionAiTitles(sessionsDir),
+      readSessionAiTitles(),
     ]);
-    const title = displayTitle(info, overrides[sessionId], generated[sessionId]);
+    const title = displayTitle(info, overrides[sessionId], generated.get(sessionId));
 
     let contents: string;
     if (format === 'jsonl') {

@@ -60,15 +60,17 @@ claude -p --model haiku --no-session-persistence --tools "" …
 
 ## 제목을 어디에 두나
 
-세션 옆에 있는 이 앱의 파일에 둡니다.
+사용자 데이터 폴더 안, 이 앱의 데이터 파일에 둡니다.
 
 ```
-~/.claude/projects/<project>/.claude-code-gui-ai-titles.json
+~/.claude-code-gui/entities/session/session_ai_titles.entity.jsonl
 ```
 
-세션 드롭다운에서 바꾼 이름을 담는 `.claude-code-gui-session-titles.json` 바로 옆입니다. **트랜스크립트는 바뀌지 않습니다.** 제목은 세션의 `.jsonl` 파일에 쓰이지 않습니다. 그래서 여기서 생성한 제목은 이 앱에서는 보이지만 `claude --resume`에서는 보이지 않습니다. 어디서나 보이는 이름이 필요하면 `/rename`으로 지어 주세요.
+한 줄이 제목 하나입니다. 세션 id, 제목, 저장한 시각, 그 세션이 도는 프로젝트의 번호가 들어 있습니다. `CCG_HOME`을 설정했다면 폴더도 그쪽을 따릅니다. **트랜스크립트는 바뀌지 않습니다.** 제목은 세션의 `.jsonl` 파일에 쓰이지 않습니다. 그래서 여기서 생성한 제목은 이 앱에서는 보이지만 `claude --resume`에서는 보이지 않습니다. 어디서나 보이는 이름이 필요하면 `/rename`으로 지어 주세요. (세션 드롭다운에서 바꾼 이름은 이것과 따로, 세션 옆의 `.claude-code-gui-session-titles.json`에 있습니다.)
 
-목록에서 세션을 지우면 이 파일에서도 그 제목이 지워집니다.
+목록에서 세션을 지우면 그 제목도 지워집니다.
+
+**이전 버전에서 생성한 제목은 그대로 남습니다.** 이전 빌드는 제목을 `~/.claude/projects/<project>/.claude-code-gui-ai-titles.json`에 두었습니다. 이 버전을 처음 실행할 때 제목을 위 파일로 옮기고, 옛 파일은 손대지 않고 남겨 둡니다. 옮기다가 읽지 못한 제목은 알리지 않고 건너뜁니다. 그 세션은 제목이 생기기 전처럼 첫 프롬프트로 보입니다.
 
 ## 한계
 

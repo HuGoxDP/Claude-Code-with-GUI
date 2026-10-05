@@ -28,14 +28,24 @@ Stars are shared across all your tabs and windows: star a session in one tab and
 
 ## Where stars are kept
 
-Stars live in your user data folder, in `~/.claude-code-gui/session-favorites.json`, next to your other GUI settings. They are not written into the Claude Code CLI's session files, so the CLI is unaffected, and nothing about a session changes when you star it.
+Stars live in your user data folder, in the app's own data files:
+
+```
+~/.claude-code-gui/entities/session/session_favorites.entity.jsonl
+```
+
+Each line is one star: the session's id, when you starred it, and the number of the project the session runs in (projects are listed in `entities/project/projects.entity.jsonl`). If you set `CCG_HOME`, the folder follows it. Stars are not written into the Claude Code CLI's session files, so the CLI is unaffected, and nothing about a session changes when you star it.
 
 Deleting a session also removes its star.
+
+**Stars from an earlier version are kept.** Earlier builds kept stars in `~/.claude-code-gui/session-favorites.json`. The first start of this version moves them into the file above, in the same order, and leaves the old file as it was, so going back to an older build still finds them. If the old file cannot be read (for example, no permission), the app says so and reads it again when you come back to the window, without a restart.
 
 ## Common questions
 
 **I starred a session and it disappeared from where it was.** It moved to the Favorites group at the top. Scroll up.
 
 **My star is gone after I deleted and re-created the session.** A star belongs to one session; deleting the session removes it.
+
+**I starred something in a newer build and then went back to an older one.** The older build reads the old `session-favorites.json`, which no longer changes, so stars made since are not there. They come back when you update again.
 
 **Can I star sessions in the terminal?** No. The Claude Code CLI has no favorites; this is a GUI convenience on top of the sessions the CLI writes.

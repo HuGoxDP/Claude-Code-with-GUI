@@ -69,7 +69,7 @@ export async function deleteSessionHandler(
     // Drop any stored title override so a future session reusing this id does not
     // inherit a stale custom title.
     await removeSessionTitleOverride(sessionsDir, sessionId);
-    await removeSessionAiTitle(sessionsDir, sessionId);
+    await removeSessionAiTitle(sessionId);
 
     // Reservations are bound to the session, so they die with it — otherwise a
     // pending "send later" would fire into a conversation that no longer exists.

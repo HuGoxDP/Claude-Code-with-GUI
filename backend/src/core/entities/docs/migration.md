@@ -1,7 +1,7 @@
 # Migration
 
 Status: Implemented
-Last verified: 2026-10-04 on branch `feat/prompt-library-reorder` (PR #519, not yet merged). Checked against the bundled backend and the dev (`tsx`) backend booted on a throwaway home with old data planted, and on a copy of real old data (about 0.5 s, 30 projects). Checked in a browser through the dev webview, on Linux, Windows 11 and WSL. The re-reading of unread folders is checked with the bundled backend at its three moments (window active again, the prompts opened, the backend restarted). Not yet checked in a real IDE.
+Last verified: 2026-10-04 on branch `feat/prompt-library-reorder` (PR #519, not yet merged). Checked against the bundled backend and the dev (`tsx`) backend booted on a throwaway home with old data planted, and on a copy of real old data (about 0.5 s, 30 projects). Checked in a browser through the dev webview, on Linux, Windows 11 and WSL. The re-reading of unread folders is checked with the bundled backend at its three moments (window active again, the prompts opened, the backend restarted). Not yet checked in a real IDE. The two `session` imports were checked on 2026-10-05 with the dev (`tsx`) backend booted on a home holding old data from an earlier build (one star, two titles): both moved, the old files' hashes unchanged, and the session list showed them in a browser.
 
 A migration moves the user's data from the shape an older version wrote to the shape this version reads. The migration system runs them when the backend starts.
 
@@ -93,6 +93,8 @@ A migration that cannot read an old file is still recorded as done, so nothing w
 | `20261004120000_create-projects` | Registers every directory the CLI has sessions in as a project (`syncProjectsList`) |
 | `20261004120100_import-legacy-projects-json` | Moves pins, aliases and notes from `~/.claude-code-gui/projects.json` onto the projects. A project it names that the table lacks is registered, so a pin on a directory with no session is kept. Never overwrites what a project already has |
 | `20261004120200_import-legacy-prompts` | Moves `~/.claude-code-gui/prompts.json` and the `.claude-code-gui/prompts.json` inside every known project. The shared file goes first |
+| `20261005120000_import-legacy-session-favorites` | Moves the starred sessions from `~/.claude-code-gui/session-favorites.json`, keeping their order. A star's directory becomes its project, registered if the table lacks it. An unreadable file is reported and read again by `retry` |
+| `20261005120100_import-legacy-session-ai-titles` | Moves the generated session titles from the `.claude-code-gui-ai-titles.json` in every sessions folder under `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/`, matching a folder to its project by the CLI's encoding of the path. An unreadable file is skipped and counted, not reported: a lost title only means the session shows its first prompt |
 
 ## Decisions
 

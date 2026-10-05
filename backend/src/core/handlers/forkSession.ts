@@ -8,9 +8,9 @@ import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
 import { MessageType } from '../../shared';
 
-async function copySessionAiTitle(sessionsDir: string, from: string, to: string): Promise<void> {
-  const title = (await readSessionAiTitles(sessionsDir))[from];
-  if (title) await writeSessionAiTitle(sessionsDir, to, title);
+async function copySessionAiTitle(workingDir: string, from: string, to: string): Promise<void> {
+  const title = (await readSessionAiTitles()).get(from);
+  if (title) await writeSessionAiTitle(workingDir, to, title);
 }
 
 /**
@@ -147,7 +147,7 @@ export async function forkSessionHandler(
     // The branch shares the original's opening, so it shares the title this app
     // generated for it. Best effort: without it the branch is named by its
     // first prompt, which is what the list would show anyway.
-    await copySessionAiTitle(sessionsDir, sessionId, forkedSessionId).catch(() => {});
+    await copySessionAiTitle(workingDir, sessionId, forkedSessionId).catch(() => {});
 
     connections.sendTo(connectionId, MessageType.ACK, {
       requestId: message.requestId,

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('../../features/session-favorites-store', () => ({
+vi.mock('../../features/session-favorites-store', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../features/session-favorites-store')>()),
   readSessionFavorites: vi.fn(),
   setSessionFavorite: vi.fn(),
 }));
@@ -8,8 +9,8 @@ vi.mock('../../features/getSessionEntry', () => ({
   getSessionEntry: vi.fn(),
 }));
 
-import { getSessionFavoritesHandler, setSessionFavoriteHandler } from '../sessionFavorites';
-import { readSessionFavorites, setSessionFavorite } from '../../features/session-favorites-store';
+import { getSessionFavoritesHandler, rowDirFor, setSessionFavoriteHandler } from '../sessionFavorites';
+import { FavoriteSession, readSessionFavorites, setSessionFavorite } from '../../features/session-favorites-store';
 import { getSessionEntry } from '../../features/getSessionEntry';
 import type { ConnectionManager } from '../../../ws/connection-manager';
 import type { Bridge } from '../../../bridge/bridge-interface';
@@ -27,9 +28,9 @@ function message(type: MessageType, payload: Record<string, unknown>): IPCMessag
 }
 
 const FAVORITES = [
-  { sessionId: 'here', sessionDir: '/proj' },
-  { sessionId: 'nested', sessionDir: '/proj/pkg' },
-  { sessionId: 'elsewhere', sessionDir: '/other' },
+  new FavoriteSession('here', '/proj'),
+  new FavoriteSession('nested', '/proj/pkg'),
+  new FavoriteSession('elsewhere', '/other'),
 ];
 
 describe('getSessionFavoritesHandler', () => {
@@ -76,7 +77,7 @@ describe('setSessionFavoriteHandler', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('stores the star and tells every window', async () => {
-    const stored = [{ sessionId: 's1', sessionDir: '/proj' }];
+    const stored = [new FavoriteSession('s1', '/proj')];
     vi.mocked(setSessionFavorite).mockResolvedValue({ ok: true, favorites: stored });
     const connections = connectionsMock();
     await setSessionFavoriteHandler('c1', message(MessageType.SET_SESSION_FAVORITE, { sessionId: 's1', sessionDir: '/proj', favorite: true }), connections, bridge);
@@ -91,5 +92,23 @@ describe('setSessionFavoriteHandler', () => {
     await setSessionFavoriteHandler('c1', message(MessageType.SET_SESSION_FAVORITE, { sessionId: 's1', favorite: true }), connections, bridge);
     expect(connections.sendTo).toHaveBeenCalledWith('c1', MessageType.ACK, expect.objectContaining({ status: 'error' }));
     expect(connections.broadcastToAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('rowDirFor', () => {
+  const star = (dir: string) => new FavoriteSession('s', dir);
+
+  it('builds the row under the list\'s spelling when the list was opened through a link', () => {
+    expect(rowDirFor(star('/real/app'), '/link/app', '/real/app', false)).toBe('/link/app');
+    expect(rowDirFor(star('/real/app/pkg'), '/link/app', '/real/app', true)).toBe('/link/app/pkg');
+  });
+
+  it('leaves out a nested star unless the list merges nested directories', () => {
+    expect(rowDirFor(star('/real/app/pkg'), '/link/app', '/real/app', false)).toBeNull();
+  });
+
+  it('leaves out a star with no directory, and one from elsewhere', () => {
+    expect(rowDirFor(star(''), '/app', '/app', true)).toBeNull();
+    expect(rowDirFor(star('/app-other'), '/app', '/app', true)).toBeNull();
   });
 });

@@ -33,14 +33,14 @@ export async function getSessionEntry(
 
     const [overrides, generated] = await Promise.all([
       readSessionTitleOverrides(sessionsPath),
-      readSessionAiTitles(sessionsPath),
+      readSessionAiTitles(),
     ]);
 
     return {
       sessionId,
       sessionDir: workingDir,
       ...info,
-      title: displayTitle(info, overrides[sessionId], generated[sessionId]),
+      title: displayTitle(info, overrides[sessionId], generated.get(sessionId)),
     };
   } catch (err) {
     console.error('[node-backend]', 'Failed to build session entry:', sessionId, err);

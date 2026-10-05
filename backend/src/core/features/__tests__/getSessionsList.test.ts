@@ -25,7 +25,7 @@ vi.mock('../sessionTitleOverrides', () => ({
 
 vi.mock('../sessionAiTitles', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../sessionAiTitles')>()),
-  readSessionAiTitles: vi.fn(async () => ({})),
+  readSessionAiTitles: vi.fn(async () => new Map<string, string>()),
 }));
 
 import { readdir, stat } from 'fs/promises';
@@ -184,7 +184,7 @@ describe('getSessionsList', () => {
       mine: { title: 'fix it', titleSource: 'prompt' },
     });
     mockReadOverrides.mockResolvedValue({ mine: 'Renamed here' });
-    vi.mocked(readSessionAiTitles).mockResolvedValue({ plain: 'Fix login form', named: 'Generated', mine: 'Generated' });
+    vi.mocked(readSessionAiTitles).mockResolvedValue(new Map([['plain', 'Fix login form'], ['named', 'Generated'], ['mine', 'Generated']]));
 
     const result = await getSessionsList('/test');
     expect(result.sessions.map((s) => [s.sessionId, s.title])).toEqual([

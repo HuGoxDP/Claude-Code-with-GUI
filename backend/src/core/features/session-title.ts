@@ -5,7 +5,7 @@
  * The CLI only writes that entry for some of its own sessions, never for the
  * `-p` sessions this app runs, so a session started here was listed under its
  * whole first prompt. This writes the missing title with one short `claude -p`
- * call and keeps it in our own file (see sessionAiTitles.ts); the transcript is
+ * call and keeps it in our own table (see sessionAiTitles.ts); the transcript is
  * left as the CLI wrote it.
  */
 import { tmpdir } from 'os';
@@ -99,9 +99,9 @@ export async function generateSessionTitle(workingDir: string, sessionId: string
   const sessionsPath = await getProjectSessionsPath(workingDir);
   const [overrides, generated] = await Promise.all([
     readSessionTitleOverrides(sessionsPath),
-    readSessionAiTitles(sessionsPath),
+    readSessionAiTitles(),
   ]);
-  if (overrides[sessionId] || generated[sessionId]) return null;
+  if (overrides[sessionId] || generated.has(sessionId)) return null;
 
   const info = await extractSessionInfo(join(sessionsPath, `${sessionId}.jsonl`));
   // Anything but the first prompt is a name someone chose, or a summary, which
@@ -125,6 +125,6 @@ export async function generateSessionTitle(workingDir: string, sessionId: string
   const latest = await readSessionTitleOverrides(sessionsPath);
   if (latest[sessionId]) return null;
 
-  await writeSessionAiTitle(sessionsPath, sessionId, title);
+  await writeSessionAiTitle(workingDir, sessionId, title);
   return title;
 }
