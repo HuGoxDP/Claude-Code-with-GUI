@@ -383,6 +383,7 @@
       "recallPrompt": "Bring back an earlier or later prompt from the first or last line",
       "toggleDictation": "Start or stop voice input",
       "insertEditorPath": "Send the editor's file and selected lines to the chat",
+      "quoteSelection": "Quote the text selected in the conversation",
       "lineEdges": "Jump to the start or end of the line",
       "textStart": "Jump to the start of the text",
       "textEnd": "Jump to the end of the text",

@@ -25,6 +25,10 @@ Ported from the CC GUI plugin, which has the same menu.
 
 The quote is plain text in the input, so you can edit it, shorten it, or quote several passages one after another before sending.
 
+## Quote with the keyboard
+
+**Ctrl+Shift+Q** quotes the selected text without opening the menu, on every system, macOS included: Cmd+Shift+Q is macOS's own Log Out, so it is not used. Inside the IDE this key opens Context Info on macOS while an editor has focus; while the chat has focus it quotes instead. The keyboard shortcuts window (Ctrl/Cmd+/) lists it.
+
 ## When the menu appears
 
 The menu opens only when it has something to offer: on a link, or with text selected in the conversation. A right-click anywhere else shows your browser's own menu, or the IDE's, as before. To reach that menu over a link or a selection too, hold **Shift** while you right-click.

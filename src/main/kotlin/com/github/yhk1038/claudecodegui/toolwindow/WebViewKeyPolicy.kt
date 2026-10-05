@@ -62,6 +62,12 @@ object WebViewKeyPolicy {
         val shortcutModifier = if (mac) meta && !ctrl else ctrl && !meta
         if (keyCode == KeyEvent.VK_F && shortcutModifier && !shift && !alt) return true
 
+        // Ctrl+Shift+Q quotes the text selected in the conversation into the
+        // chat input, on every platform (Cmd+Shift+Q is macOS's Log Out). The
+        // IDE's macOS keymap binds it to Context Info, which has nothing to show
+        // for the chat.
+        if (keyCode == KeyEvent.VK_Q && ctrl && shift && !meta && !alt) return true
+
         // A modified Enter is the composer's, whichever modifier it carries.
         //
         // The IDE binds two of them in its default keymap and both fire while the

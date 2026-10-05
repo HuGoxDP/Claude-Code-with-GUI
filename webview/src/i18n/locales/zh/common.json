@@ -383,6 +383,7 @@
       "recallPrompt": "在第一行或最后一行时调出上一条或下一条提示词",
       "toggleDictation": "开始或停止语音输入",
       "insertEditorPath": "将编辑器中的文件和选中的行发送到聊天",
+      "quoteSelection": "引用对话中选中的文本",
       "lineEdges": "跳到行首或行尾",
       "textStart": "跳到文本开头",
       "textEnd": "跳到文本末尾",

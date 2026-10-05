@@ -152,3 +152,30 @@ export function MessageContextMenu({ target, onClose }: MessageContextMenuProps)
     </Tippy>
   );
 }
+
+/**
+ * Ctrl+Shift+Q quotes the text selected in the conversation into the chat
+ * input, without the menu. Ported from CC GUI's quote shortcut.
+ *
+ * Ctrl on every platform, macOS included: Cmd+Shift+Q is macOS's Log Out. The
+ * physical key is read (`KeyQ`), so it works whatever the keyboard layout.
+ */
+export function isQuoteSelectionShortcut(event: KeyboardEvent): boolean {
+  return event.code === 'KeyQ' && event.ctrlKey && event.shiftKey && !event.metaKey && !event.altKey;
+}
+
+export function useQuoteSelectionShortcut(containerRef: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (!isQuoteSelectionShortcut(event)) return;
+      const container = containerRef.current;
+      if (!container) return;
+      const text = selectedTextIn(container);
+      if (text === '') return;
+      event.preventDefault();
+      requestQuote(text);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [containerRef]);
+}

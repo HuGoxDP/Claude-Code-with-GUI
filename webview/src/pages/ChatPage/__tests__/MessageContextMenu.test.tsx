@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useRef } from 'react';
-import { linkHrefAt, selectedTextIn, useMessageContextMenu } from '../MessageContextMenu';
+import { linkHrefAt, selectedTextIn, useMessageContextMenu, useQuoteSelectionShortcut } from '../MessageContextMenu';
 import { QUOTE_IN_COMPOSER_EVENT } from '../quoteInComposer';
 
 vi.mock('@/i18n', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
@@ -10,6 +10,7 @@ vi.mock('react-hot-toast', () => ({ default: { success: vi.fn(), error: vi.fn() 
 function Conversation() {
   const ref = useRef<HTMLDivElement>(null);
   const { onContextMenu, menu } = useMessageContextMenu(ref);
+  useQuoteSelectionShortcut(ref);
   return (
     <div>
       <div ref={ref} data-testid="conversation" onContextMenu={onContextMenu}>
@@ -107,5 +108,36 @@ describe('linkHrefAt', () => {
     container.innerHTML = '<a href="https://x.dev"><code>x</code></a>';
     expect(linkHrefAt(container.querySelector('code'), container)).toBe('https://x.dev');
     expect(linkHrefAt(null, container)).toBeNull();
+  });
+});
+
+describe('the quote shortcut', () => {
+  afterEach(() => window.getSelection()?.removeAllRanges());
+
+  const press = (init: KeyboardEventInit) => {
+    const listener = vi.fn();
+    window.addEventListener(QUOTE_IN_COMPOSER_EVENT, listener);
+    fireEvent.keyDown(window, { code: 'KeyQ', key: 'Q', ...init });
+    window.removeEventListener(QUOTE_IN_COMPOSER_EVENT, listener);
+    return listener;
+  };
+
+  it('quotes the selection with Ctrl+Shift+Q', () => {
+    render(<Conversation />);
+    select(screen.getByTestId('reply'));
+    const listener = press({ ctrlKey: true, shiftKey: true });
+    expect((listener.mock.calls[0]![0] as CustomEvent).detail).toEqual({ text: 'Use a token bucket for the rate limit.' });
+  });
+
+  it('leaves Cmd+Shift+Q alone, which is Log Out on macOS', () => {
+    render(<Conversation />);
+    select(screen.getByTestId('reply'));
+    expect(press({ metaKey: true, shiftKey: true })).not.toHaveBeenCalled();
+  });
+
+  it('does nothing without a selection in the conversation', () => {
+    render(<Conversation />);
+    select(screen.getByTestId('outside'));
+    expect(press({ ctrlKey: true, shiftKey: true })).not.toHaveBeenCalled();
   });
 });

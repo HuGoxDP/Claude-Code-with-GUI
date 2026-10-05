@@ -383,6 +383,7 @@
       "recallPrompt": "첫 줄 또는 마지막 줄에서 이전 또는 다음 프롬프트 불러오기",
       "toggleDictation": "음성 입력 시작 또는 중지",
       "insertEditorPath": "에디터의 파일과 선택한 줄을 채팅으로 보내기",
+      "quoteSelection": "대화에서 선택한 글을 인용",
       "lineEdges": "줄의 처음 또는 끝으로 이동",
       "textStart": "글의 맨 앞으로 이동",
       "textEnd": "글의 맨 끝으로 이동",

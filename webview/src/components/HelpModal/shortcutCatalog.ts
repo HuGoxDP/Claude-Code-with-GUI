@@ -29,6 +29,7 @@ export enum ShortcutId {
   RecallPrompt = 'recallPrompt',
   ToggleDictation = 'toggleDictation',
   InsertEditorPath = 'insertEditorPath',
+  QuoteSelection = 'quoteSelection',
   OpenClaudeCode = 'openClaudeCode',
   LineEdges = 'lineEdges',
   TextStart = 'textStart',
@@ -149,6 +150,7 @@ export const SHORTCUT_CATALOG: readonly ShortcutEntry[] = [
   { id: ShortcutId.RecallPrompt, group: ShortcutGroup.ChatInput, descriptionKey: k('recallPrompt'), keys: fixed('ArrowUp', 'ArrowDown') },
   { id: ShortcutId.ToggleDictation, group: ShortcutGroup.ChatInput, descriptionKey: k('toggleDictation'), keys: voiceKeys },
   { id: ShortcutId.InsertEditorPath, group: ShortcutGroup.ChatInput, descriptionKey: k('insertEditorPath'), keys: fixed('Alt+K'), ideOnly: true },
+  { id: ShortcutId.QuoteSelection, group: ShortcutGroup.ChatInput, descriptionKey: k('quoteSelection'), keys: fixed('Ctrl+Shift+Q') },
 
   { id: ShortcutId.LineEdges, group: ShortcutGroup.TextEditing, descriptionKey: k('lineEdges'), keys: fixed('Mod+ArrowLeft', 'Mod+ArrowRight'), macOnly: true },
   { id: ShortcutId.TextStart, group: ShortcutGroup.TextEditing, descriptionKey: k('textStart'), keys: textStartKeys, macOnly: true },

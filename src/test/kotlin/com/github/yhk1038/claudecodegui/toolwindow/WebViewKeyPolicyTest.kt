@@ -38,6 +38,15 @@ class WebViewKeyPolicyTest {
     }
 
     @Test
+    fun `Ctrl+Shift+Q quotes the selection rather than showing Context Info`() {
+        assertTrue(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_Q, ctrl or shift, mac = true))
+        assertTrue(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_Q, ctrl or shift, mac = false))
+        // Cmd+Shift+Q is macOS's Log Out, and plain Ctrl+Q stays the IDE's.
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_Q, meta or shift, mac = true))
+        assertFalse(WebViewKeyPolicy.belongsToWebView(KeyEvent.VK_Q, ctrl, mac = false))
+    }
+
+    @Test
     fun `plain Enter is left to the IDE`() {
         // It already reaches the composer. Claiming it would take Enter away from
         // every IDE list and dialog the chat is merely focused in front of.

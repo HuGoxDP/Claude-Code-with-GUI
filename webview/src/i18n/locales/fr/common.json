@@ -383,6 +383,7 @@
       "recallPrompt": "Rappeler un prompt précédent ou suivant depuis la première ou la dernière ligne",
       "toggleDictation": "Démarrer ou arrêter la saisie vocale",
       "insertEditorPath": "Envoyer au chat le fichier de l'éditeur et les lignes sélectionnées",
+      "quoteSelection": "Citer le texte sélectionné dans la conversation",
       "lineEdges": "Aller au début ou à la fin de la ligne",
       "textStart": "Aller au début du texte",
       "textEnd": "Aller à la fin du texte",

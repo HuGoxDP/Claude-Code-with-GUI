@@ -20,7 +20,7 @@ import { useSendActions } from './useSendActions';
 import { useSectionFold } from './useSectionFold';
 import { CollapsedReplyNotice } from './CollapsedReplyNotice';
 import { useTranslation } from '@/i18n';
-import { useMessageContextMenu } from './MessageContextMenu';
+import { useMessageContextMenu, useQuoteSelectionShortcut } from './MessageContextMenu';
 
 interface Props {
   isStreaming: boolean;
@@ -66,6 +66,7 @@ export function ChatMessageArea(props: Props) {
   const sendActions = useSendActions(mergedMessages);
   // Right-click on a link or on selected text: copy the link, quote or copy the text.
   const contextMenu = useMessageContextMenu(containerRef);
+  useQuoteSelectionShortcut(containerRef);
 
   const isEmpty = mergedMessages.length === 0;
 

@@ -383,6 +383,7 @@
       "recallPrompt": "最初の行または最後の行で、前後のプロンプトを呼び出す",
       "toggleDictation": "音声入力を開始/停止",
       "insertEditorPath": "エディタのファイルと選択中の行をチャットに送る",
+      "quoteSelection": "会話で選択したテキストを引用",
       "lineEdges": "行の先頭または末尾に移動",
       "textStart": "テキストの先頭に移動",
       "textEnd": "テキストの末尾に移動",

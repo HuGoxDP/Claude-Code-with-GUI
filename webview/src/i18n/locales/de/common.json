@@ -383,6 +383,7 @@
       "recallPrompt": "Früheren oder späteren Prompt aus der ersten oder letzten Zeile zurückholen",
       "toggleDictation": "Spracheingabe starten oder beenden",
       "insertEditorPath": "Datei und markierte Zeilen des Editors an den Chat senden",
+      "quoteSelection": "Im Gespräch markierten Text zitieren",
       "lineEdges": "Zum Anfang oder Ende der Zeile springen",
       "textStart": "Zum Anfang des Textes springen",
       "textEnd": "Zum Ende des Textes springen",
