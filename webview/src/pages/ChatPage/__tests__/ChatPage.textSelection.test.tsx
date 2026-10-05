@@ -43,6 +43,7 @@ vi.mock('@/components/WhatsNewModal/WhatsNewSlot', () => ({ WhatsNewSlot: stub('
 vi.mock('@/commandPalette/sections/customize/items', () => ({ OPEN_MCP_MODAL_EVENT: 'open-mcp' }));
 vi.mock('@/commandPalette/sections/context/items', () => ({ OPEN_PROMPT_LIBRARY_EVENT: 'open-prompt-library' }));
 vi.mock('@/components/PromptLibraryModal', () => ({ PromptLibraryModal: stub('promptLib') }));
+vi.mock('@/components/CommitMessageDialog/Slot', () => ({ CommitMessageDialogSlot: stub('commitMessage') }));
 vi.mock('@/hooks/useMcpServers', () => ({ useMcpServers: () => ({}), MCP_SERVERS_QUERY_KEY: ['mcp'] }));
 vi.mock('@tanstack/react-query', () => ({ useQueryClient: () => ({ invalidateQueries: vi.fn() }) }));
 vi.mock('../../../contexts/ChatStreamContext', () => ({
