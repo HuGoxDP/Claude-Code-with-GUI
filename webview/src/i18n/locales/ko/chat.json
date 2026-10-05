@@ -767,5 +767,8 @@
     "took": "{{duration}} 걸림",
     "tokens": "입력 {{input}} · 출력 {{output}}",
     "tokensDetail": "입력: 새 토큰 {{fresh}}, 캐시 쓰기 {{cacheWrite}}, 캐시 읽기 {{cacheRead}}. 출력: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "답하지 않으면 {{time}} 후 자동으로 거절됩니다"
   }
 }

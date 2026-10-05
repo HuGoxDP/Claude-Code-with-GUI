@@ -87,6 +87,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   aiSessionTitles: true,
   attachEditorContext: true,
   autoOpenDiffOnPermission: true,
+  promptTimeoutSeconds: null,
   diffSurface: DiffSurface.IDE,
   browserDiffPresentation: BrowserDiffPresentation.NEW_TAB,
   // Whether switching the model (dropdown or the rotate shortcut) also writes the
@@ -152,6 +153,7 @@ const COMMENT_MAP: Record<string, string> = {
   autoResumeOnLimit: '사용량 리밋 리셋 시 자동 재개(후원자 전용). 기본 off. 리밋 배너의 기본 동작을 seed',
   aiSessionTitles: '새 세션의 첫 응답이 끝나면 Claude(haiku)가 짧은 제목을 지어 세션 목록에 쓴다(CLI가 자기 세션에 붙이는 ai-title과 같은 자리). 제목은 우리 파일에만 저장하고 트랜스크립트는 건드리지 않는다. 기본 on',
   attachEditorContext: '세션 시작 시 에디터 컨텍스트 칩을 활성 상태로 둘지. false면 칩은 뜨되 비활성으로 시작(세션 중 클릭 변경은 저장되지 않음)',
+  promptTimeoutSeconds: '권한 요청·계획 승인·질문이 답을 기다리는 최대 시간(초, 30~3600). 지나면 그 요청을 거절하고 Claude에게 이유를 알린다(턴은 멈추지 않음). null이면 무기한 대기(기본, CLI와 같음). CC GUI의 대화상자 타임아웃 이식',
   autoOpenDiffOnPermission: '파일 편집 권한을 물을 때 diff를 저절로 열지. false면 승인 패널만 뜨고, 프롬프트의 파일명을 눌렀을 때만 diff가 열린다(변경 내용은 어느 쪽이든 보관되므로 나중에 눌러도 볼 수 있다)',
   diffSurface: '파일 편집 권한을 물을 때 변경 내용을 어디에 그릴지: "ide"(IDE 자체 diff 뷰어) | "built-in"(우리 diff 페이지). IDE 없이 실행 중이면 항상 "built-in"으로 동작한다',
   browserDiffPresentation: '브라우저에서 우리 diff 페이지를 어떻게 띄울지: "new-tab"(새 브라우저 탭) | "overlay"(현재 세션 위 모달). IDE에서는 에디터 탭으로 뜨므로 이 값과 무관하다',
@@ -341,6 +343,14 @@ function validateSetting(key: string, value: unknown): string | null {
       const n = Number(value);
       if (!Number.isFinite(n) || n < 0.5 || n > 10) {
         return 'lineHeight must be a number between 0.5 and 10';
+      }
+      break;
+    }
+    case 'promptTimeoutSeconds': {
+      if (value === null) break;
+      const n = Number(value);
+      if (!Number.isInteger(n) || n < 30 || n > 3600) {
+        return 'promptTimeoutSeconds must be null or a whole number of seconds between 30 and 3600';
       }
       break;
     }

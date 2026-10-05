@@ -767,5 +767,8 @@
     "took": "{{duration}} طول کشید",
     "tokens": "{{input}} ورودی · {{output}} خروجی",
     "tokensDetail": "ورودی: {{fresh}} تازه، {{cacheWrite}} نوشته‌شده در حافظهٔ نهان، {{cacheRead}} خوانده‌شده از آن. خروجی: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "اگر پاسخ ندهید، پس از {{time}} خودکار رد می‌شود"
   }
 }

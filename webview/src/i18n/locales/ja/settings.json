@@ -359,6 +359,12 @@
       "sectionTitle": "デフォルト入力モード",
       "label": "デフォルト入力モード",
       "description": "新しいセッションを開いたときの初期権限モード"
+    },
+    "promptTimeout": {
+      "sectionTitle": "回答を待つ時間",
+      "label": "自動で拒否するまで",
+      "description": "権限リクエスト・プラン承認・質問がこの時間を超えて待つと、代わりに拒否し、誰も答えなかったことを Claude に伝えます。Claude は作業を続けます。オフにすると、ターミナルの Claude Code と同じく答えるまで待ちます。",
+      "off": "オフ"
     }
   },
   "skills": {

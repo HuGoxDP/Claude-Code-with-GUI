@@ -363,6 +363,12 @@
       "sectionTitle": "Default Input Mode",
       "label": "Default Input Mode",
       "description": "Initial permission mode when opening a new session"
+    },
+    "promptTimeout": {
+      "sectionTitle": "Waiting for your answer",
+      "label": "Decline automatically after",
+      "description": "When a permission request, plan approval or question waits longer than this, it is declined for you and Claude is told nobody answered. Claude keeps working. Off waits as long as it takes, like Claude Code in a terminal.",
+      "off": "Off"
     }
   },
   "skills": {

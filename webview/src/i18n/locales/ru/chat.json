@@ -775,5 +775,8 @@
     "took": "Заняло {{duration}}",
     "tokens": "{{input}} на входе · {{output}} на выходе",
     "tokensDetail": "Вход: новых {{fresh}}, записано в кэш {{cacheWrite}}, прочитано из кэша {{cacheRead}}. Выход: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "Будет автоматически отклонено через {{time}}, если вы не ответите"
   }
 }

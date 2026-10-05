@@ -771,5 +771,8 @@
     "took": "Took {{duration}}",
     "tokens": "{{input}} in · {{output}} out",
     "tokensDetail": "Input: {{fresh}} new, {{cacheWrite}} written to cache, {{cacheRead}} read from cache. Output: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "Declined automatically in {{time}} if you do not answer"
   }
 }

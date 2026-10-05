@@ -1,5 +1,6 @@
 import { BypassModeSection } from './BypassMode';
 import { DefaultModeSection } from './DefaultMode';
+import { PromptTimeoutSection } from './PromptTimeout';
 import { useTranslation } from '@/i18n';
 
 /** The Permissions page: a heading and the sections under it. */
@@ -12,6 +13,7 @@ export function PermissionsSettings() {
 
       <BypassModeSection />
       <DefaultModeSection />
+      <PromptTimeoutSection />
     </div>
   );
 }

@@ -490,6 +490,16 @@ describe('settings', () => {
       expect(bad.error).toContain('ultracode must be a boolean or null');
     });
 
+    it('should accept a prompt timeout of 30 to 3600 whole seconds, or null for none', async () => {
+      expect((await saveSettingToFile('promptTimeoutSeconds', 300)).status).toBe('ok');
+      expect((await saveSettingToFile('promptTimeoutSeconds', null)).status).toBe('ok');
+      for (const bad of [10, 4000, 90.5, 'soon']) {
+        const result = await saveSettingToFile('promptTimeoutSeconds', bad);
+        expect(result.status).toBe('error');
+        expect(result.error).toContain('promptTimeoutSeconds must be null or a whole number of seconds between 30 and 3600');
+      }
+    });
+
     it('should accept boolean or null notificationBanner and reject other types', async () => {
       expect((await saveSettingToFile('notificationBanner', true)).status).toBe('ok');
       expect((await saveSettingToFile('notificationBanner', false)).status).toBe('ok');
@@ -715,6 +725,7 @@ describe('settings', () => {
         aiSessionTitles: true,
         attachEditorContext: true,
         autoOpenDiffOnPermission: true,
+        promptTimeoutSeconds: null,
         diffSurface: DiffSurface.IDE,
         browserDiffPresentation: BrowserDiffPresentation.NEW_TAB,
         ultracode: null,
@@ -855,6 +866,7 @@ export default {
         aiSessionTitles: true,
         attachEditorContext: true,
         autoOpenDiffOnPermission: true,
+        promptTimeoutSeconds: null,
         diffSurface: DiffSurface.IDE,
         browserDiffPresentation: BrowserDiffPresentation.NEW_TAB,
         ultracode: null,

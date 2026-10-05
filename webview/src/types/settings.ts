@@ -182,6 +182,12 @@ export enum SettingKey {
   // read the prompt rather than the diff asked for (#349).
   AUTO_OPEN_DIFF_ON_PERMISSION = 'autoOpenDiffOnPermission',
 
+  // How long a permission request, plan approval or question may wait for an
+  // answer before it is declined on the user's behalf, in seconds. null (the
+  // default) waits as long as it takes, which is what Claude Code itself does.
+  // Ported from CC GUI, where the same timeout is always on.
+  PROMPT_TIMEOUT_SECONDS = 'promptTimeoutSeconds',
+
   // Where a proposed file edit is shown for review while the permission prompt
   // is up, so the user can see WHAT they are approving instead of just the file
   // name. See {@link DiffSurface} for what each value means.
@@ -421,6 +427,7 @@ export interface SettingsState {
   [SettingKey.AI_SESSION_TITLES]: boolean;
   [SettingKey.ATTACH_EDITOR_CONTEXT]: boolean;
   [SettingKey.AUTO_OPEN_DIFF_ON_PERMISSION]: boolean;
+  [SettingKey.PROMPT_TIMEOUT_SECONDS]: number | null;
   [SettingKey.DIFF_SURFACE]: DiffSurface;
   [SettingKey.BROWSER_DIFF_PRESENTATION]: BrowserDiffPresentation;
   [SettingKey.SHOW_DIFF_IN_IDE]: boolean | null;
@@ -467,6 +474,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.AI_SESSION_TITLES]: true,
   [SettingKey.ATTACH_EDITOR_CONTEXT]: true,
   [SettingKey.AUTO_OPEN_DIFF_ON_PERMISSION]: true,
+  [SettingKey.PROMPT_TIMEOUT_SECONDS]: null,
   [SettingKey.DIFF_SURFACE]: DiffSurface.IDE,
   [SettingKey.BROWSER_DIFF_PRESENTATION]: BrowserDiffPresentation.NEW_TAB,
   [SettingKey.SHOW_DIFF_IN_IDE]: null,

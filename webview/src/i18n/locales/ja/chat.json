@@ -767,5 +767,8 @@
     "took": "所要 {{duration}}",
     "tokens": "入力 {{input}} · 出力 {{output}}",
     "tokensDetail": "入力: 新規 {{fresh}}、キャッシュ書き込み {{cacheWrite}}、キャッシュ読み込み {{cacheRead}}。出力: {{output}}。"
+  },
+  "promptTimeout": {
+    "countdown": "回答がなければ {{time}} 後に自動で拒否されます"
   }
 }

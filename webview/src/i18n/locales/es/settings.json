@@ -363,6 +363,12 @@
       "sectionTitle": "Modo de entrada predeterminado",
       "label": "Modo de entrada predeterminado",
       "description": "Modo de permisos inicial al abrir una nueva sesión"
+    },
+    "promptTimeout": {
+      "sectionTitle": "Esperando tu respuesta",
+      "label": "Rechazar automáticamente tras",
+      "description": "Si una solicitud de permiso, aprobación de plan o pregunta espera más que esto, se rechaza por ti y se le dice a Claude que nadie respondió. Claude sigue trabajando. Desactivado espera lo que haga falta, como Claude Code en una terminal.",
+      "off": "Desactivado"
     }
   },
   "skills": {

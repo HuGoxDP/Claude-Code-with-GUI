@@ -767,5 +767,8 @@
     "took": "Tardó {{duration}}",
     "tokens": "{{input}} de entrada · {{output}} de salida",
     "tokensDetail": "Entrada: {{fresh}} nuevos, {{cacheWrite}} escritos en caché, {{cacheRead}} leídos de caché. Salida: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "Se rechazará automáticamente en {{time}} si no respondes"
   }
 }

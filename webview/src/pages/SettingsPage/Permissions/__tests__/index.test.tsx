@@ -16,6 +16,20 @@ vi.mock('@/contexts/ClaudeSettingsContext', () => ({
     updateSetting: updateSettingMock,
     scope: mockScope,
   }),
+  useClaudeSettingsOrNull: () => null,
+}));
+
+const updateGuiSettingMock = vi.fn();
+let mockGuiScopeSettings: Record<string, unknown> = {};
+vi.mock('@/contexts/SettingsContext', () => ({
+  useSettings: () => ({
+    settings: mockGuiScopeSettings,
+    scopeSettings: mockGuiScopeSettings,
+    updateSetting: updateGuiSettingMock,
+    resetToGlobal: vi.fn(),
+    scope: 'user',
+  }),
+  useSettingsOrNull: () => null,
 }));
 
 vi.mock('@/contexts/CliConfigContext', () => ({
@@ -54,6 +68,8 @@ function openDefaultModeOptions(): string[] {
 
 beforeEach(() => {
   updateSettingMock.mockReset();
+  updateGuiSettingMock.mockReset();
+  mockGuiScopeSettings = {};
   mockSettings = {};
   mockScopeSettings = {};
   mockScope = 'user';
@@ -97,5 +113,24 @@ describe('PermissionsSettings — default mode offers auto (#272)', () => {
       'permissions',
       expect.objectContaining({ defaultMode: 'auto' }),
     );
+  });
+});
+
+describe('PermissionsSettings — prompt timeout', () => {
+  it('is off until set, and stores the chosen number of seconds', () => {
+    render(<PermissionsSettings />);
+    const select = screen.getByRole('button', { name: /Decline automatically after/i });
+    expect(select.textContent).toContain('Off');
+    fireEvent.click(select);
+    fireEvent.click(screen.getByRole('option', { name: /^5 minutes/ }));
+    expect(updateGuiSettingMock).toHaveBeenCalledWith('promptTimeoutSeconds', 300);
+  });
+
+  it('turns it off again with null', () => {
+    mockGuiScopeSettings = { promptTimeoutSeconds: 300 };
+    render(<PermissionsSettings />);
+    fireEvent.click(screen.getByRole('button', { name: /Decline automatically after/i }));
+    fireEvent.click(screen.getByRole('option', { name: /^Off/ }));
+    expect(updateGuiSettingMock).toHaveBeenCalledWith('promptTimeoutSeconds', null);
   });
 });

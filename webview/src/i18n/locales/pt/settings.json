@@ -363,6 +363,12 @@
       "sectionTitle": "Modo de Entrada Padrão",
       "label": "Modo de Entrada Padrão",
       "description": "Modo de permissão inicial ao abrir uma nova sessão"
+    },
+    "promptTimeout": {
+      "sectionTitle": "Aguardando sua resposta",
+      "label": "Recusar automaticamente após",
+      "description": "Se um pedido de permissão, aprovação de plano ou pergunta esperar mais do que isso, ele é recusado por você e o Claude é avisado de que ninguém respondeu. O Claude continua trabalhando. Desativado espera o quanto for preciso, como o Claude Code no terminal.",
+      "off": "Desativado"
     }
   },
   "skills": {

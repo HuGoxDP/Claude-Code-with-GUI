@@ -359,6 +359,12 @@
       "sectionTitle": "預設輸入模式",
       "label": "預設輸入模式",
       "description": "開啟新工作階段時的初始權限模式"
+    },
+    "promptTimeout": {
+      "sectionTitle": "等待你的回答",
+      "label": "自動拒絕時間",
+      "description": "權限請求、計畫核准或提問等待超過此時間後，會替你拒絕，並告訴 Claude 沒有人回答。Claude 會繼續工作。關閉時會像終端機中的 Claude Code 一樣一直等待。",
+      "off": "關閉"
     }
   },
   "skills": {

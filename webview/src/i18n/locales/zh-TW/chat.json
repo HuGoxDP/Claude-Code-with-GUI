@@ -767,5 +767,8 @@
     "took": "耗時 {{duration}}",
     "tokens": "輸入 {{input}} · 輸出 {{output}}",
     "tokensDetail": "輸入：新 {{fresh}}，寫入快取 {{cacheWrite}}，讀取快取 {{cacheRead}}。輸出：{{output}}。"
+  },
+  "promptTimeout": {
+    "countdown": "若不回答，將在 {{time}} 後自動拒絕"
   }
 }

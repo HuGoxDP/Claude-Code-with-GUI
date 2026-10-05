@@ -359,6 +359,12 @@
       "sectionTitle": "기본 입력 모드",
       "label": "기본 입력 모드",
       "description": "새 세션을 열 때의 초기 권한 모드"
+    },
+    "promptTimeout": {
+      "sectionTitle": "답을 기다리는 시간",
+      "label": "자동 거절까지",
+      "description": "권한 요청·계획 승인·질문이 이 시간보다 오래 기다리면 대신 거절하고, 아무도 답하지 않았다고 Claude에게 알립니다. Claude는 작업을 이어 갑니다. 끄면 터미널의 Claude Code처럼 답할 때까지 기다립니다.",
+      "off": "끔"
     }
   },
   "skills": {

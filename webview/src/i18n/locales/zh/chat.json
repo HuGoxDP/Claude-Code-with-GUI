@@ -767,5 +767,8 @@
     "took": "用时 {{duration}}",
     "tokens": "输入 {{input}} · 输出 {{output}}",
     "tokensDetail": "输入：新 {{fresh}}，写入缓存 {{cacheWrite}}，读取缓存 {{cacheRead}}。输出：{{output}}。"
+  },
+  "promptTimeout": {
+    "countdown": "若不回答，将在 {{time}} 后自动拒绝"
   }
 }

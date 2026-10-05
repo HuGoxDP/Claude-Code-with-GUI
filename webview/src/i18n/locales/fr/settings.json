@@ -363,6 +363,12 @@
       "sectionTitle": "Mode de saisie par défaut",
       "label": "Mode de saisie par défaut",
       "description": "Mode d'autorisation initial lors de l'ouverture d'une nouvelle session"
+    },
+    "promptTimeout": {
+      "sectionTitle": "En attente de votre réponse",
+      "label": "Refuser automatiquement après",
+      "description": "Si une demande d'autorisation, une validation de plan ou une question attend plus longtemps, elle est refusée pour vous et Claude apprend que personne n'a répondu. Claude continue. Désactivé attend aussi longtemps qu'il faut, comme Claude Code dans un terminal.",
+      "off": "Désactivé"
     }
   },
   "skills": {

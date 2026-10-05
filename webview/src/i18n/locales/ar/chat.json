@@ -783,5 +783,8 @@
     "took": "استغرق {{duration}}",
     "tokens": "{{input}} دخل · {{output}} خرج",
     "tokensDetail": "الدخل: {{fresh}} جديدة، {{cacheWrite}} كُتبت في الذاكرة المؤقتة، {{cacheRead}} قُرئت منها. الخرج: {{output}}."
+  },
+  "promptTimeout": {
+    "countdown": "سيُرفض تلقائيًا بعد {{time}} إن لم تُجب"
   }
 }

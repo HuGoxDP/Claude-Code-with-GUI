@@ -2,6 +2,9 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, useMemo } fr
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { DictationProvider } from './ChatInput/DictationProvider';
 import { ListeningNotice } from './ListeningNotice';
+import { PromptTimeoutNotice, pickTimedPrompt, promptTimeoutReason, usePromptTimeout } from './PromptTimeout';
+import { useSettingsOrNull } from '@/contexts/SettingsContext';
+import { SettingKey } from '@/types/settings';
 import { SessionHeader } from './SessionHeader';
 import { ChatMessageArea } from './ChatMessageArea';
 import { PermissionBanner } from './PermissionBanner';
@@ -136,6 +139,33 @@ function ChatPageContent() {
    * really has not ended, so it cannot answer this question on its own.
    */
   const isAwaitingUser = Boolean(pendingUserAnswer || pendingPlan || pendingPermission);
+
+  // The prompt on screen, declined for the user once it has waited longer than
+  // they allowed (Settings → Permissions; off unless set). Declined, not
+  // cancelled: the turn goes on, and Claude is told nobody answered, the way
+  // CC GUI's dialog timeout lets Claude continue. The same order as the panels
+  // below, so the timer always belongs to the prompt being shown.
+  const promptTimeoutSeconds = useSettingsOrNull()?.settings[SettingKey.PROMPT_TIMEOUT_SECONDS] ?? null;
+  const timedPrompt = pickTimedPrompt(
+    {
+      question: pendingUserAnswer
+        ? { toolUseId: pendingUserAnswer.toolUse.id, controlRequestId: pendingUserAnswer.controlRequestId }
+        : null,
+      planRequestId: pendingPlan?.controlRequestId ?? null,
+      permissionRequestId: pendingPermission?.controlRequestId ?? null,
+    },
+    {
+      declineQuestion: (toolUseId, controlRequestId, reason) => {
+        void api.tools.deny(toolUseId, controlRequestId, reason);
+        dismiss(toolUseId);
+      },
+      declinePlan: denyPlan,
+      declinePermission: denyPermission,
+    },
+  );
+  const promptSecondsLeft = usePromptTimeout(timedPrompt?.key ?? null, promptTimeoutSeconds, () => {
+    if (timedPrompt && promptTimeoutSeconds) timedPrompt.decline(promptTimeoutReason(promptTimeoutSeconds));
+  });
   /**
    * An approval prompt is standing in the composer's slot at the foot of the
    * chat, so the composer is unmounted right now.
@@ -372,6 +402,7 @@ function ChatPageContent() {
               </button>
           )}
           {composerReplaced && <ListeningNotice />}
+          {promptSecondsLeft !== null && timedPrompt && <PromptTimeoutNotice remaining={promptSecondsLeft} />}
           {pendingUserAnswer ? (
               <AskUserQuestionInputPanel
                   toolUse={pendingUserAnswer.toolUse}

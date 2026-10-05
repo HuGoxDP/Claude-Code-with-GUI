@@ -363,6 +363,12 @@
       "sectionTitle": "Standard-Eingabemodus",
       "label": "Standard-Eingabemodus",
       "description": "Anfänglicher Berechtigungsmodus beim Öffnen einer neuen Sitzung"
+    },
+    "promptTimeout": {
+      "sectionTitle": "Warten auf deine Antwort",
+      "label": "Automatisch ablehnen nach",
+      "description": "Wartet eine Berechtigungsanfrage, Planfreigabe oder Frage länger als das, wird sie für dich abgelehnt und Claude erfährt, dass niemand geantwortet hat. Claude arbeitet weiter. Aus wartet unbegrenzt, wie Claude Code im Terminal.",
+      "off": "Aus"
     }
   },
   "skills": {
