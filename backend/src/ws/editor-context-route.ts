@@ -27,6 +27,32 @@ interface EditorContextItem extends Record<string, unknown> {
 interface EditorContextPayload extends EditorContextItem {
   workingDir: string;
   items?: EditorContextItem[];
+  /**
+   * Set by "Fix with Claude": the errors and warnings the IDE reports in the
+   * lines named. Present (even empty) only for that action, which is how the
+   * webview tells it from Alt+K.
+   */
+  problems?: EditorProblem[];
+}
+
+/** One problem the IDE reports, as the chat input names it. */
+interface EditorProblem extends Record<string, unknown> {
+  line: number;
+  severity: string;
+  message: string;
+}
+
+/** The most problems one request may name, and the longest message kept. */
+export const MAX_EDITOR_PROBLEMS = 20;
+export const MAX_EDITOR_PROBLEM_LENGTH = 500;
+
+function parseProblem(value: unknown): EditorProblem | null {
+  if (!isRecord(value)) return null;
+  const { line, severity, message } = value;
+  if (typeof line !== 'number' || !Number.isInteger(line) || line < 1) return null;
+  if (severity !== 'error' && severity !== 'warning') return null;
+  if (typeof message !== 'string' || message.trim() === '') return null;
+  return { line, severity, message: message.trim().slice(0, MAX_EDITOR_PROBLEM_LENGTH) };
 }
 
 /** The most paths one request may name; a selection beyond it is cut. */
@@ -100,6 +126,12 @@ export function handleEditorContextRequest(
       .map(parseItem)
       .filter((item): item is EditorContextItem => item !== null);
     if (items.length > 0) payload.items = items;
+  }
+  if (Array.isArray(parsed.problems)) {
+    payload.problems = parsed.problems
+      .slice(0, MAX_EDITOR_PROBLEMS)
+      .map(parseProblem)
+      .filter((problem): problem is EditorProblem => problem !== null);
   }
 
   // What the launcher (Kotlin) should reveal on this Alt+K, decided from the

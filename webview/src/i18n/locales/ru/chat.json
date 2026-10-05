@@ -778,5 +778,12 @@
   },
   "promptTimeout": {
     "countdown": "Будет автоматически отклонено через {{time}}, если вы не ответите"
+  },
+  "fixWithClaude": {
+    "withProblems": "Исправь проблемы, которые IDE показывает в {{ref}}:",
+    "problem": "- Строка {{line}} ({{severity}}): {{message}}",
+    "noProblems": "Исправь {{ref}}:",
+    "error": "ошибка",
+    "warning": "предупреждение"
   }
 }

@@ -770,5 +770,12 @@
   },
   "promptTimeout": {
     "countdown": "若不回答，將在 {{time}} 後自動拒絕"
+  },
+  "fixWithClaude": {
+    "withProblems": "修正 IDE 在 {{ref}} 中回報的問題：",
+    "problem": "- 第 {{line}} 行（{{severity}}）：{{message}}",
+    "noProblems": "修正 {{ref}}：",
+    "error": "錯誤",
+    "warning": "警告"
   }
 }

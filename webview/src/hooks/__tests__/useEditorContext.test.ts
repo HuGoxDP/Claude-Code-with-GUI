@@ -418,3 +418,50 @@ describe('useEditorContext — handler', () => {
     expect(onChange).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('useEditorContext — Fix with Claude', () => {
+  it('writes the reference and the problems the IDE reports, leaving the caret below them', () => {
+    const onChange = vi.fn();
+    const onInsertToken = vi.fn();
+    renderEditorContext({ value: '', currentWorkingDir: '/work', onInsertToken }, onChange);
+
+    act(() => {
+      emitEditorContext({
+        absolutePath: '/work/src/a.ts',
+        relativePath: 'src/a.ts',
+        startLine: 10,
+        endLine: 12,
+        workingDir: '/work',
+        problems: [
+          { line: 11, severity: 'error', message: "Cannot find name 'bar'." },
+          { line: 12, severity: 'warning', message: "'x' is declared but never used." },
+        ],
+      });
+    });
+
+    expect(onChange).toHaveBeenCalledWith(
+      'Fix the problems the IDE reports in @src/a.ts#L10-12:\n'
+        + "- Line 11 (error): Cannot find name 'bar'.\n"
+        + "- Line 12 (warning): 'x' is declared but never used.\n",
+    );
+    expect(onInsertToken).toHaveBeenCalledWith('@src/a.ts#L10-12');
+  });
+
+  it('asks plainly when the IDE reports nothing there', () => {
+    const onChange = vi.fn();
+    renderEditorContext({ value: '', currentWorkingDir: '/work' }, onChange);
+    act(() => {
+      emitEditorContext({ absolutePath: '/work/a.ts', relativePath: 'a.ts', startLine: 4, endLine: 4, workingDir: '/work', problems: [] });
+    });
+    expect(onChange).toHaveBeenCalledWith('Fix @a.ts#L4: ');
+  });
+
+  it('leaves Alt+K as it was: without a problem list, only the reference goes in', () => {
+    const onChange = vi.fn();
+    renderEditorContext({ value: '', currentWorkingDir: '/work' }, onChange);
+    act(() => {
+      emitEditorContext({ absolutePath: '/work/a.ts', relativePath: 'a.ts', startLine: 4, endLine: 4, workingDir: '/work' });
+    });
+    expect(onChange).toHaveBeenCalledWith('@a.ts#L4 ');
+  });
+});

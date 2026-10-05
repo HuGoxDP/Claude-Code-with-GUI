@@ -223,6 +223,16 @@
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="ClaudeCode.SendSelection"/>
         </action>
 
+        <!-- Put the selection (or the caret's line) into the chat input with the
+             errors and warnings the IDE reports there, ready to send -->
+        <action
+            id="ClaudeCode.FixWithClaude"
+            class="com.github.yhk1038.claudecodegui.actions.FixWithClaudeAction"
+            text="Fix with Claude"
+            description="Ask Claude to fix the selected lines, with the problems the IDE reports in them">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="ClaudeCode.CopyReference"/>
+        </action>
+
         <!-- Mention files and folders from the project view (or an editor tab) in the
              Claude Code chat input, the same way Alt+K mentions the open file -->
         <action

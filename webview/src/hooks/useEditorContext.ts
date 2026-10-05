@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { getCaretOffset, setCaretOffset } from '@/utils/domSelection';
 import { MessageType } from '@/shared';
+import { useTranslation } from '@/i18n';
 
 /**
  * Payload pushed by the backend over the `EDITOR_CONTEXT` IPC message.
@@ -14,6 +15,13 @@ export interface EditorContextPayload {
   startLine: number | null;
   endLine: number | null;
   workingDir: string;
+}
+
+/** One problem the IDE reports in the lines "Fix with Claude" names. */
+export interface EditorProblem {
+  line: number;
+  severity: 'error' | 'warning';
+  message: string;
 }
 
 /** One path to mention. The top-level fields of the payload are the first one. */
@@ -103,7 +111,7 @@ function parseItem(raw: unknown): EditorContextItem | null {
  */
 export function parseEditorContextPayload(
   raw: Record<string, unknown> | undefined,
-): { workingDir: string; items: EditorContextItem[] } | null {
+): { workingDir: string; items: EditorContextItem[]; problems?: EditorProblem[] } | null {
   if (!raw) return null;
   if (typeof raw.workingDir !== 'string') return null;
   const listed = Array.isArray(raw.items)
@@ -112,7 +120,35 @@ export function parseEditorContextPayload(
   const single = parseItem(raw);
   const items = listed.length > 0 ? listed : single ? [single] : [];
   if (items.length === 0) return null;
+  // Only "Fix with Claude" sends a problem list, empty when the IDE reports none.
+  if (Array.isArray(raw.problems)) {
+    return { workingDir: raw.workingDir, items, problems: raw.problems.map(parseProblem).filter((p): p is EditorProblem => p !== null) };
+  }
   return { workingDir: raw.workingDir, items };
+}
+
+function parseProblem(raw: unknown): EditorProblem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { line, severity, message } = raw as Record<string, unknown>;
+  if (typeof line !== 'number' || typeof message !== 'string' || message.trim() === '') return null;
+  if (severity !== 'error' && severity !== 'warning') return null;
+  return { line, severity, message };
+}
+
+type Translate = (key: string, options?: Record<string, unknown>) => string;
+
+/**
+ * The text "Fix with Claude" puts in the chat input: the reference, then the
+ * problems the IDE reports in those lines, one per line, with the caret left
+ * after them for the user to add what they want. In the interface language,
+ * since the user sends it as their own words.
+ */
+export function buildFixText(reference: string, problems: EditorProblem[], t: Translate): string {
+  if (problems.length === 0) return t('fixWithClaude.noProblems', { ref: reference }) + ' ';
+  const lines = problems.map((problem) =>
+    t('fixWithClaude.problem', { line: problem.line, severity: t(`fixWithClaude.${problem.severity}`), message: problem.message }),
+  );
+  return [t('fixWithClaude.withProblems', { ref: reference }), ...lines].join('\n') + '\n';
 }
 
 /**
@@ -126,6 +162,9 @@ export function parseEditorContextPayload(
 export function useEditorContext(params: UseEditorContextParams): void {
   const { value, onChange, textareaRef, currentWorkingDir, shouldFocus = true, onInsertToken } = params;
   const { subscribe } = useBridgeContext();
+  const { t } = useTranslation('chat');
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // Latest values tracked via refs so the effect can subscribe once and still
   // read fresh state inside the handler (mirrors the useMention pattern).
@@ -166,7 +205,9 @@ export function useEditorContext(params: UseEditorContextParams): void {
       // Every path goes in at once: inserting them one message at a time would
       // read the composer before the previous insertion has rendered.
       const tokens = payload.items.map(buildEditorContextText);
-      const insertText = tokens.join(' ') + ' ';
+      const insertText = payload.problems
+        ? buildFixText(tokens[0], payload.problems, tRef.current as Translate)
+        : tokens.join(' ') + ' ';
       const el = textareaRef.current;
       const currentValue = valueRef.current;
       const cursorPos = el ? getCaretOffset(el) : currentValue.length;

@@ -786,5 +786,12 @@
   },
   "promptTimeout": {
     "countdown": "سيُرفض تلقائيًا بعد {{time}} إن لم تُجب"
+  },
+  "fixWithClaude": {
+    "withProblems": "أصلح المشكلات التي يُبلغ عنها IDE في {{ref}}:",
+    "problem": "- السطر {{line}} ({{severity}}): {{message}}",
+    "noProblems": "أصلح {{ref}}:",
+    "error": "خطأ",
+    "warning": "تحذير"
   }
 }

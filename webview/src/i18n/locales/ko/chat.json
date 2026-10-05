@@ -770,5 +770,12 @@
   },
   "promptTimeout": {
     "countdown": "답하지 않으면 {{time}} 후 자동으로 거절됩니다"
+  },
+  "fixWithClaude": {
+    "withProblems": "IDE가 {{ref}}에서 알려 주는 문제를 고쳐 줘:",
+    "problem": "- {{line}}번째 줄 ({{severity}}): {{message}}",
+    "noProblems": "{{ref}} 고쳐 줘:",
+    "error": "오류",
+    "warning": "경고"
   }
 }

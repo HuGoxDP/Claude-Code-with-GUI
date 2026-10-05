@@ -770,5 +770,12 @@
   },
   "promptTimeout": {
     "countdown": "Refus automatique dans {{time}} sans réponse de votre part"
+  },
+  "fixWithClaude": {
+    "withProblems": "Corrige les problèmes que l'IDE signale dans {{ref}} :",
+    "problem": "- Ligne {{line}} ({{severity}}) : {{message}}",
+    "noProblems": "Corrige {{ref}} :",
+    "error": "erreur",
+    "warning": "avertissement"
   }
 }

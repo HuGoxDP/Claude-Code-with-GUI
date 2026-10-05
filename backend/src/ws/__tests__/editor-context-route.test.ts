@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MAX_EDITOR_CONTEXT_ITEMS, handleEditorContextRequest } from '../editor-context-route';
+import { MAX_EDITOR_CONTEXT_ITEMS, MAX_EDITOR_PROBLEMS, handleEditorContextRequest } from '../editor-context-route';
 import { ConnectionManager } from '../connection-manager';
 import { ClientEnv, MessageType } from '../../shared';
 
@@ -72,6 +72,53 @@ describe('handleEditorContextRequest', () => {
       endLine: 25,
       workingDir: '/abs',
     });
+  });
+
+  it('forwards the problems Fix with Claude found, dropping the ones it cannot use', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+
+    const body = JSON.stringify({
+      absolutePath: '/abs/src/a.ts',
+      relativePath: 'src/a.ts',
+      startLine: 10,
+      endLine: 12,
+      workingDir: '/abs',
+      problems: [
+        { line: 11, severity: 'error', message: "  Cannot find name 'bar'.  " },
+        { line: 12, severity: 'warning', message: 'x'.repeat(600) },
+        { line: 12, severity: 'hint', message: 'not a severity we name' },
+        { line: 0, severity: 'error', message: 'no such line' },
+        { line: 11, severity: 'error', message: '   ' },
+      ],
+    });
+    handleEditorContextRequest(cm, body);
+
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.payload.problems).toEqual([
+      { line: 11, severity: 'error', message: "Cannot find name 'bar'." },
+      { line: 12, severity: 'warning', message: 'x'.repeat(500) },
+    ]);
+  });
+
+  it('keeps an empty problem list, which is how the chat input tells Fix with Claude from Alt+K', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+    handleEditorContextRequest(cm, JSON.stringify({ absolutePath: '/abs/a.ts', relativePath: 'a.ts', workingDir: '/abs', problems: [] }));
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.payload.problems).toEqual([]);
+  });
+
+  it(`caps the problems at ${MAX_EDITOR_PROBLEMS}`, () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+    const problems = Array.from({ length: 30 }, (_, i) => ({ line: i + 1, severity: 'error', message: `p${i}` }));
+    handleEditorContextRequest(cm, JSON.stringify({ absolutePath: '/abs/a.ts', relativePath: 'a.ts', workingDir: '/abs', problems }));
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.payload.problems).toHaveLength(MAX_EDITOR_PROBLEMS);
   });
 
   it('forwards the files picked in the project view, dropping entries it cannot use', () => {
