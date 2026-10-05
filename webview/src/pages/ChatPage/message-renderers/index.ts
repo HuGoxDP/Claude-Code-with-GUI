@@ -6,6 +6,7 @@ export { SystemMessageRenderer } from './SystemMessageRenderer';
 export { InterruptedMessageRenderer } from './InterruptedMessageRenderer';
 export { SummaryMessageRenderer } from './SummaryMessageRenderer';
 export { NotificationMessageRenderer } from './NotificationMessageRenderer';
+export { TurnResultRenderer } from './TurnResultRenderer';
 
 // Components
 export { ContextPills } from './components/ContextPills';

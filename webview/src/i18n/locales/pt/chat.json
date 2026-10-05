@@ -762,5 +762,10 @@
     "linkCopied": "Endereço do link copiado",
     "textCopied": "Texto copiado",
     "copyFailed": "Não foi possível copiar"
+  },
+  "turnResult": {
+    "took": "Levou {{duration}}",
+    "tokens": "{{input}} de entrada · {{output}} de saída",
+    "tokensDetail": "Entrada: {{fresh}} novos, {{cacheWrite}} gravados no cache, {{cacheRead}} lidos do cache. Saída: {{output}}."
   }
 }

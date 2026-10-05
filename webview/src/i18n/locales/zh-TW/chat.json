@@ -762,5 +762,10 @@
     "linkCopied": "已複製連結網址",
     "textCopied": "已複製文字",
     "copyFailed": "無法複製"
+  },
+  "turnResult": {
+    "took": "耗時 {{duration}}",
+    "tokens": "輸入 {{input}} · 輸出 {{output}}",
+    "tokensDetail": "輸入：新 {{fresh}}，寫入快取 {{cacheWrite}}，讀取快取 {{cacheRead}}。輸出：{{output}}。"
   }
 }

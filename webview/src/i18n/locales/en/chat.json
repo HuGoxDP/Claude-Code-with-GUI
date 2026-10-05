@@ -766,5 +766,10 @@
     "linkCopied": "Link address copied",
     "textCopied": "Text copied",
     "copyFailed": "Could not copy"
+  },
+  "turnResult": {
+    "took": "Took {{duration}}",
+    "tokens": "{{input}} in · {{output}} out",
+    "tokensDetail": "Input: {{fresh}} new, {{cacheWrite}} written to cache, {{cacheRead}} read from cache. Output: {{output}}."
   }
 }

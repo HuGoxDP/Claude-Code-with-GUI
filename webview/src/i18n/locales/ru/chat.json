@@ -770,5 +770,10 @@
     "linkCopied": "Адрес ссылки скопирован",
     "textCopied": "Текст скопирован",
     "copyFailed": "Не удалось скопировать"
+  },
+  "turnResult": {
+    "took": "Заняло {{duration}}",
+    "tokens": "{{input}} на входе · {{output}} на выходе",
+    "tokensDetail": "Вход: новых {{fresh}}, записано в кэш {{cacheWrite}}, прочитано из кэша {{cacheRead}}. Выход: {{output}}."
   }
 }

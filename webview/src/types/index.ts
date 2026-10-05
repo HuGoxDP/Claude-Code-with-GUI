@@ -47,6 +47,15 @@ export class MessageDto {
  * `@Type(() => MessageDto)` triggers nested `plainToInstance` for `message`,
  * which in turn triggers `@Transform` on `MessageDto.content`.
  */
+/** The `usage` of a CLI `result` event, as named there. */
+export interface ResultUsage {
+  input_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+  output_tokens?: number;
+  [key: string]: unknown;
+}
+
 export class LoadedMessageDto {
   type!: LoadedMessageType;
   uuid?: string;
@@ -68,6 +77,13 @@ export class LoadedMessageDto {
   subtype?: string;
   result?: unknown;
   toolUseResult?: unknown;
+  /** How long the turn took, as the CLI's live `result` event reports it. */
+  duration_ms?: number;
+  /**
+   * Tokens of this turn's API calls, from the same event. Per turn — unlike
+   * `total_cost_usd` and `modelUsage` there, which run up across the process.
+   */
+  usage?: ResultUsage;
 
   // progress-specific fields (agent_progress entries from JSONL)
   parentToolUseID?: string;

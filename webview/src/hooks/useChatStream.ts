@@ -6,6 +6,7 @@ import { toInstance, LoadedMessageType, MessageRole } from '../dto/common';
 import { parsePartialJson } from '../utils/parsePartialJson';
 import { MessageType } from '@/shared';
 import { parseControlRequestResult } from './controlRequestResult';
+import { turnFiguresOf } from '@/utils/turnFigures';
 import type { ControlRequestResult, ControlResponseEvent } from './controlRequestResult';
 
 /** Re-export for backwards compatibility */
@@ -1244,6 +1245,23 @@ export function useChatStream(options: UseChatStreamOptions): UseChatStreamRetur
           // to be closed off the way any other own-bubble entry does (#211).
           sealStreamingAssistant();
         }
+
+        // The turn's own account of itself: how long it took and what it used
+        // (ported from CC GUI). The CLI sends it only live and never writes it to
+        // the transcript, so it is kept as it came — every field, under the CLI's
+        // names — and shown until the session is reopened. It goes after
+        // everything on screen, as the last word of the turn.
+        //
+        // Only a turn that reached the model gets one. A local slash command or
+        // a request refused before it was sent reports no tokens, and its entry
+        // would draw nothing but still sit in the list.
+        const turnResult = {
+          ...(cliEvent as unknown as LoadedMessageDto),
+          type: LoadedMessageType.Result,
+          uuid: (cliEvent.uuid as string | undefined) || generateMessageId(),
+          timestamp: new Date().toISOString(),
+        } as LoadedMessageDto;
+        if (turnFiguresOf(turnResult)) appendMessage(turnResult, true);
 
         // 스트리밍 종료
         endStreaming();

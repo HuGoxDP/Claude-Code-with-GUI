@@ -762,5 +762,10 @@
     "linkCopied": "نشانی پیوند کپی شد",
     "textCopied": "متن کپی شد",
     "copyFailed": "کپی انجام نشد"
+  },
+  "turnResult": {
+    "took": "{{duration}} طول کشید",
+    "tokens": "{{input}} ورودی · {{output}} خروجی",
+    "tokensDetail": "ورودی: {{fresh}} تازه، {{cacheWrite}} نوشته‌شده در حافظهٔ نهان، {{cacheRead}} خوانده‌شده از آن. خروجی: {{output}}."
   }
 }

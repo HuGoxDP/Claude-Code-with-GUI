@@ -762,5 +762,10 @@
     "linkCopied": "링크 주소를 복사했습니다",
     "textCopied": "텍스트를 복사했습니다",
     "copyFailed": "복사하지 못했습니다"
+  },
+  "turnResult": {
+    "took": "{{duration}} 걸림",
+    "tokens": "입력 {{input}} · 출력 {{output}}",
+    "tokensDetail": "입력: 새 토큰 {{fresh}}, 캐시 쓰기 {{cacheWrite}}, 캐시 읽기 {{cacheRead}}. 출력: {{output}}."
   }
 }

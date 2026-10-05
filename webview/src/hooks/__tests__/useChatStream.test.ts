@@ -424,6 +424,42 @@ describe('useChatStream', () => {
   });
 
   describe('result 처리', () => {
+    it('keeps a turn that used tokens as a result entry after everything, with the CLI fields as sent', () => {
+      const { bridge, emit } = createMockBridge();
+      const { result } = renderHook(() => useChatStream({ bridge }));
+      act(() => {
+        emit(MessageType.CLI_EVENT, { type: 'stream_event', event: { delta: { type: 'text_delta', text: 'one' } } });
+        flushRAF();
+      });
+      act(() => {
+        emit(MessageType.CLI_EVENT, {
+          type: 'result',
+          subtype: 'success',
+          uuid: '514d979f-b612-4c27-b75a-17fef5eb3c59',
+          duration_ms: 1277,
+          num_turns: 1,
+          total_cost_usd: 0.0482538,
+          usage: { input_tokens: 2, cache_creation_input_tokens: 5728, cache_read_input_tokens: 11809, output_tokens: 3 },
+        });
+      });
+      const last = result.current.messages[result.current.messages.length - 1] as LoadedMessageDto & Record<string, unknown>;
+      expect(last.type).toBe(LoadedMessageType.Result);
+      expect(last.uuid).toBe('514d979f-b612-4c27-b75a-17fef5eb3c59');
+      expect(last.duration_ms).toBe(1277);
+      expect(last.num_turns).toBe(1);
+      expect(last.total_cost_usd).toBe(0.0482538);
+      expect(last.usage?.cache_read_input_tokens).toBe(11809);
+    });
+
+    it('adds no entry for a turn that reported no tokens', () => {
+      const { bridge, emit } = createMockBridge();
+      const { result } = renderHook(() => useChatStream({ bridge }));
+      act(() => {
+        emit(MessageType.CLI_EVENT, { type: 'result', subtype: 'success', duration_ms: 3, usage: { input_tokens: 0, output_tokens: 0 } });
+      });
+      expect(result.current.messages.some((m) => m.type === LoadedMessageType.Result)).toBe(false);
+    });
+
     it('수신 시 isStreaming이 false로 전환된다', () => {
       const { bridge, emit } = createMockBridge();
       const { result } = renderHook(() => useChatStream({ bridge }));

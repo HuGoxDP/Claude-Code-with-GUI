@@ -778,5 +778,10 @@
     "linkCopied": "تم نسخ عنوان الرابط",
     "textCopied": "تم نسخ النص",
     "copyFailed": "تعذّر النسخ"
+  },
+  "turnResult": {
+    "took": "استغرق {{duration}}",
+    "tokens": "{{input}} دخل · {{output}} خرج",
+    "tokensDetail": "الدخل: {{fresh}} جديدة، {{cacheWrite}} كُتبت في الذاكرة المؤقتة، {{cacheRead}} قُرئت منها. الخرج: {{output}}."
   }
 }

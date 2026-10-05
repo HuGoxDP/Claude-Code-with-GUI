@@ -6,6 +6,7 @@ import {
   SystemMessageRenderer,
   SummaryMessageRenderer,
   NotificationMessageRenderer,
+  TurnResultRenderer,
 } from './message-renderers';
 
 interface MessageBubbleProps {
@@ -29,6 +30,8 @@ export const MessageBubble = memo(function MessageBubble(props: MessageBubblePro
       return <SummaryMessageRenderer message={message} />;
     case 'notification':
       return <NotificationMessageRenderer message={message} />;
+    case 'result':
+      return <TurnResultRenderer message={message} />;
     default:
       return null;
   }
