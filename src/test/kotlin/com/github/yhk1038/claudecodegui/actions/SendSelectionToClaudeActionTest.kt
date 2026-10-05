@@ -256,4 +256,31 @@ class SendSelectionToClaudeActionTest {
             assertNull(EditorContextPayload.buildFilesPayload(emptyList(), "/abs"))
         }
     }
+
+    @Nested
+    inner class Reference {
+        @Test
+        fun `writes a range, a single line and a whole file in the form the CLI reads`() {
+            assertEquals("@src/a.ts#L10-12", EditorContextPayload.referenceText("src/a.ts", 10, 12))
+            assertEquals("@src/a.ts#L7", EditorContextPayload.referenceText("src/a.ts", 7, 7))
+            assertEquals("@src/a.ts", EditorContextPayload.referenceText("src/a.ts", null, null))
+        }
+
+        @Test
+        fun `quotes a reference holding whitespace, range included`() {
+            assertEquals("@\"My Notes.md#L3-5\"", EditorContextPayload.referenceText("My Notes.md", 3, 5))
+        }
+
+        @Test
+        fun `does not count the line a whole-line selection ends on`() {
+            // Lines 3 to 5 selected by triple-click end at column 0 of line 6.
+            assertEquals(Pair(3, 5), EditorContextPayload.selectedLines(2, 5, 0))
+        }
+
+        @Test
+        fun `counts the last line when the selection ends inside it, or is one line`() {
+            assertEquals(Pair(3, 6), EditorContextPayload.selectedLines(2, 5, 4))
+            assertEquals(Pair(3, 3), EditorContextPayload.selectedLines(2, 2, 0))
+        }
+    }
 }

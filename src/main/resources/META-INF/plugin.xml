@@ -213,6 +213,16 @@
             <keyboard-shortcut keymap="$default" first-keystroke="alt K"/>
         </action>
 
+        <!-- Copy the current file and selected lines as the @ reference the Claude Code
+             CLI reads, to paste where the chat input is not (a terminal session, a note) -->
+        <action
+            id="ClaudeCode.CopyReference"
+            class="com.github.yhk1038.claudecodegui.actions.CopyClaudeReferenceAction"
+            text="Copy Claude Code Reference"
+            description="Copy the file and selected lines as an @ reference Claude Code reads">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="ClaudeCode.SendSelection"/>
+        </action>
+
         <!-- Mention files and folders from the project view (or an editor tab) in the
              Claude Code chat input, the same way Alt+K mentions the open file -->
         <action

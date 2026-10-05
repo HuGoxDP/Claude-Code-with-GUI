@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.editor.Editor
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -62,6 +63,37 @@ object EditorContextPayload {
         put("startLine", startLine?.let { JsonPrimitive(it) } ?: JsonNull)
         put("endLine", endLine?.let { JsonPrimitive(it) } ?: JsonNull)
         put("workingDir", workingDir?.let { JsonPrimitive(it) } ?: JsonNull)
+    }
+
+    /**
+     * The 1-based lines a selection covers, given its 0-based start and end lines
+     * and the column it ends at.
+     *
+     * A selection of whole lines (a triple-click, Shift+Down) ends at column 0 of
+     * the line AFTER the last one it covers; counting that line would name one
+     * line too many.
+     */
+    fun selectedLines(startLine0: Int, endLine0: Int, endColumn: Int): Pair<Int, Int> {
+        val end = if (endLine0 > startLine0 && endColumn == 0) endLine0 - 1 else endLine0
+        return Pair(startLine0 + 1, end + 1)
+    }
+
+    /**
+     * The `@` reference the Claude Code CLI reads for [relativePath]: `@path`,
+     * `@path#L10-12` for a range, `@path#L10` for one line, and `@"…"` around a
+     * reference holding whitespace, which the CLI would otherwise cut at the
+     * first space.
+     *
+     * The same grammar the webview writes when it inserts a path into the chat
+     * input (`buildEditorContextText`); the CLI's own range pattern is
+     * `#L(\d+)(?:-(\d+))?`, so a second `L` (`#L10-L12`) would attach the whole file.
+     */
+    fun referenceText(relativePath: String, startLine: Int?, endLine: Int?): String {
+        var reference = relativePath
+        if (startLine != null && endLine != null) {
+            reference += if (startLine == endLine) "#L$startLine" else "#L$startLine-$endLine"
+        }
+        return if (reference.any { it.isWhitespace() }) "@\"$reference\"" else "@$reference"
     }
 
     /** A file or folder picked in the project view or on an editor tab. */
@@ -141,6 +173,18 @@ object EditorContextPayload {
 }
 
 /**
+ * The 1-based lines the editor's selection covers, or null without a selection.
+ * Shared by the actions that name a file and its selected lines.
+ */
+internal fun selectedLineRange(editor: Editor): Pair<Int, Int>? {
+    val selectionModel = editor.selectionModel
+    if (!selectionModel.hasSelection() || selectionModel.selectedText == null) return null
+    val start = selectionModel.selectionStartPosition ?: return null
+    val end = selectionModel.selectionEndPosition ?: return null
+    return EditorContextPayload.selectedLines(start.line, end.line, end.column)
+}
+
+/**
  * Editor action that sends the current file path (and selected line range, if any)
  * to the Claude Code chat input.
  *
@@ -160,18 +204,9 @@ class SendSelectionToClaudeAction : AnAction() {
         val editor = e.getData(CommonDataKeys.EDITOR) ?: return
         val vFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
 
-        val selectionModel = editor.selectionModel
-        val hasSelection = selectionModel.hasSelection() && selectionModel.selectedText != null
-        val startLine: Int?
-        val endLine: Int?
-        if (hasSelection) {
-            // Editor positions are 0-based; the payload uses 1-based line numbers.
-            startLine = selectionModel.selectionStartPosition?.line?.plus(1)
-            endLine = selectionModel.selectionEndPosition?.line?.plus(1)
-        } else {
-            startLine = null
-            endLine = null
-        }
+        val lines = selectedLineRange(editor)
+        val startLine = lines?.first
+        val endLine = lines?.second
 
         val absolutePath = vFile.path
         val workingDir = project.basePath
