@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { useDraggable } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
 import {
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
-  BookmarkIcon,
   PencilSquareIcon,
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { PROMPT_DRAG_TYPE } from '@/utils/promptDrag';
+import { PROMPT_DRAG_TYPE, PROMPT_NO_DRAG_ATTRIBUTE, readPromptDrag } from '@/utils/promptDrag';
+import { promptSortableId } from '@/utils/promptOrder';
 import { useTranslation } from '@/i18n';
 import { Tooltip } from '@/components/Tooltip';
 import { basename } from '@/pages/ChatPage/ChatInput/basename';
@@ -43,6 +43,18 @@ export function buildPromptRows(
 }
 
 interface Props {
+  /**
+   * False in a view that has no order of its own ("uncategorised"). A card there
+   * can still be picked up and filed under a category, but its neighbours do not
+   * slide aside, because there is nowhere in the list for it to be moved to.
+   */
+  sortable?: boolean;
+  /**
+   * A line above the lists, for what the user would otherwise have to guess. It
+   * says an order made inside a category belongs to that category alone, because
+   * the same prompt can be first in one category and last in the library.
+   */
+  note?: string;
   globalPrompts: SavedPrompt[];
   projectPrompts: SavedPrompt[];
   /** False when no project is open, so the project section explains itself instead. */
@@ -87,6 +99,7 @@ export function matchesPromptQuery(prompt: SavedPrompt, query: string): boolean 
 }
 
 interface SectionProps {
+  sortable: boolean;
   title: string;
   scope: PromptScope;
   prompts: SavedPrompt[];
@@ -115,6 +128,7 @@ interface SectionProps {
  */
 function PromptSection(props: SectionProps) {
   const {
+    sortable,
     title,
     scope,
     prompts,
@@ -195,11 +209,13 @@ function PromptSection(props: SectionProps) {
         </div>
       ) : (
         <div className="flex min-h-[5.5rem] flex-col gap-2 overflow-y-auto">
-          {prompts.map((prompt) => (
+          {prompts.map((prompt, index) => (
             <PromptCard
               key={prompt.id}
               prompt={prompt}
               scope={scope}
+              index={index}
+              sortable={sortable}
               isSelected={prompt.id === selectedId}
               isFocusedPane={isFocusedPane}
               onUse={onUse}
@@ -222,6 +238,8 @@ function PromptSection(props: SectionProps) {
  */
 export function PromptList(props: Props) {
   const {
+    sortable = true,
+    note,
     globalPrompts,
     projectPrompts,
     projectAvailable,
@@ -258,7 +276,9 @@ export function PromptList(props: Props) {
      * screen.
      */
     <div ref={scrollRef} className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto py-2">
+      {note && <p className="flex-shrink-0 text-xs text-text-tertiary">{note}</p>}
       <PromptSection
+        sortable={sortable}
         title={t('promptLibrary.globalSection')}
         scope="global"
         prompts={globalPrompts}
@@ -272,6 +292,7 @@ export function PromptList(props: Props) {
         onCreate={onCreate}
       />
       <PromptSection
+        sortable={sortable}
         title={
           projectName
             ? t('promptLibrary.projectSectionNamed', { projectName })
@@ -296,6 +317,10 @@ export function PromptList(props: Props) {
 interface PromptCardProps {
   prompt: SavedPrompt;
   scope: PromptScope;
+  /** Where the card sits in its section, which is what the drag layer sorts by. */
+  index: number;
+  /** False in a view with no order of its own: the card can be filed but not moved. */
+  sortable: boolean;
   isSelected: boolean;
   isFocusedPane: boolean;
   onUse: (prompt: SavedPrompt) => void;
@@ -304,28 +329,41 @@ interface PromptCardProps {
 }
 
 /**
- * One prompt, which can also be dragged onto a category to file it there.
+ * One prompt. Dragging it within its section reorders it, and dragging it onto a
+ * category files it there.
  *
  * A component of its own because each card registers its own drag source and
  * hooks cannot be called in a loop.
  *
- * The bookmark is the handle rather than the whole card. The card body is a
- * button that pastes the prompt, and a drag that started anywhere on it would
- * have to be told apart from a click by distance alone — which gets it wrong
- * exactly when the user is being careful. A handle says where to grab.
+ * The whole card is the handle. The card body is a button that pastes the
+ * prompt, so a press is a click until the pointer has travelled a few pixels and
+ * a drag after that; the drag layer holds the click back once a drag has begun,
+ * so finishing a drag never pastes. Edit and delete are marked as no-drag, since
+ * a press on them can only mean a click.
+ *
+ * A card accepts only drops from its own section. The two sections are separate
+ * stores, so there is no order to share between them, and a card that slid into
+ * the other section would be showing a move that cannot be kept.
  */
 function PromptCard(props: PromptCardProps) {
-  const { prompt, scope, isSelected, isFocusedPane, onUse, onEdit, onDelete } = props;
+  const { prompt, scope, index, sortable, isSelected, isFocusedPane, onUse, onEdit, onDelete } = props;
   const { t } = useTranslation('common');
 
-  const { ref: dragRef, isDragging } = useDraggable({
-    id: `prompt-drag:${scope}:${prompt.id}`,
+  const { ref: dragRef, isDragging } = useSortable({
+    id: promptSortableId(scope, prompt.id),
+    index,
+    // Still draggable, so it can be filed under a category, but no longer a place
+    // another card can be dropped, so nothing slides aside for it.
+    disabled: sortable ? false : { droppable: true },
+    group: scope,
     type: PROMPT_DRAG_TYPE,
+    accept: (source) => readPromptDrag(source.data)?.scope === scope,
     data: { promptId: prompt.id, scope, categories: prompt.categories ?? [] },
   });
 
   return (
     <div
+      ref={dragRef}
       data-prompt-id={prompt.id}
       /*
        * A card sits ON the panel, so it is drawn lighter than the panel rather
@@ -336,7 +374,7 @@ function PromptCard(props: PromptCardProps) {
        * (where the two surfaces are five shades apart) without boxing in the
        * dark one.
        */
-      className={`group flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+      className={`group flex cursor-grab items-center gap-3 rounded-lg border px-3 py-2 transition-colors active:cursor-grabbing ${
         isSelected
           ? isFocusedPane
             // The arrows are on this card. The focus border it always had says
@@ -346,26 +384,18 @@ function PromptCard(props: PromptCardProps) {
             ? 'border-border-focus bg-surface-selected ring-1 ring-inset ring-border-focus'
             : 'border-border-subtle bg-surface-selected'
           : 'border-border-subtle bg-surface-overlay hover:bg-surface-hover'
-      } ${isDragging ? 'opacity-50' : ''}`}
+      } ${
+        // Lifted while held, and above the cards it passes rather than under them.
+        isDragging ? 'relative z-10 shadow-lg' : ''
+      }`}
     >
-      {/* Bare, with no tile behind it, the way the `!!` panel draws the same
-          mark. The tile existed to bind two stacked lines into one block; on a
-          single line there is nothing to bind. */}
-      <span
-        ref={dragRef}
-        title={t('promptLibrary.dragToCategory')}
-        aria-label={t('promptLibrary.dragToCategory')}
-        className="flex-shrink-0 cursor-grab text-text-tertiary transition-colors hover:text-text-primary active:cursor-grabbing"
-      >
-        <BookmarkIcon className="h-4 w-4" />
-      </span>
       {/* The card body is the "use this prompt" button: picking a prompt here
           has to mean what picking one in the `!!` panel means, and that is
           putting its text in the composer. */}
       <button
         type="button"
         onClick={() => onUse(prompt)}
-        className="flex min-w-0 flex-1 items-center gap-3 text-start"
+        className="flex min-w-0 flex-1 cursor-[inherit] items-center gap-3 text-start"
       >
         {/* One line, laid out like the `!!` panel: the name takes a quarter and
             carries the weight, the content takes the rest, because the content
@@ -398,7 +428,7 @@ function PromptCard(props: PromptCardProps) {
           Colour alone marks the hover. A filled hover state is a second surface
           on top of the row's own, and on a selected row that read as a hole
           punched in the highlight. */}
-      <span className="flex flex-shrink-0 items-center gap-0.5">
+      <span {...{ [PROMPT_NO_DRAG_ATTRIBUTE]: '' }} className="flex flex-shrink-0 items-center gap-0.5">
         <button
           type="button"
           onClick={() => onEdit(scope, prompt)}

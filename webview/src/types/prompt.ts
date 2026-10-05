@@ -28,6 +28,11 @@ export interface PromptCategory {
   id: string;
   name: string;
   createdAt: number;
+  /**
+   * Place in the category column, as the backend stores it. "All" is fixed at 0,
+   * so a negative number is above it and a positive one below it.
+   */
+  priority?: number;
 }
 
 /** The reply to the four category messages: always the full list. */
@@ -44,14 +49,38 @@ export interface ScopedPrompt extends SavedPrompt {
 
 /** The reply to GET_PROMPTS. */
 export interface GetPromptsAck {
+  /**
+   * `error` when the backend could not read the library (an entity file that cannot
+   * be read, or a data migration that failed). An ACK is delivered as a reply even
+   * then, so a caller has to look at this: the list in it is empty, and drawing it
+   * would show a library that looks wiped.
+   */
+  status?: 'ok' | 'error';
+  error?: string;
   scope: PromptScope;
+  /** In the library's own ("All") order. */
   prompts: SavedPrompt[];
+  /**
+   * The order inside each category: a category id to the ids of this scope's
+   * prompts filed under it, top first.
+   */
+  orderByCategory?: Record<string, string[]>;
 }
 
 /** The reply to CREATE_PROMPT and UPDATE_PROMPT. */
 export interface PromptMutationAck {
   scope: PromptScope;
   prompt: SavedPrompt;
+}
+
+/**
+ * One prompt sitting in one category, with its place there. An export file
+ * carries them so the order inside each category survives the trip.
+ */
+export interface PromptLink {
+  categoryId: string;
+  promptId: string;
+  priority: number;
 }
 
 /** What to do with an incoming prompt whose id is already stored. */
@@ -87,6 +116,12 @@ export interface PreviewImportAck {
   items?: ImportItem[];
   newCount?: number;
   updateCount?: number;
+  /**
+   * The order inside each category, in this machine's category ids. Handed back
+   * unchanged with the import request: the choice the user makes next arrives as
+   * a separate request.
+   */
+  links?: PromptLink[];
 }
 
 /** The reply to IMPORT_PROMPTS. */

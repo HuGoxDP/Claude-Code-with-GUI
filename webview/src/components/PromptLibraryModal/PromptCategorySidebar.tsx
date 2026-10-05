@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
+import { useIMEComposition } from '@/pages/ChatPage/ChatInput/RichInput/useIMEComposition';
 import { useDroppable, useDragOperation } from '@dnd-kit/react';
+import { useSortable } from '@dnd-kit/react/sortable';
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
 import { ALL_CATEGORIES, UNCATEGORISED, type CategorySelection } from '@/utils/promptCategories';
 import {
   CATEGORY_DROP_TYPE,
+  CATEGORY_SORT_TYPE,
   PROMPT_DRAG_TYPE,
+  PROMPT_NO_DRAG_ATTRIBUTE,
   acceptsDrop,
   readPromptDrag,
 } from '@/utils/promptDrag';
+import { categorySortableId } from '@/utils/promptOrder';
 import type { PromptCategory } from '@/types/prompt';
 
 /** One row of the sidebar: the two fixed ones, or a category. */
@@ -34,15 +40,19 @@ export function buildSidebarRows(
   categories: PromptCategory[],
   counts: { all: number; uncategorised: number; byId: Map<string, number> },
   labels: { all: string; uncategorised: string },
+  /** How many categories sit above "All", which is part of the sorted column. */
+  allIndex = 0,
 ): SidebarRow[] {
+  const rows = categories.map((category) => ({
+    key: category.id,
+    label: category.name,
+    count: counts.byId.get(category.id) ?? 0,
+    category,
+  }));
   return [
+    ...rows.slice(0, allIndex),
     { key: ALL_CATEGORIES, label: labels.all, count: counts.all },
-    ...categories.map((category) => ({
-      key: category.id,
-      label: category.name,
-      count: counts.byId.get(category.id) ?? 0,
-      category,
-    })),
+    ...rows.slice(allIndex),
     ...(counts.uncategorised > 0
       ? [{ key: UNCATEGORISED, label: labels.uncategorised, count: counts.uncategorised }]
       : []),
@@ -66,6 +76,17 @@ interface Props {
   onDelete: (category: PromptCategory) => void;
   /** Set while a name is being typed, so the arrow keys leave the caret alone. */
   onEditingChange?: (editing: boolean) => void;
+  /**
+   * Asks for a category's name to be put into edit mode, which is what the `e`
+   * and Right keys do. A new object each time, because asking for the same row
+   * twice (edit, Escape, edit again) is two requests.
+   */
+  renameRequest?: RenameRequest | null;
+}
+
+/** A request to start editing one category's name. */
+export class RenameRequest {
+  constructor(readonly categoryId: string) {}
 }
 
 /**
@@ -84,8 +105,17 @@ interface Props {
  *   nothing left.
  */
 export function PromptCategorySidebar(props: Props) {
-  const { rows, selected, isFocusedPane, onSelect, onCreate, onRename, onDelete, onEditingChange } =
-    props;
+  const {
+    rows,
+    selected,
+    isFocusedPane,
+    onSelect,
+    onCreate,
+    onRename,
+    onDelete,
+    onEditingChange,
+    renameRequest,
+  } = props;
   const { t } = useTranslation('common');
 
   /** The category being renamed, or the sentinel while a new name is typed. */
@@ -98,6 +128,8 @@ export function PromptCategorySidebar(props: Props) {
    * list uses for the same reason.
    */
   const skipCommitRef = useRef(false);
+  // The IME's own Enter ends a composition; only the next one is ours.
+  const ime = useIMEComposition();
 
   useEffect(() => {
     onEditingChange?.(editingKey !== null);
@@ -115,6 +147,15 @@ export function PromptCategorySidebar(props: Props) {
     skipCommitRef.current = false;
     setEditingKey(category.id);
   };
+
+  // The keyboard asks for edit mode from outside, where the row's name is not known.
+  useEffect(() => {
+    if (!renameRequest) return;
+    const category = rows.find((row) => row.category?.id === renameRequest.categoryId)?.category;
+    if (category) startRename(category);
+    // Only a new request starts an edit; a re-render with the same one must not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renameRequest]);
 
   const startCreate = () => {
     setDraft('');
@@ -150,14 +191,23 @@ export function PromptCategorySidebar(props: Props) {
     // Held inside the field so the sidebar's own arrow handling never moves the
     // selection out from under a name being typed.
     e.stopPropagation();
+    ime.noteKeyDown(e.keyCode);
+    // An Enter that is the IME finishing a syllable is not ours: acting on it
+    // would save half a name, and the same key would go on to the composer.
+    if (ime.isComposing() || e.nativeEvent.isComposing) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       void commit();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      cancel();
     }
   };
+
+  // Escape leaves edit mode and puts the old name back. It is taken by the
+  // overlay layer and not by the field, so it works wherever the focus happens to
+  // be, and a half-finished IME syllable cannot make the field ignore it.
+  useEscapeLayer(() => {
+    cancel();
+    return true;
+  }, editingKey !== null);
 
   const rowClass = (isActive: boolean) =>
     `group/cat flex w-auto max-w-40 flex-shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-start text-xs transition-colors sm:w-full sm:max-w-none ${
@@ -177,6 +227,8 @@ export function PromptCategorySidebar(props: Props) {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={handleDraftKeyDown}
+              onCompositionStart={ime.handleCompositionStart}
+              onCompositionEnd={ime.handleCompositionEnd}
               onBlur={() => void commit()}
               className="w-full min-w-0 border-b border-text-tertiary/40 bg-transparent text-xs text-text-primary outline-none"
             />
@@ -185,6 +237,9 @@ export function PromptCategorySidebar(props: Props) {
           <CategoryRowButton
             key={row.key}
             row={row}
+            sortIndex={rows
+              .filter((candidate) => candidate.key !== UNCATEGORISED)
+              .findIndex((candidate) => candidate.key === row.key)}
             className={rowClass(selected === row.key)}
             isSelected={selected === row.key}
             onSelect={onSelect}
@@ -227,6 +282,8 @@ const NEW_CATEGORY_KEY = '__new__';
 
 interface CategoryRowButtonProps {
   row: SidebarRow;
+  /** Where the row sits among the real categories, which the drag layer sorts by. */
+  sortIndex: number;
   className: string;
   isSelected: boolean;
   onSelect: (key: CategorySelection) => void;
@@ -245,7 +302,43 @@ interface CategoryRowButtonProps {
  * as live targets would promise a write that never happens.
  */
 function CategoryRowButton(props: CategoryRowButtonProps) {
-  const { row, className, isSelected, onSelect, onStartRename, onDelete } = props;
+  // "All" is a row of the column like the categories and sorts with them (it is
+  // fixed at priority 0, with categories above and below). "Uncategorised" is
+  // the leftover and stays last, so it takes no part in the sorting at all. It is
+  // not merely disabled: a disabled item would still hold an index, and every
+  // sorted row's index is counted without it.
+  return props.row.key !== UNCATEGORISED ? (
+    <SortableCategoryRow {...props} />
+  ) : (
+    <CategoryRowFrame {...props} />
+  );
+}
+
+/**
+ * A row that can be dragged to a new place in the column: a category, or "All".
+ *
+ * The whole row is the handle, as it is for a prompt card. It stays a drop target
+ * for prompts at the same time; the two are told apart by drag type.
+ */
+function SortableCategoryRow(props: CategoryRowButtonProps) {
+  const { ref, isDragging } = useSortable({
+    id: categorySortableId(String(props.row.key)),
+    index: props.sortIndex,
+    type: CATEGORY_SORT_TYPE,
+    accept: CATEGORY_SORT_TYPE,
+  });
+  return <CategoryRowFrame {...props} sortRef={ref} isDragging={isDragging} />;
+}
+
+interface CategoryRowFrameProps extends CategoryRowButtonProps {
+  /** Present on a real category: makes the row sortable as well as droppable. */
+  sortRef?: (element: Element | null) => void;
+  isDragging?: boolean;
+}
+
+function CategoryRowFrame(props: CategoryRowFrameProps) {
+  const { row, className, isSelected, onSelect, onStartRename, onDelete, sortRef, isDragging = false } =
+    props;
   const { t } = useTranslation('common');
 
   const { ref: dropRef, isDropTarget } = useDroppable({
@@ -262,16 +355,38 @@ function CategoryRowButton(props: CategoryRowButtonProps) {
   const dragged = readPromptDrag(source?.data);
   const wouldAccept = dragged !== null && acceptsDrop(dragged.categories, row.key);
 
+  // One element, two registrations: a place prompts can be dropped, and (for a
+  // real category) an item in the sortable column. Memoised, because a new ref
+  // function every render would make the drag layer unregister and register the
+  // row again each time.
+  const setRefs = useCallback(
+    (element: HTMLButtonElement | null) => {
+      dropRef(element);
+      sortRef?.(element);
+    },
+    [dropRef, sortRef],
+  );
+
   return (
     <button
-      ref={dropRef}
+      ref={setRefs}
       type="button"
       data-category-key={row.key}
-      aria-pressed={isSelected}
+      // `aria-current`, not `aria-pressed`: the drag layer owns `aria-pressed` on
+      // anything it can pick up and sets it to "is this being dragged right now",
+      // so a selection written there is overwritten the moment the row becomes
+      // sortable and the selected category stops being announced as selected.
+      aria-current={isSelected ? 'true' : undefined}
       onClick={() => onSelect(row.key)}
       className={`${className} ${
         isDropTarget && wouldAccept ? 'ring-1 ring-accent-primary bg-accent-primary/10' : ''
-      } ${dragged !== null && !wouldAccept ? 'opacity-40' : ''}`}
+      } ${dragged !== null && !wouldAccept ? 'opacity-40' : ''} ${
+        // Only a real category can be picked up, so only it shows the grab hand.
+        row.key !== UNCATEGORISED ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${
+        // Lifted while held, and above the rows it passes rather than under them.
+        isDragging ? 'relative z-10 bg-surface-overlay shadow-lg' : ''
+      }`}
       title={row.label}
     >
       <span className="min-w-0 flex-1 truncate">{row.label}</span>
@@ -292,7 +407,10 @@ function CategoryRowButton(props: CategoryRowButtonProps) {
           ({row.count})
         </span>
         {row.category && (
-          <span className="absolute inset-y-0 end-0 hidden items-center gap-0.5 group-hover/cat:flex">
+          <span
+            {...{ [PROMPT_NO_DRAG_ATTRIBUTE]: '' }}
+            className="absolute inset-y-0 end-0 hidden items-center gap-0.5 group-hover/cat:flex"
+          >
             {/* Spans, not buttons: this sits inside the row's own button. */}
             <span
               role="button"

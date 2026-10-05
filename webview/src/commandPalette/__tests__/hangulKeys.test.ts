@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { hangulToQwerty, restoreCommandName } from '../hangulKeys';
+import { hangulToQwerty } from '../hangulKeys';
 
 describe('hangulToQwerty', () => {
   it('turns letters typed one by one back into the keys pressed', () => {
@@ -30,24 +30,5 @@ describe('hangulToQwerty', () => {
 
   it('handles an empty string', () => {
     expect(hangulToQwerty('')).toBe('');
-  });
-});
-
-describe('restoreCommandName', () => {
-  it('rewrites the first word when it is the command typed on the Korean layout', () => {
-    expect(restoreCommandName('/ㄱㄷㅜㅁㅡㄷ 새 이름', '/rename')).toBe('/rename 새 이름');
-    expect(restoreCommandName('/ㄱ두믇', '/rename')).toBe('/rename');
-  });
-
-  it('leaves a line alone when it already starts with the command', () => {
-    expect(restoreCommandName('/rename 새 이름', '/rename')).toBe('/rename 새 이름');
-  });
-
-  it('leaves a line alone when the first word is some other command', () => {
-    expect(restoreCommandName('/ㅡㅐㅇ디 sonnet', '/rename')).toBe('/ㅡㅐㅇ디 sonnet');
-  });
-
-  it('only looks at the first word', () => {
-    expect(restoreCommandName('please /ㄱㄷㅜㅁㅡㄷ', '/rename')).toBe('please /ㄱㄷㅜㅁㅡㄷ');
   });
 });

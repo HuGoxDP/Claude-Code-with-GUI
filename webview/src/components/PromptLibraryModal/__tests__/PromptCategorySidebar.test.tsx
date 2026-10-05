@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { PromptCategorySidebar, buildSidebarRows } from '../PromptCategorySidebar';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { PromptCategorySidebar, RenameRequest, buildSidebarRows } from '../PromptCategorySidebar';
 import { ALL_CATEGORIES, UNCATEGORISED } from '@/utils/promptCategories';
+import { PROMPT_NO_DRAG_ATTRIBUTE } from '@/utils/promptDrag';
 import type { PromptCategory } from '@/types/prompt';
 
 const category = (id: string, name: string): PromptCategory => ({ id, name, createdAt: 1 });
@@ -29,6 +30,34 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof PromptCate
 
 const rowFor = (key: string) => document.querySelector(`[data-category-key="${key}"]`);
 
+describe('buildSidebarRows with "All" among the categories', () => {
+  const labels = { all: 'All', uncategorised: 'Uncategorised' };
+  const counts = { all: 5, uncategorised: 2, byId: new Map([['c1', 3], ['c2', 0]]) };
+  const two = [category('c1', 'a'), category('c2', 'b')];
+
+  it('puts "All" after the categories above it', () => {
+    expect(buildSidebarRows(two, counts, labels, 1).map((row) => row.key)).toEqual([
+      'c1',
+      ALL_CATEGORIES,
+      'c2',
+      UNCATEGORISED,
+    ]);
+  });
+
+  it('can put "All" below every category, and still leaves "uncategorised" last', () => {
+    expect(buildSidebarRows(two, counts, labels, 2).map((row) => row.key)).toEqual([
+      'c1',
+      'c2',
+      ALL_CATEGORIES,
+      UNCATEGORISED,
+    ]);
+  });
+
+  it('keeps "All" on top by default', () => {
+    expect(buildSidebarRows(two, counts, labels).map((row) => row.key)[0]).toBe(ALL_CATEGORIES);
+  });
+});
+
 describe('buildSidebarRows', () => {
   it('leads with "all" and trails with "uncategorised"', () => {
     expect(rows.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1', 'c2', UNCATEGORISED]);
@@ -42,6 +71,51 @@ describe('buildSidebarRows', () => {
       { all: 'All', uncategorised: 'Uncategorised' },
     );
     expect(tidy.map((row) => row.key)).toEqual([ALL_CATEGORIES, 'c1']);
+  });
+});
+
+/**
+ * A real category row can be dragged to a new place in the column, so the drag
+ * layer takes over `aria-pressed` on it and sets it to "is this being dragged".
+ * The selected category therefore has to be announced some other way, or it
+ * stops being announced at all the moment the row becomes sortable.
+ */
+describe('a category row that can be picked up', () => {
+  it('announces the selected row with aria-current, not aria-pressed', () => {
+    renderSidebar({ selected: 'c1' });
+
+    expect(rowFor('c1')).toHaveAttribute('aria-current', 'true');
+    expect(rowFor('c1')).not.toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('announces no other row as current', () => {
+    renderSidebar({ selected: 'c1' });
+
+    expect(rowFor('c2')).not.toHaveAttribute('aria-current');
+    expect(rowFor(ALL_CATEGORIES)).not.toHaveAttribute('aria-current');
+  });
+
+  it('shows the grab hand on the categories and on "All", and not on the fixed last row', () => {
+    renderSidebar();
+
+    expect(rowFor('c1')?.className).toContain('cursor-grab');
+    expect(rowFor(ALL_CATEGORIES)?.className).toContain('cursor-grab');
+    expect(rowFor(UNCATEGORISED)?.className).not.toContain('cursor-grab');
+  });
+
+  // Rename and delete are clicks, and the row around them is a drag handle.
+  it('keeps the rename and delete controls out of the drag', () => {
+    renderSidebar();
+
+    const actions = rowFor('c1')?.querySelectorAll(`[${PROMPT_NO_DRAG_ATTRIBUTE}] [role="button"]`);
+    expect(actions).toHaveLength(2);
+  });
+
+  it('gives the two fixed rows no controls to keep out of a drag', () => {
+    renderSidebar();
+
+    expect(rowFor(ALL_CATEGORIES)?.querySelector(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`)).toBeNull();
+    expect(rowFor(UNCATEGORISED)?.querySelector(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`)).toBeNull();
   });
 });
 
@@ -109,5 +183,69 @@ describe('the row does not change height on hover', () => {
 
     expect(screen.getByText('(5)').className ?? '').not.toContain('group-hover/cat:invisible');
     expect(screen.getByText('(2)').className ?? '').not.toContain('group-hover/cat:invisible');
+  });
+});
+
+
+describe('a category name being edited from the keyboard', () => {
+  const edit = (overrides: Partial<React.ComponentProps<typeof PromptCategorySidebar>> = {}) => {
+    const rendered = renderSidebar({ renameRequest: new RenameRequest('c1'), ...overrides });
+    return { ...rendered, field: screen.getByDisplayValue('리뷰') as HTMLInputElement };
+  };
+
+  it('opens on the name, selected', () => {
+    const { field } = edit();
+
+    expect(document.activeElement).toBe(field);
+    expect(field.selectionEnd).toBe('리뷰'.length);
+  });
+
+  it('puts the name back when the key that opened it arrives as a composition', () => {
+    const { field } = edit();
+
+    field.addEventListener('blur', () => fireEvent.change(field, { target: { value: '리뷰ㄷ' } }), { once: true });
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(field.value).toBe('리뷰');
+  });
+
+  it('does not save, or close, when that happens', () => {
+    const onRename = vi.fn();
+    const { field } = edit({ onRename });
+
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('리뷰')).toBeInTheDocument();
+  });
+
+  it('does not take the Enter that ends an IME composition for a save', () => {
+    const onRename = vi.fn();
+    const { field } = edit({ onRename });
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('개발')).toBeInTheDocument();
+  });
+
+  it('saves on the Enter after the composition has ended', async () => {
+    const onRename = vi.fn(async () => {});
+    const { field } = edit({ onRename });
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.compositionEnd(field);
+    await act(async () => {
+      fireEvent.keyDown(field, { key: 'Enter', keyCode: 13 });
+    });
+
+    expect(onRename).toHaveBeenCalledWith('c1', '개발');
   });
 });

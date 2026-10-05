@@ -188,7 +188,19 @@ intellijPlatform {
             untilBuild = provider { null }
         }
         changeNotes = """
-            <h3>0.33.2 - Add message timestamps, fix scrolling and permission mode</h3>
+            <h3>0.33.3 - Add Mac editing keys and prompt reordering, fix session approval and selection</h3>
+            <ul>
+                <li>Add macOS Control-key editing shortcuts to the message box (#506, reported by @metasim)</li>
+                <li>Fix Ctrl+Z in the message box undoing in the IDE instead of the text (#495, reported by @cheack)</li>
+                <li>Add a Cmd+/ shortcut help window (#515)</li>
+                <li>Add drag-and-drop reordering of saved prompts and categories (#519)</li>
+                <li>Add an "Allow all in this session" switch to the approval panel, and hide the session approval option that cannot be kept (#521)</li>
+                <li>Fix session names set with /rename not showing in the session list (#512, reported by @Tenneteu)</li>
+                <li>Fix slash commands typed with another language's input still on not being found (#512, reported by @Tenneteu)</li>
+                <li>Fix unstable text selection in the chat and the Linux selection buffer staying empty (#513, reported by @0vvland)</li>
+                <li>Fix the panel getting stuck on "Reconnecting" when the backend dies while an IDE dialog is open (#516)</li>
+            </ul>
+            <h3>0.33.2 -Add message timestamps, fix scrolling and permission mode</h3>
             <ul>
                 <li>Add copy, fork and send time under each message (#498, reported by @hollandjake)</li>
                 <li>Fix background task details not scrolling like the main chat (#511, reported by @CraftedFury)</li>

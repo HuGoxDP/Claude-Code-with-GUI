@@ -10,6 +10,8 @@ import { InputFrame } from './InputFrame';
 import { MicButton } from './MicButton';
 import { useDictationContext } from './DictationProvider';
 import { useNavigateToLogin } from '@/hooks';
+import { useOnWindowFocus } from '@/hooks/useOnWindowFocus';
+import { ComposerFocusPolicy } from './composerFocusPolicy';
 import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import { useChatInputFocus } from '../../../contexts/ChatInputFocusContext';
 import { useInputHistory } from './hooks/useInputHistory';
@@ -36,7 +38,7 @@ import { OPEN_SESSION_DROPDOWN_EVENT, OPEN_SCHEDULE_SEND_EVENT } from '@/command
 import { useClaudeSettings } from '@/contexts/ClaudeSettingsContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { displayShortcut } from '@/utils/shortcut';
-import type { ScopedPrompt } from '@/types/prompt';
+import type { PromptCategory, ScopedPrompt } from '@/types/prompt';
 import { useEffort } from '@/hooks/useEffort';
 import { useMention } from './hooks/useMention';
 import { usePromptLibrary } from './hooks/usePromptLibrary';
@@ -46,15 +48,18 @@ import { usePromptVariableFill } from './hooks/usePromptVariableFill';
 import { PromptVariablesModal } from '@/components/PromptVariablesModal';
 import { useEditorContext } from '@/hooks/useEditorContext';
 import { MentionDropdown } from './MentionDropdown';
+import { escapeMayInterrupt } from '@/utils/escapeMayInterrupt';
 import { PromptDropdown } from './PromptDropdown';
 import {
   OPEN_PROMPT_LIBRARY_EVENT,
+  PROMPT_EDIT_CLOSED_EVENT,
   INSERT_PROMPT_EVENT,
   type OpenPromptLibraryDetail,
   type InsertPromptDetail,
 } from '@/commandPalette/sections/context/items';
 import { replaceRangeWithText } from './RichInput/replaceRangeWithText';
 import { renameSuggestion } from './renameSuggestion';
+import { typedKeys } from '@/commandPalette/typedKeys';
 import {
   wrapChipForTranscript,
   readFirstSessionMention,
@@ -391,12 +396,24 @@ export function ChatInput() {
   const variableFill = usePromptVariableFill();
   const { requestFill } = variableFill;
 
+  const panelActions = useRef({
+    editPrompt: (_prompt: ScopedPrompt) => {},
+    deletePrompt: (_prompt: ScopedPrompt) => {},
+    deleteCategory: (_category: PromptCategory) => {},
+  });
+
   const promptLibrary = usePromptLibrary({
     workingDirectory,
     value,
     onChange,
     inputRef: textareaRef,
     requestFill: variableFill.requestFill,
+    // `e`, the right arrow and Backspace on a highlighted row. The handlers are
+    // made further down, after the hook they call into, so they are reached
+    // through a ref that is filled in on every render.
+    onEditPrompt: (prompt) => panelActions.current.editPrompt(prompt),
+    onDeletePrompt: (prompt) => panelActions.current.deletePrompt(prompt),
+    onDeleteCategory: (category) => panelActions.current.deleteCategory(category),
     // Pasting a saved prompt settles the `!!` token, so hand the shared slot
     // back the same way picking a mention does (issue #236): the pasted text may
     // itself end in a `/command` or an `@file` the other panels should answer.
@@ -644,20 +661,32 @@ export function ChatInput() {
   /**
    * Open the library on this prompt's edit screen.
    *
-   * The panel closes first: the editor is a modal over the composer, and a
-   * dropdown left hanging under it would outlive the token that opened it.
+   * The panel is left open underneath: the editor is a modal over the composer,
+   * and when it closes, by saving or by cancelling, the user is back in the panel
+   * they came from rather than in an empty composer.
    */
-  const editSavedPrompt = useCallback(
-    (prompt: ScopedPrompt) => {
-      promptLibrary.close();
-      window.dispatchEvent(
-        new CustomEvent<OpenPromptLibraryDetail>(OPEN_PROMPT_LIBRARY_EVENT, {
-          detail: { view: 'list', edit: { scope: prompt.scope, prompt } },
-        }),
-      );
-    },
-    [promptLibrary],
-  );
+  const editSavedPrompt = useCallback((prompt: ScopedPrompt) => {
+    window.dispatchEvent(
+      new CustomEvent<OpenPromptLibraryDetail>(OPEN_PROMPT_LIBRARY_EVENT, {
+        detail: { view: 'list', edit: { scope: prompt.scope, prompt } },
+      }),
+    );
+  }, []);
+
+  // The editor opened from the panel went away. The prompt may have changed, so
+  // the panel re-reads the library, and the composer gets the focus back so the
+  // arrow keys are the panel's again.
+  const reloadPromptLibrary = promptLibrary.reload;
+  const returnFocusToComposer = promptLibrary.returnFocusToComposer;
+  useEffect(() => {
+    const handler = () => {
+      reloadPromptLibrary();
+      // With the caret back after the `!!`, where it was when the edit began.
+      returnFocusToComposer();
+    };
+    window.addEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
+    return () => window.removeEventListener(PROMPT_EDIT_CLOSED_EVENT, handler);
+  }, [reloadPromptLibrary, returnFocusToComposer]);
 
   /** Remove a prompt from the panel, after asking. Deleting cannot be undone. */
   const deleteSavedPrompt = useCallback(
@@ -673,6 +702,26 @@ export function ChatInput() {
     },
     [confirm, tCommon, promptLibrary],
   );
+
+  /** Remove a category from the panel, after asking. Its prompts stay. */
+  const deleteSavedCategory = useCallback(
+    async (category: PromptCategory) => {
+      const confirmed = await confirm({
+        title: tCommon('promptLibrary.deleteCategoryTitle'),
+        message: tCommon('promptLibrary.deleteCategoryMessage', { name: category.name }),
+        confirmLabel: tCommon('promptLibrary.delete'),
+        variant: 'danger',
+      });
+      if (!confirmed) return;
+      await promptLibrary.deleteCategory(category);
+    },
+    [confirm, tCommon, promptLibrary],
+  );
+  panelActions.current = {
+    editPrompt: editSavedPrompt,
+    deletePrompt: (prompt) => void deleteSavedPrompt(prompt),
+    deleteCategory: (category) => void deleteSavedCategory(category),
+  };
 
   // Backend pushes EDITOR_CONTEXT (the file the user is viewing + selection)
   // → insert `relativePath[#L..]` at the composer caret.
@@ -726,34 +775,18 @@ export function ChatInput() {
     }
   }, [currentSessionId, disabled, textareaRef]);
 
-  // Focus textarea when window/document gains focus.
-  // Only restore focus when nothing else is already focused (activeElement is
-  // body). The left session panel runs in a separate JCEF window; switching
-  // between the two fires window 'focus' here repeatedly, and unconditionally
-  // grabbing focus would let the editor tab keep stealing it back from the
-  // panel — a focus ping-pong. Guarding on document.body keeps the
-  // "return-to-IDE restores the input" intent without the tug-of-war.
-  useEffect(() => {
-    const handleFocus = () => {
-      if (document.activeElement === document.body) {
-        textareaRef.current?.focus();
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        handleFocus();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [textareaRef]);
+  // Focus the textarea when the window regains focus, and after a plain click
+  // (#513). Nothing here reacts to a mouse press: a press is where a word or
+  // drag selection starts, and cancelling it broke selection. See
+  // ComposerFocusPolicy for the rules, including why only `body` holding the
+  // focus lets the composer take it (the focus ping-pong between the editor tab
+  // and the other JCEF window).
+  const focusPolicyRef = useRef<ComposerFocusPolicy | null>(null);
+  if (focusPolicyRef.current === null) {
+    focusPolicyRef.current = new ComposerFocusPolicy(document, () => textareaRef.current?.focus());
+  }
+  useEffect(() => focusPolicyRef.current!.attach(), []);
+  useOnWindowFocus(() => focusPolicyRef.current!.restoreOnWindowFocus());
 
   // 세션 전환 시 ChatInput 로컬 상태 리셋
   const prevChatInputSessionRef = useRef(currentSessionId);
@@ -806,7 +839,9 @@ export function ChatInput() {
   // four-tap run is interrupt + three.
   useEffect(() => {
     const handleEscKey = (e: globalThis.KeyboardEvent) => {
-      if (e.key !== 'Escape' || showSchedulePopover) return;
+      // Not an Escape something else already used (a panel or dialog closing
+      // itself): that is the user cancelling THAT, not asking to stop the response.
+      if (!escapeMayInterrupt(e, showSchedulePopover)) return;
 
       if (isInterruptible) {
         e.preventDefault();
@@ -877,7 +912,12 @@ export function ChatInput() {
     return () => window.removeEventListener(INSERT_PROMPT_EVENT, handler);
   }, [value, onChange, textareaRef, requestFill]);
 
+  // The record of pressed keys follows the box: it starts over whenever the box
+  // is emptied or filled by something other than typing (submit, history).
+  useEffect(() => typedKeys.noteValue(value), [value]);
+
   const handleRichChange = useCallback((newValue: string) => {
+    typedKeys.noteTyped(newValue);
     onChange(newValue);
     // The caret decides which of the two dropdowns owns the slot above the
     // composer, so resolve it before either detector runs (issue #236).
@@ -896,6 +936,14 @@ export function ChatInput() {
     // Feed the IME truth: keyCode 229 means the IME is still processing this
     // keystroke, so mark composition active before any Enter decision runs.
     ime.noteKeyDown(e.nativeEvent.keyCode);
+
+    // Write down which physical key this is, so a command typed with another
+    // layout on can be read back as the keys that were pressed. A key only
+    // extends the record when it lands at the end of the line.
+    const editor = e.currentTarget;
+    const caretAtEnd = window.getSelection()?.isCollapsed === true
+      && getCaretOffset(editor) === (editor.textContent ?? '').length;
+    typedKeys.noteKeyDown(e.nativeEvent, caretAtEnd);
 
     // Accept the previewed title. Ahead of every panel below because the slash
     // panel is still open on `/rename ` and would claim Tab to pick a command.
@@ -1247,6 +1295,8 @@ export function ChatInput() {
           <div className="absolute bottom-full start-0 w-full z-20">
             <PromptDropdown
               rows={promptLibrary.rows}
+              allPrompts={promptLibrary.allPrompts}
+              memberPrompts={promptLibrary.memberPrompts}
               selectedIndex={promptLibrary.selectedIndex}
               isLoading={promptLibrary.isLoading}
               hasLoaded={promptLibrary.hasLoaded}
@@ -1260,6 +1310,9 @@ export function ChatInput() {
               onSelect={promptLibrary.selectRow}
               onEdit={editSavedPrompt}
               onDelete={(prompt) => void deleteSavedPrompt(prompt)}
+              editingCategory={promptLibrary.editingCategory}
+              onRenameCategory={(id, name) => void promptLibrary.renameCategory(id, name)}
+              onCancelCategoryEdit={promptLibrary.cancelCategoryEdit}
               onClose={promptLibrary.close}
             />
           </div>
@@ -1363,6 +1416,9 @@ export function ChatInput() {
             value={value}
             onChange={handleRichChange}
             onKeyDown={handleKeyDown}
+            onKeyUp={(e) => {
+              if (promptLibrary.isActive) promptLibrary.handleKeyUp(e);
+            }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             onPaste={handleRichPaste}

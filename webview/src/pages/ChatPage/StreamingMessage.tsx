@@ -51,7 +51,7 @@ export const StreamingMessage: React.FC<StreamingMessageProps> = ({
     }, [isStreaming]);
 
     return (
-        <ToolWrapper message={message} className="!mt-0" groupClassName={footer ? '!pb-2' : undefined}>
+        <ToolWrapper message={message} className="!mt-0" groupClassName={footer ? '!pb-0 -mb-2' : undefined}>
             <div className={`streaming-message ${className}`}>
                 <div ref={markdownRef} className={`markdown-content ${shouldAnimate ? 'streaming-animate' : ''}`}>
                     <Streamdown

@@ -4,7 +4,7 @@ import { useCommandPaletteRegistry } from '../CommandPaletteProvider';
 import { useCliConfig } from '@/contexts/CliConfigContext';
 import { isCaretInMentionToken } from '@/utils/isCaretInMentionToken';
 import { findSlashCommandToken } from '@/utils/findSlashCommandToken';
-import { hangulToQwerty } from '../hangulKeys';
+import { typedKeys } from '../typedKeys';
 
 interface UseCommandPaletteOptions {
   onChange: (value: string) => void;
@@ -48,9 +48,10 @@ export function useCommandPalette({ onChange, textareaRef, onCompleteInline }: U
     const query = filterQuery.toLowerCase();
     const hasQuery = query.length > 0;
     // The same query as the keys it was typed with: "ㄱㄷ" with the Korean
-    // layout still on is "re". Both are searched, because a Korean query is
-    // also a real one against the translated labels ("모델 전환").
-    const keyQuery = hangulToQwerty(filterQuery).toLowerCase();
+    // layout still on is "re", read off the physical keys so that any layout
+    // works. Both are searched, because a Korean query is also a real one
+    // against the translated labels ("모델 전환").
+    const keyQuery = typedKeys.keysForQuery(filterQuery).toLowerCase();
     const queries = keyQuery === query ? [query] : [query, keyQuery];
 
     // Rank a match so a name (label) hit beats a description-only hit, and an

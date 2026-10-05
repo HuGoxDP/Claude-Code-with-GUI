@@ -123,11 +123,18 @@ function errorCode(err: unknown): string | undefined {
 
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-async function renameWithRetry(from: string, to: string): Promise<void> {
+/**
+ * Run a file operation again, a few times and after a short wait, when it fails the
+ * way Windows fails an operation on a file another process has open for a moment
+ * (`EPERM`, `EACCES`, `EBUSY`). Any other failure, and the last of these, is thrown.
+ *
+ * Not for operations whose failure is an answer: `ENOENT` (it is not there) and
+ * `EEXIST` (someone else made it first) are never retried.
+ */
+export async function retryTransient<T>(run: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
-      await rename(from, to);
-      return;
+      return await run();
     } catch (err) {
       const code = errorCode(err);
       if (attempt >= RENAME_RETRY_DELAYS_MS.length || !code || !RETRYABLE_RENAME_CODES.has(code)) {
@@ -136,6 +143,10 @@ async function renameWithRetry(from: string, to: string): Promise<void> {
       await delay(RENAME_RETRY_DELAYS_MS[attempt]);
     }
   }
+}
+
+function renameWithRetry(from: string, to: string): Promise<void> {
+  return retryTransient(() => rename(from, to));
 }
 
 /**
@@ -186,6 +197,28 @@ export async function atomicWriteFile(filePath: string, content: string): Promis
  * Cross-process overlap is not what this solves — the atomic rename is.
  */
 const updateChains = new Map<string, Promise<unknown>>();
+
+/**
+ * Run [task] once every task already queued for [filePath] has finished, and
+ * before any queued after it.
+ *
+ * The chain {@link updateJsonFile} uses, for writers that are not a whole-file
+ * read-modify-write (an append to a line-per-row file, say) but must not
+ * interleave with one. A task that throws does not stall the ones behind it.
+ */
+export function runExclusive<T>(filePath: string, task: () => Promise<T>): Promise<T> {
+  const key = resolve(filePath);
+  const previous = updateChains.get(key) ?? Promise.resolve();
+  const run = previous.then(task);
+  updateChains.set(
+    key,
+    run.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+  return run;
+}
 
 /**
  * Read a JSON file, apply `mutate`, and save the result atomically.

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from '@/i18n';
 import { Portal } from '../Portal';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 
 interface Props {
   title: string;
@@ -73,24 +74,16 @@ export function ConfirmDialog(props: Props) {
     };
   }, []);
 
-  useEffect(() => {
-    // Only Escape is intercepted globally (capture phase, so it beats the chat
-    // input underneath). Enter is deliberately NOT handled here: focus is trapped
-    // inside the dialog, so Enter natively activates whichever button is focused —
-    // Confirm or Cancel. Intercepting it would force-confirm even when the user
-    // has Cancel focused.
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        close();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown, true);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown, true);
-    };
-  }, [close]);
+  // Escape is taken in the capture phase by the top-most overlay, so it beats
+  // the chat input underneath and, above all, never reaches the key that stops
+  // a running response. Enter is deliberately NOT handled here: focus is trapped
+  // inside the dialog, so Enter natively activates whichever button is focused,
+  // Confirm or Cancel. Intercepting it would force-confirm even when the user
+  // has Cancel focused.
+  useEscapeLayer(() => {
+    close();
+    return true;
+  });
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {

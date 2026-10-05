@@ -1,7 +1,7 @@
 import { SlashCommand } from '../../types';
 import type { SlashCommandInfo } from '@/types/slashCommand';
 import { SWITCH_MODEL_EVENT } from '@/pages/ChatPage/ModelSwitchOverlay';
-import { restoreCommandName } from '../../hangulKeys';
+import { restoreCommandName } from '../../typedKeys';
 
 /**
  * The CLI advertises `/model` in its command list but rejects it in stream-json
