@@ -1,6 +1,6 @@
 import { SlashCommand } from '../../types';
 import { CONTROL_REQUEST_COMMANDS, type ControlRequestCommand } from '@/shared';
-import { restoreCommandName } from '../../hangulKeys';
+import { restoreCommandName } from '../../typedKeys';
 
 /**
  * Palette entries for the slash commands the CLI hides from us.

@@ -5,6 +5,7 @@ import { useDiffs } from '../hooks/useDiffs';
 import { useTools } from '../hooks/useTools';
 import { useBridgeContext } from './BridgeContext';
 import { useSessionContext, type SessionHandoff } from './SessionContext';
+import { useOptionalAllowAllCommands } from './AllowAllCommandsContext';
 import { useCliConfig } from './CliConfigContext';
 import { useClaudeSettings } from './ClaudeSettingsContext';
 import { useSettings } from './SettingsContext';
@@ -157,6 +158,9 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
   const { children, setInput, inputRef, currentSelectionRef, includeSelectionRef, respectGitignoreRef } = props;
   const bridge = useBridgeContext();
   const session = useSessionContext();
+  // The function, not the context value: the value is a new object every render and
+  // would invalidate the send callbacks below on each one.
+  const adoptAllowAllDraft = useOptionalAllowAllCommands()?.adoptDraft;
   const { controlResponse, refresh: refreshCliConfig } = useCliConfig();
   const { settings: claudeSettings } = useClaudeSettings();
   const { settings: appSettings } = useSettings();
@@ -459,6 +463,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
       if (!sessionId) {
         sessionId = crypto.randomUUID();
         session.addNewSession(sessionId, content);
+        adoptAllowAllDraft?.(sessionId);
         console.log('[ChatStreamContext] New session created:', sessionId);
       }
 
@@ -499,7 +504,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
         console.error('[ChatStreamContext] Failed to send message to bridge:', error);
       });
     },
-    [addUserMessage, bridge, session, sessionModel]
+    [addUserMessage, adoptAllowAllDraft, bridge, session, sessionModel]
   );
 
   /**
@@ -564,6 +569,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
       if (!sessionId) {
         sessionId = crypto.randomUUID();
         session.addNewSession(sessionId, command);
+        adoptAllowAllDraft?.(sessionId);
       }
 
       // Undeliverable request → send as text after all, so the user gets the
@@ -577,7 +583,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
         if (result && !result.sent) sendMessage(command, inputMode);
       });
     },
-    [addCommandEcho, dispatchControlRequestCommand, sendMessage, session, sessionModel]
+    [addCommandEcho, adoptAllowAllDraft, dispatchControlRequestCommand, sendMessage, session, sessionModel]
   );
 
   // handleSubmit: convenience wrapper for form submission.

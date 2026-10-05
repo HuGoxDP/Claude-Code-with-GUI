@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { PromptDropdown } from '../PromptDropdown';
 import { ALL_CATEGORIES } from '@/utils/promptCategories';
+import { PROMPT_NO_DRAG_ATTRIBUTE } from '@/utils/promptDrag';
+import { resetPromptOrder, updatePromptOrder } from '@/utils/promptOrderStore';
 import type { PanelCategoryRow, PromptRow } from '../hooks/usePromptLibrary';
 
 // jsdom does not implement scrollIntoView; PromptDropdown calls it to keep the
@@ -38,6 +40,11 @@ function renderPanel(rows: PromptRow[], overrides: Partial<React.ComponentProps<
 }
 
 describe('PromptDropdown', () => {
+  beforeEach(() => {
+    // The arranged order is shared with the library modal and outlives a render.
+    resetPromptOrder();
+  });
+
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -170,6 +177,73 @@ describe('PromptDropdown', () => {
   });
 
   /**
+   * The whole row is the drag handle. A press has to stay undecided between
+   * "pick this prompt" and "start dragging it" until the pointer has travelled or
+   * been released, so picking cannot happen on the press itself. It used to, and
+   * a press meant to start a drag pasted the prompt and closed the panel first.
+   */
+  describe('pressing a row, which might be the start of a drag', () => {
+    const body = () => screen.getByText('시작').closest('button') as HTMLElement;
+
+    it('does not pick the prompt on the press', () => {
+      const onSelect = vi.fn();
+      renderPanel([row('p1', '시작', 'body', 'global')], { onSelect });
+
+      fireEvent.mouseDown(body());
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('picks the prompt when the press is released as a click', () => {
+      const onSelect = vi.fn();
+      renderPanel([row('p1', '시작', 'body', 'global')], { onSelect });
+
+      fireEvent.click(body());
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenCalledWith(0);
+    });
+
+    // Letting the press through would blur the composer before the click landed,
+    // which is the reason this row ever used mousedown at all.
+    it('keeps focus in the composer by cancelling the press default', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')]);
+
+      // fireEvent returns false when a handler called preventDefault.
+      expect(fireEvent.mouseDown(body())).toBe(false);
+    });
+
+    it('has no separate handle icon, because the row itself is the handle', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')]);
+
+      // The only icons left are edit and delete, both inside buttons.
+      const icons = Array.from(promptRow('시작')?.querySelectorAll('svg') ?? []);
+      expect(icons).toHaveLength(2);
+      for (const icon of icons) expect(icon.closest('button')).not.toBeNull();
+    });
+
+    it('shows the grab cursor over the whole row, including its body', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')]);
+
+      expect(promptRow('시작')?.className).toContain('cursor-grab');
+      // The body is a button, which would otherwise show its own cursor.
+      expect(body().className).toContain('cursor-[inherit]');
+    });
+
+    it('keeps edit and delete out of the drag, and the body in it', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')]);
+
+      expect(
+        screen.getByRole('button', { name: 'Edit' }).closest(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`),
+      ).not.toBeNull();
+      expect(
+        screen.getByRole('button', { name: 'Delete' }).closest(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`),
+      ).not.toBeNull();
+      expect(body().closest(`[${PROMPT_NO_DRAG_ATTRIBUTE}]`)).toBeNull();
+    });
+  });
+
+  /**
    * The category column, which the library modal also has. Rendering it only
    * when there is something to pick keeps the panel unchanged for everyone who
    * never filed a prompt under anything.
@@ -202,10 +276,59 @@ describe('PromptDropdown', () => {
         onSelect,
       });
 
-      fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }));
+      // Selecting happens when the press is released as a click, not on the
+      // press itself: a press on a chip may turn out to be the start of a drag.
+      fireEvent.click(screen.getByRole('button', { name: '리뷰 (2)' }));
 
       expect(onSelectCategory).toHaveBeenCalledWith('c1');
       expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('does not select a category on the press, which might be the start of a drag', () => {
+      const onSelectCategory = vi.fn();
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows, onSelectCategory });
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }));
+
+      expect(onSelectCategory).not.toHaveBeenCalled();
+    });
+
+    it('keeps focus in the composer by cancelling the press default', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows });
+
+      expect(fireEvent.mouseDown(screen.getByRole('button', { name: '리뷰 (2)' }))).toBe(false);
+    });
+
+    // The drag layer owns `aria-pressed` on anything it can pick up, so the
+    // selected category has to be announced some other way.
+    it('announces the picked chip with aria-current', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows, selectedCategory: 'c1' });
+
+      expect(screen.getByRole('button', { name: '리뷰 (2)' })).toHaveAttribute('aria-current', 'true');
+      expect(screen.getByRole('button', { name: /All/ })).not.toHaveAttribute('aria-current');
+    });
+
+    it('shows the grab hand on a category chip and on "All", which sorts with them', () => {
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows });
+
+      expect(screen.getByRole('button', { name: '리뷰 (2)' }).className).toContain('cursor-grab');
+      expect(screen.getByRole('button', { name: /All/ }).className).toContain('cursor-grab');
+    });
+
+    // The column the user arranged is the column drawn, with "All" still first.
+    it('draws the chips in the order the user arranged them', () => {
+      const three: PanelCategoryRow[] = [
+        { key: ALL_CATEGORIES, category: null, count: 3 },
+        { key: 'c2', category: { id: 'c2', name: '문서', createdAt: 1 }, count: 1 },
+        { key: 'c1', category: { id: 'c1', name: '리뷰', createdAt: 1 }, count: 2 },
+      ];
+      renderPanel([row('p1', '시작', 'body', 'global')], { categoryRows: three });
+
+      const names = Array.from(document.querySelectorAll('button[title]'))
+        .map((button) => button.getAttribute('title'))
+        .filter((title) => title === '문서' || title === '리뷰' || title?.startsWith('All'));
+
+      expect(names).toEqual(['All', '문서', '리뷰']);
     });
 
     /**
@@ -244,5 +367,204 @@ describe('PromptDropdown', () => {
       expect(screen.getByRole('button', { name: '리뷰 (2)' }).className).not.toContain('ring-1');
       expect(promptRow('시작')?.className).toContain('ring-1');
     });
+  });
+
+  /**
+   * The order the user dragged the prompts into is shared with the library
+   * modal. Arranging the library and then finding the panel in the old order
+   * would read as the drag not having worked.
+   */
+  describe('the order the user arranged', () => {
+    const drawnNames = () =>
+      Array.from(document.querySelectorAll('ul li')).map(
+        (li) => li.querySelector('span.font-medium')?.textContent ?? 'create',
+      );
+
+    it('draws prompts in the arranged order, project before global, create last', () => {
+      act(() => {
+        updatePromptOrder(() => ({ global: ['g2', 'g1'], project: ['p2', 'p1'] }));
+      });
+
+      renderPanel([
+        row('p1', 'P1', 'body', 'project'),
+        row('p2', 'P2', 'body', 'project'),
+        row('g1', 'G1', 'body', 'global'),
+        row('g2', 'G2', 'body', 'global'),
+        { kind: 'create' },
+      ]);
+
+      expect(drawnNames()).toEqual(['P2', 'P1', 'G2', 'G1', 'create']);
+    });
+
+    it('draws a prompt nobody has placed yet at the top of its own scope', () => {
+      act(() => {
+        updatePromptOrder(() => ({ global: ['g1'], project: [] }));
+      });
+
+      renderPanel([row('g1', 'G1', 'body', 'global'), row('gNew', 'GNEW', 'body', 'global')]);
+
+      expect(drawnNames()).toEqual(['GNEW', 'G1']);
+    });
+
+    // A row is addressed by its place in `rows`, not by where it is drawn, so
+    // picking a row that was dragged elsewhere must still pick that prompt.
+    it('picks the prompt that was clicked even when it is drawn out of order', () => {
+      act(() => {
+        updatePromptOrder(() => ({ global: ['g2', 'g1'], project: [] }));
+      });
+      const onSelect = vi.fn();
+      renderPanel([row('g1', 'G1', 'body', 'global'), row('g2', 'G2', 'body', 'global')], {
+        onSelect,
+      });
+
+      fireEvent.click(screen.getByText('G2').closest('button') as HTMLElement);
+
+      // G2 is the second entry of the rows the panel was given.
+      expect(onSelect).toHaveBeenCalledWith(1);
+    });
+  });
+});
+
+
+describe('PromptDropdown category name editing', () => {
+  const category = { id: 'c1', name: 'review', createdAt: 1 };
+  const categoryRows: PanelCategoryRow[] = [
+    { key: ALL_CATEGORIES, category: null, count: 2 },
+    { key: 'c1', category, count: 1 },
+  ];
+  const prompts = [row('p1', 'one', 'one body', 'global')];
+
+  beforeEach(() => {
+    resetPromptOrder();
+  });
+
+  const edit = (overrides: Partial<React.ComponentProps<typeof PromptDropdown>> = {}) =>
+    renderPanel(prompts, {
+      categoryRows,
+      editingCategory: 'c1',
+      onRenameCategory: vi.fn(),
+      onCancelCategoryEdit: vi.fn(),
+      ...overrides,
+    });
+
+  it('shows the name in a field, selected, in place of the chip', () => {
+    edit();
+
+    const field = screen.getByDisplayValue('review') as HTMLInputElement;
+    expect(field).toBeInTheDocument();
+    expect(document.activeElement).toBe(field);
+    expect(field.selectionStart).toBe(0);
+    expect(field.selectionEnd).toBe('review'.length);
+  });
+
+  it('shows ordinary chips when nothing is being edited', () => {
+    renderPanel(prompts, { categoryRows, editingCategory: null });
+
+    expect(screen.queryByDisplayValue('review')).not.toBeInTheDocument();
+    expect(screen.getByText('review')).toBeInTheDocument();
+  });
+
+  it('saves the typed name with Enter', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.change(field, { target: { value: 'reviews' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(onRenameCategory).toHaveBeenCalledWith('c1', 'reviews');
+  });
+
+  it('puts the old name back with Escape, and saves nothing', () => {
+    const onRenameCategory = vi.fn();
+    const onCancelCategoryEdit = vi.fn();
+    edit({ onRenameCategory, onCancelCategoryEdit });
+    const field = screen.getByDisplayValue('review');
+    fireEvent.change(field, { target: { value: 'something else' } });
+
+    fireEvent.keyDown(field, { key: 'Escape' });
+    fireEvent.blur(field); // the trailing blur an unmounting field can fire
+
+    expect(onCancelCategoryEdit).toHaveBeenCalledTimes(1);
+    expect(onRenameCategory).not.toHaveBeenCalled();
+  });
+
+  it('keeps Escape and every other key from travelling on to the composer', () => {
+    edit();
+    const field = screen.getByDisplayValue('review');
+    const heard = vi.fn();
+    document.addEventListener('keydown', heard);
+
+    fireEvent.keyDown(field, { key: 'Escape' });
+    fireEvent.keyDown(field, { key: 'x' });
+    document.removeEventListener('keydown', heard);
+
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  // The Enter that finishes a Hangul syllable is the IME's, not an answer to the
+  // field. Taking it as one saved half a name and let the key go on to send the
+  // composer's text.
+  it('does not take the Enter that ends an IME composition for a save', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+
+    expect(onRenameCategory).not.toHaveBeenCalled();
+  });
+
+  it('saves on the Enter that comes after the composition has ended', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.compositionStart(field);
+    fireEvent.change(field, { target: { value: '개발' } });
+    fireEvent.compositionEnd(field);
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 13 });
+
+    expect(onRenameCategory).toHaveBeenCalledWith('c1', '개발');
+  });
+
+  it('keeps the Enter that ends a composition from travelling on', () => {
+    edit();
+    const field = screen.getByDisplayValue('review');
+    const heard = vi.fn();
+    document.addEventListener('keydown', heard);
+
+    fireEvent.keyDown(field, { key: 'Enter', keyCode: 229 });
+    document.removeEventListener('keydown', heard);
+
+    expect(heard).not.toHaveBeenCalled();
+  });
+
+  it('puts the name back when a composition starts right after the field opened', () => {
+    edit();
+    const field = screen.getByDisplayValue('review') as HTMLInputElement;
+
+    // The key that opened the field arrives as a composition, and its text is
+    // committed when the guard ends it.
+    field.addEventListener('blur', () => fireEvent.change(field, { target: { value: 'reviewㄷ' } }), { once: true });
+    act(() => {
+      field.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
+    });
+
+    expect(field.value).toBe('review');
+  });
+
+  it('saves when the field loses the focus, once', () => {
+    const onRenameCategory = vi.fn();
+    edit({ onRenameCategory });
+    const field = screen.getByDisplayValue('review');
+
+    fireEvent.change(field, { target: { value: 'reviews' } });
+    fireEvent.blur(field);
+    fireEvent.keyDown(field, { key: 'Enter' });
+
+    expect(onRenameCategory).toHaveBeenCalledTimes(1);
   });
 });

@@ -262,7 +262,7 @@
   },
   "promptLibrary": {
     "title": "Prompt-Bibliothek",
-    "description": "Speichere Sätze, die du häufig tippst, und gib !! im Chatfeld ein, um einen einzufügen.",
+    "description": "Speichere Sätze, die du häufig tippst, und gib !! im Chatfeld ein, um einen einzufügen. Zeile ziehen, um sie umzusortieren, oder auf eine Kategorie ziehen, um sie dort abzulegen.",
     "create": "Prompt erstellen",
     "empty": "Noch keine gespeicherten Prompts",
     "projectUnavailable": "Öffne ein Projekt, um Projekt-Prompts zu speichern.",
@@ -336,7 +336,7 @@
     },
     "searchPlaceholder": "Prompts suchen",
     "categoryLabel": "Kategorie",
-    "dragToCategory": "Auf eine Kategorie ziehen, um sie dort abzulegen",
+    "categoryOrderNote": "Diese Reihenfolge gilt nur innerhalb dieser Kategorie.",
     "categoryPlaceholder": "Kategorie wählen oder eingeben",
     "createCategoryNamed": "„{{name}}\" erstellen",
     "removeCategory": "{{name}} entfernen",

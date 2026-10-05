@@ -110,7 +110,7 @@ export function MessageFooter({ className = '', copyText, onFork, timestamp, exp
     // The click stops here: `ChatMessageArea` logs the raw entry on any click
     // that reaches it, which is not what pressing one of these buttons asked for.
     <div
-      className={`${className} ${folded ? (expanded ? '' : 'hidden') : (alwaysDisplay ? '' : 'invisible group-hover:visible')} transition-all inline-flex items-center gap-1 text-xs text-text-secondary mt-2`}
+      className={`${className} ${folded ? (expanded ? '' : 'hidden') : (alwaysDisplay ? '' : 'invisible group-hover:visible')} transition-all inline-flex items-center gap-1 text-xs text-text-secondary -top-0.5`}
       onClick={e => e.stopPropagation()}
     >
       {copyText !== undefined && (

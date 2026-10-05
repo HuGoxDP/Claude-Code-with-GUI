@@ -54,6 +54,11 @@ export function PromptForm({
     },
   });
 
+  const nameField = register('name', {
+    // Trimmed, so a name of only spaces is refused the same way an empty one is.
+    validate: (value) => value.trim() !== '' || t('promptLibrary.nameRequired'),
+  });
+
   /**
    * The categories this prompt is filed under, by id and in the order picked.
    *
@@ -107,12 +112,7 @@ export function PromptForm({
           <span className="block text-xs text-text-tertiary mb-1">{t('promptLibrary.nameLabel')}</span>
           <input
             autoFocus
-            {...register('name', {
-              // Trimmed, so a name of only spaces is refused the same way an
-              // empty one is.
-              validate: (value) =>
-                value.trim() !== '' || t('promptLibrary.nameRequired'),
-            })}
+            {...nameField}
             aria-invalid={errors.name ? true : undefined}
             placeholder={t('promptLibrary.namePlaceholder')}
             className="w-full px-2 py-1.5 text-sm rounded-md bg-surface-base border border-border-default text-text-primary placeholder:text-text-disabled focus:outline-none focus:border-border-focus"

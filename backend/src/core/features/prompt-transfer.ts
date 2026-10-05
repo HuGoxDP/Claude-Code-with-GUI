@@ -5,9 +5,9 @@ import {
   parseCategoryIds,
   parseCategoryRecords,
   mutatePromptStore,
-  type PromptCategory,
+  PromptCategory,
   type PromptScope,
-  type SavedPrompt,
+  SavedPrompt,
 } from './prompts';
 import { listCategories, resolveCategoryIdsByName } from './prompt-category-registry';
 
@@ -22,35 +22,75 @@ import { listCategories, resolveCategoryIdsByName } from './prompt-category-regi
  */
 
 /** Marks a file this feature wrote. Read, never required. */
-export const PROMPT_EXPORT_FORMAT = 'claude-code-prompts-export-v1';
+export const PROMPT_EXPORT_FORMAT = 'claude-code-prompts-export-v2';
+
+/**
+ * One prompt sitting in one category, with its place there.
+ *
+ * Carried in an export file so the order INSIDE each category survives the trip.
+ * Both ids are the `uuid` values the file already uses for its prompts and
+ * categories, which is why they mean the same thing on every machine.
+ */
+export class PromptLink {
+  constructor(
+    readonly categoryId: string,
+    readonly promptId: string,
+    /** Place inside the category. Smaller is higher; 1 is the top. */
+    readonly priority: number,
+  ) {}
+
+  /** The same place in another category. */
+  inCategory(categoryId: string): PromptLink {
+    return new PromptLink(categoryId, this.promptId, this.priority);
+  }
+}
 
 /** The file this feature writes. */
-export interface PromptExportFile {
-  format: string;
-  exportTime: string;
-  promptCount: number;
-  prompts: SavedPrompt[];
-  /**
-   * The category records the exported prompts reference.
-   *
-   * Without them the ids on those prompts would mean nothing on the machine
-   * that reads the file: the names live only here.
-   */
-  categories: PromptCategory[];
+export class PromptExportFile {
+  constructor(
+    readonly format: string,
+    readonly exportTime: string,
+    readonly promptCount: number,
+    readonly prompts: SavedPrompt[],
+    /**
+     * The category records the exported prompts reference.
+     *
+     * Without them the ids on those prompts would mean nothing on the machine
+     * that reads the file: the names live only here.
+     */
+    readonly categories: PromptCategory[],
+    /**
+     * The order inside each category. A reader that does not know about it ignores
+     * it, which is why an older version can still read the rest of the file.
+     */
+    readonly links: PromptLink[],
+  ) {}
 }
 
 /** What one incoming prompt would do to the library it is imported into. */
 export type ImportItemStatus = 'new' | 'update';
 
-export interface ImportItem {
-  prompt: SavedPrompt;
-  status: ImportItemStatus;
+export class ImportItem {
+  constructor(
+    readonly prompt: SavedPrompt,
+    readonly status: ImportItemStatus,
+  ) {}
 }
 
-export interface ImportPreview {
-  items: ImportItem[];
-  newCount: number;
-  updateCount: number;
+export class ImportPreview {
+  constructor(
+    readonly items: ImportItem[],
+    readonly newCount: number,
+    readonly updateCount: number,
+  ) {}
+}
+
+/** The prompts and in-category order of a file, after its category ids became this machine's. */
+export class RemappedImport {
+  constructor(
+    readonly prompts: SavedPrompt[],
+    readonly links: PromptLink[],
+  ) {}
 }
 
 /** What to do with an incoming prompt whose id is already in the library. */
@@ -70,17 +110,23 @@ export function buildExportFile(
   prompts: SavedPrompt[],
   categories: PromptCategory[] = [],
   now: Date = new Date(),
+  links: PromptLink[] = [],
 ): PromptExportFile {
   // Only the records actually referenced: exporting three prompts should not
   // hand the reader the author's whole taxonomy.
   const used = new Set(prompts.flatMap((prompt) => prompt.categories ?? []));
-  return {
-    format: PROMPT_EXPORT_FORMAT,
-    exportTime: now.toISOString(),
-    promptCount: prompts.length,
+  const exported = new Set(prompts.map((prompt) => prompt.id));
+  return new PromptExportFile(
+    PROMPT_EXPORT_FORMAT,
+    now.toISOString(),
+    prompts.length,
     prompts,
-    categories: categories.filter((category) => used.has(category.id)),
-  };
+    // Without the place in this machine's column: that means nothing elsewhere.
+    categories
+      .filter((category) => used.has(category.id))
+      .map((category) => new PromptCategory(category.id, category.name, category.createdAt)),
+    links.filter((link) => used.has(link.categoryId) && exported.has(link.promptId)),
+  );
 }
 
 /** The default file name offered in the save dialog. */
@@ -153,14 +199,7 @@ export function normaliseImportedPrompt(entry: unknown, now: number): SavedPromp
   // machine's by {@link remapImportedCategories} before anything is stored.
   const categories = parseCategoryIds(candidate.categories);
 
-  return {
-    id,
-    name,
-    content,
-    createdAt,
-    updatedAt,
-    ...(categories.length === 0 ? {} : { categories }),
-  };
+  return new SavedPrompt(id, name, content, createdAt, updatedAt, categories);
 }
 
 /**
@@ -203,6 +242,31 @@ export function extractCategoryRecords(parsed: unknown): PromptCategory[] {
 }
 
 /**
+ * Pull the in-category order out of a parsed prompt file.
+ *
+ * Absent in a file written before it existed, and in one written by another tool,
+ * which is why this answers with an empty list rather than failing.
+ */
+export function extractImportLinks(parsed: unknown): PromptLink[] {
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
+  return parseLinks((parsed as Record<string, unknown>).links);
+}
+
+/** Read a list of links, dropping every entry that is not one. */
+export function parseLinks(value: unknown): PromptLink[] {
+  if (!Array.isArray(value)) return [];
+  const links: PromptLink[] = [];
+  for (const entry of value) {
+    if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) continue;
+    const { categoryId, promptId, priority } = entry as Record<string, unknown>;
+    if (typeof categoryId !== 'string' || typeof promptId !== 'string') continue;
+    if (typeof priority !== 'number' || !Number.isFinite(priority)) continue;
+    links.push(new PromptLink(categoryId, promptId, priority));
+  }
+  return links;
+}
+
+/**
  * Rewrite the incoming prompts' category ids into this machine's.
  *
  * The file's ids are the exporting machine's and collide with nothing here by
@@ -211,38 +275,46 @@ export function extractCategoryRecords(parsed: unknown): PromptCategory[] {
  * does not have. An id whose record the file did not carry is dropped, because
  * there is no name to match it by and a dangling id would file the prompt under
  * a heading that can never appear.
+ *
+ * The in-category order [links] follows its category to this machine's id, and a
+ * link whose category could not be resolved is dropped with it.
  */
 export async function remapImportedCategories(
   prompts: SavedPrompt[],
   records: PromptCategory[],
-): Promise<SavedPrompt[]> {
+  links: PromptLink[] = [],
+): Promise<RemappedImport> {
   const nameById = new Map(records.map((record) => [record.id, record.name]));
   const wantedNames = [...new Set(prompts.flatMap((prompt) => prompt.categories ?? []))]
     .map((id) => nameById.get(id))
     .filter((name): name is string => name !== undefined);
 
   if (wantedNames.length === 0) {
-    return prompts.map((prompt) => {
-      if (!prompt.categories) return prompt;
-      const stripped = { ...prompt };
-      delete stripped.categories;
-      return stripped;
-    });
+    return new RemappedImport(
+      prompts.map((prompt) => (prompt.categories ? prompt.withCategories([]) : prompt)),
+      [],
+    );
   }
 
   const idByName = await resolveCategoryIdsByName(wantedNames);
-  return prompts.map((prompt) => {
+  const localIdOf = (fileId: string): string | undefined => {
+    const name = nameById.get(fileId);
+    return name === undefined ? undefined : idByName.get(name);
+  };
+
+  const remapped = prompts.map((prompt) => {
     if (!prompt.categories) return prompt;
     const mapped = prompt.categories
-      .map((id) => nameById.get(id))
-      .filter((name): name is string => name !== undefined)
-      .map((name) => idByName.get(name))
+      .map(localIdOf)
       .filter((id): id is string => id !== undefined);
-    const next = { ...prompt };
-    if (mapped.length === 0) delete next.categories;
-    else next.categories = [...new Set(mapped)];
-    return next;
+    return prompt.withCategories([...new Set(mapped)]);
   });
+
+  const remappedLinks = links.flatMap((link) => {
+    const categoryId = localIdOf(link.categoryId);
+    return categoryId === undefined ? [] : [link.inCategory(categoryId)];
+  });
+  return new RemappedImport(remapped, remappedLinks);
 }
 
 /** Mark each incoming prompt as new or as an update of one already stored. */
@@ -251,22 +323,25 @@ export function buildImportPreview(
   existing: SavedPrompt[],
 ): ImportPreview {
   const existingIds = new Set(existing.map((prompt) => prompt.id));
-  const items: ImportItem[] = incoming.map((prompt) => ({
-    prompt,
-    status: existingIds.has(prompt.id) ? 'update' : 'new',
-  }));
-  return {
+  const items = incoming.map(
+    (prompt) => new ImportItem(prompt, existingIds.has(prompt.id) ? 'update' : 'new'),
+  );
+  return new ImportPreview(
     items,
-    newCount: items.filter((item) => item.status === 'new').length,
-    updateCount: items.filter((item) => item.status === 'update').length,
-  };
+    items.filter((item) => item.status === 'new').length,
+    items.filter((item) => item.status === 'update').length,
+  );
 }
 
-export interface ApplyImportResult {
-  prompts: SavedPrompt[];
-  imported: number;
-  updated: number;
-  skipped: number;
+export class ApplyImportResult {
+  constructor(
+    readonly prompts: SavedPrompt[],
+    /** For "duplicate": the id each conflicting incoming prompt was stored under instead. */
+    readonly copyIdOf: Map<string, string>,
+    readonly imported: number,
+    readonly updated: number,
+    readonly skipped: number,
+  ) {}
 }
 
 /**
@@ -282,6 +357,7 @@ export function applyImport(
 ): ApplyImportResult {
   const result = [...existing];
   const indexById = new Map(result.map((prompt, index) => [prompt.id, index]));
+  const copyIdOf = new Map<string, string>();
   let imported = 0;
   let updated = 0;
   let skipped = 0;
@@ -302,19 +378,41 @@ export function applyImport(
     }
 
     if (strategy === 'overwrite') {
-      result[conflictIndex] = prompt;
+      result[conflictIndex] = (result[conflictIndex] as SavedPrompt).replacedBy(prompt);
       updated += 1;
       continue;
     }
 
     // duplicate: keep both, under an id that is free.
-    const copy = { ...prompt, id: randomUUID() };
+    const copy = prompt.withId(randomUUID());
+    copyIdOf.set(prompt.id, copy.id);
     indexById.set(copy.id, result.length);
     result.push(copy);
     imported += 1;
   }
 
-  return { prompts: result, imported, updated, skipped };
+  return new ApplyImportResult(result, copyIdOf, imported, updated, skipped);
+}
+
+/**
+ * The order inside each category that a file's links describe: category id to
+ * the ids of its prompts, top first.
+ *
+ * [copyIdOf] maps a prompt to the id it was stored under when it was kept as a
+ * copy, so the order follows the copy and not the prompt it conflicted with.
+ */
+export function categoryOrderFromLinks(
+  links: PromptLink[],
+  copyIdOf: Map<string, string> = new Map(),
+): Map<string, string[]> {
+  const order = new Map<string, string[]>();
+  for (const link of [...links].sort((a, b) => a.priority - b.priority)) {
+    const promptId = copyIdOf.get(link.promptId) ?? link.promptId;
+    const listed = order.get(link.categoryId) ?? [];
+    if (!listed.includes(promptId)) listed.push(promptId);
+    order.set(link.categoryId, listed);
+  }
+  return order;
 }
 
 /**
@@ -329,16 +427,24 @@ export async function importPromptsIntoStore(
   projectPath: string | undefined,
   incoming: SavedPrompt[],
   strategy: ConflictStrategy,
+  links: PromptLink[] = [],
 ): Promise<
   | { status: 'ok'; imported: number; updated: number; skipped: number }
   | { status: 'error'; error: string }
 > {
   let outcome: ApplyImportResult | null = null;
 
-  const written = await mutatePromptStore(scope, projectPath, (prompts) => {
-    outcome = applyImport(prompts, incoming, strategy);
-    return outcome.prompts;
-  });
+  const written = await mutatePromptStore(
+    scope,
+    projectPath,
+    (prompts) => {
+      outcome = applyImport(prompts, incoming, strategy);
+      return outcome.prompts;
+    },
+    // Read lazily: the ids a duplicate was stored under are only known once the
+    // fold above has run.
+    () => categoryOrderFromLinks(links, (outcome as ApplyImportResult | null)?.copyIdOf),
+  );
 
   if (written.status === 'error') return written;
   if (outcome === null) return { status: 'error', error: 'Import did not run' };

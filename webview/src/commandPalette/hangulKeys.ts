@@ -63,22 +63,3 @@ export function hangulToQwerty(text: string): string {
   }
   return keys;
 }
-
-/**
- * Put a command typed on the wrong layout back under its real name.
- *
- * Commands read their arguments off the typed line by looking for their own
- * name at the start (`/model sonnet`). A line that starts with `/ㅡㅐㅇ디` has
- * the right command and none of those checks would see it, so the arguments
- * would be dropped. The line is returned with only its first word rewritten
- * when that word is `commandName` in disguise; every other line comes back
- * untouched.
- */
-export function restoreCommandName(input: string, commandName: string): string {
-  if (input.startsWith(commandName)) return input;
-  const typed = input.split(/\s/, 1)[0];
-  if (typed && hangulToQwerty(typed).toLowerCase() === commandName.toLowerCase()) {
-    return commandName + input.slice(typed.length);
-  }
-  return input;
-}

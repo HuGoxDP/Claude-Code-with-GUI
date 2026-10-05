@@ -262,7 +262,7 @@
   },
   "promptLibrary": {
     "title": "提示詞庫",
-    "description": "把常用的句子儲存下來，在聊天輸入框輸入 !! 即可貼上。",
+    "description": "把常用的句子儲存下來，在聊天輸入框輸入 !! 即可貼上。拖曳列可調整順序，拖到分類上即可歸類。",
     "create": "新增提示詞",
     "empty": "還沒有已儲存的提示詞",
     "projectUnavailable": "請先開啟一個專案，才能儲存專案提示詞。",
@@ -336,7 +336,7 @@
     },
     "searchPlaceholder": "搜尋提示詞",
     "categoryLabel": "分類",
-    "dragToCategory": "拖到分類上即可歸類",
+    "categoryOrderNote": "此順序僅在該分類內生效。",
     "categoryPlaceholder": "選擇或輸入分類",
     "createCategoryNamed": "建立「{{name}}」",
     "removeCategory": "移除 {{name}}",

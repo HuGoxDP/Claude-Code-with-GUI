@@ -262,7 +262,7 @@
   },
   "promptLibrary": {
     "title": "Biblioteca de prompts",
-    "description": "Salve as frases que você digita com frequência e digite !! no campo de chat para colar uma.",
+    "description": "Salve as frases que você digita com frequência e digite !! no campo de chat para colar uma. Arraste uma linha para reordená-la, ou para uma categoria para arquivá-la ali.",
     "create": "Criar prompt",
     "empty": "Ainda não há prompts salvos",
     "projectUnavailable": "Abra um projeto para salvar prompts do projeto.",
@@ -336,7 +336,7 @@
     },
     "searchPlaceholder": "Buscar prompts",
     "categoryLabel": "Categoria",
-    "dragToCategory": "Arraste para uma categoria para arquivá-lo ali",
+    "categoryOrderNote": "Esta ordem vale apenas dentro desta categoria.",
     "categoryPlaceholder": "Escolha ou digite uma categoria",
     "createCategoryNamed": "Criar \"{{name}}\"",
     "removeCategory": "Remover {{name}}",

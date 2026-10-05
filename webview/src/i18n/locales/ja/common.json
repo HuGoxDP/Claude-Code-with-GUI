@@ -262,7 +262,7 @@
   },
   "promptLibrary": {
     "title": "プロンプトライブラリ",
-    "description": "よく使う文章を保存して、チャット入力欄に !! と入力して貼り付けます。",
+    "description": "よく使う文章を保存して、チャット入力欄に !! と入力して貼り付けます。行をドラッグして並べ替えたり、カテゴリにドラッグして分類したりできます。",
     "create": "プロンプトを作成",
     "empty": "保存されたプロンプトはまだありません",
     "projectUnavailable": "プロジェクトのプロンプトを保存するにはプロジェクトを開いてください。",
@@ -336,7 +336,7 @@
     },
     "searchPlaceholder": "プロンプトを検索",
     "categoryLabel": "カテゴリ",
-    "dragToCategory": "カテゴリにドラッグすると分類されます",
+    "categoryOrderNote": "この順序はこのカテゴリ内だけに適用されます。",
     "categoryPlaceholder": "カテゴリを選ぶか入力",
     "createCategoryNamed": "「{{name}}」を作成",
     "removeCategory": "{{name}} を外す",

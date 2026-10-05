@@ -3,9 +3,12 @@ import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
 import { MessageType } from '../../shared';
 import { resolveWslCwd } from '../wsl-path';
+import { retryUnreadPromptFolders } from '../features/unread-folder-retry';
 import { readFile } from 'fs/promises';
 import {
   readPrompts,
+  readPromptOrderByCategory,
+  reorderPrompts,
   createPrompt,
   updatePrompt,
   deletePrompt,
@@ -17,11 +20,15 @@ import {
   createCategory,
   renameCategory,
   deleteCategory,
+  reorderCategories,
 } from '../features/prompt-category-registry';
 import {
   buildExportFile,
   extractCategoryRecords,
+  extractImportLinks,
+  parseLinks,
   remapImportedCategories,
+  PromptLink,
   exportFileName,
   parseImportFile,
   buildImportPreview,
@@ -98,8 +105,52 @@ export async function getPromptsHandler(
     return;
   }
 
-  const prompts = await readPrompts(scope, projectPath);
-  sendOk(connections, connectionId, message, { scope, prompts });
+  try {
+    // Old files that could not be read before are read again now, when the user wants them.
+    // Old files that could not be read before are read again now, when the user wants them.
+    await retryUnreadPromptFolders(scope, projectPath);
+    const prompts = await readPrompts(scope, projectPath);
+    // The wire carries the map as a JSON object, which is built here, at the edge.
+    const orderByCategory = Object.fromEntries(await readPromptOrderByCategory(scope, projectPath));
+    sendOk(connections, connectionId, message, { scope, prompts, orderByCategory });
+  } catch (err) {
+    // An entity file that exists but cannot be read is not an empty library: the
+    // webview shows its "could not load" screen instead of a list that looks wiped.
+    console.error('[node-backend]', 'Failed to read prompts:', err);
+    sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/** The order inside each category as the rows an export file carries. */
+function linksFromOrder(orderByCategory: Map<string, string[]>): PromptLink[] {
+  return [...orderByCategory].flatMap(([categoryId, promptIds]) =>
+    promptIds.map((promptId, index) => new PromptLink(categoryId, promptId, index + 1)),
+  );
+}
+
+function readIdList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+/** Save a new order for one scope's prompts, or for the prompts inside one category. */
+export async function reorderPromptsHandler(
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  _bridge: Bridge,
+): Promise<void> {
+  const scope = readScope(message);
+  const projectPath = readProjectPath(message);
+  const ids = readIdList(message.payload?.ids);
+  const categoryId =
+    typeof message.payload?.categoryId === 'string' ? message.payload.categoryId : undefined;
+
+  const result = await reorderPrompts(scope, projectPath, ids, categoryId);
+  if (result.status === 'error') {
+    sendError(connections, connectionId, message, result.error);
+    return;
+  }
+  sendOk(connections, connectionId, message, { scope });
 }
 
 export async function createPromptHandler(
@@ -191,7 +242,8 @@ export async function exportPromptsHandler(
   }
 
   const now = new Date();
-  const file = buildExportFile(chosen, await listCategories(), now);
+  const links = linksFromOrder(await readPromptOrderByCategory(scope, projectPath));
+  const file = buildExportFile(chosen, await listCategories(), now, links);
   const result = await bridge.saveFile({
     suggestedName: exportFileName(now),
     contents: `${JSON.stringify(file, null, 2)}\n`,
@@ -240,10 +292,17 @@ export async function previewPromptImportHandler(
 
   // The file's category ids are the exporting machine's, so they are matched by
   // name and rewritten before the preview shows what would land.
-  const remapped = await remapImportedCategories(parsed.prompts, extractCategoryRecords(JSON.parse(raw)));
+  const fileJson: unknown = JSON.parse(raw);
+  const remapped = await remapImportedCategories(
+    parsed.prompts,
+    extractCategoryRecords(fileJson),
+    extractImportLinks(fileJson),
+  );
   const existing = await readPrompts(scope, projectPath);
-  const preview = buildImportPreview(remapped, existing);
-  sendOk(connections, connectionId, message, { scope, ...preview });
+  const preview = buildImportPreview(remapped.prompts, existing);
+  // The order inside each category rides along with the preview, because the
+  // choice the user makes next comes back as a separate request.
+  sendOk(connections, connectionId, message, { scope, ...preview, links: remapped.links });
 }
 
 /** Apply a previewed import with the strategy the user chose. */
@@ -278,7 +337,13 @@ export async function importPromptsHandler(
     return;
   }
 
-  const result = await importPromptsIntoStore(scope, projectPath, prompts, strategy);
+  const result = await importPromptsIntoStore(
+    scope,
+    projectPath,
+    prompts,
+    strategy,
+    parseLinks(message.payload?.links),
+  );
   if (result.status === 'error') {
     sendError(connections, connectionId, message, result.error);
     return;
@@ -305,8 +370,27 @@ export async function getPromptCategoriesHandler(
   connections: ConnectionManager,
   _bridge: Bridge,
 ): Promise<void> {
-  const categories = await listCategories();
-  sendOk(connections, connectionId, message, { categories });
+  try {
+    sendOk(connections, connectionId, message, { categories: await listCategories() });
+  } catch (err) {
+    console.error('[node-backend]', 'Failed to read prompt categories:', err);
+    sendError(connections, connectionId, message, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/** Save a new order for the category column. */
+export async function reorderPromptCategoriesHandler(
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  _bridge: Bridge,
+): Promise<void> {
+  const result = await reorderCategories(readIdList(message.payload?.ids));
+  if (result.status === 'error') {
+    sendError(connections, connectionId, message, result.error);
+    return;
+  }
+  sendOk(connections, connectionId, message, { categories: result.categories });
 }
 
 export async function createPromptCategoryHandler(
