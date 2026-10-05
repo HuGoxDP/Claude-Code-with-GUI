@@ -105,6 +105,7 @@ import { getCaretOffset, setCaretOffset, CaretDirection } from '@/utils/domSelec
 import { MessageType } from '@/shared';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useTranslation } from '@/i18n';
+import { QUOTE_IN_COMPOSER_EVENT, appendQuote, toBlockquote, type QuoteRequest } from '../quoteInComposer';
 
 /**
  * Where a composer's recipient is kept while its session is not on screen.
@@ -779,6 +780,29 @@ export function ChatInput() {
     window.addEventListener('command-palette:mention-file', handleMentionFromPalette);
     return () => window.removeEventListener('command-palette:mention-file', handleMentionFromPalette);
   }, [onChange, mention, textareaRef]);
+
+  // "Quote" in a message's context menu: the passage goes at the end of the
+  // draft as a Markdown blockquote, and the caret below it for the user's own words.
+  const quoteDraftRef = useRef(value);
+  quoteDraftRef.current = value;
+  useEffect(() => {
+    const handleQuote = (event: Event) => {
+      const text = (event as CustomEvent<QuoteRequest>).detail?.text;
+      if (typeof text !== 'string') return;
+      const quote = toBlockquote(text);
+      if (quote === '') return;
+      const { value: nextValue, caret } = appendQuote(quoteDraftRef.current, quote);
+      onChange(nextValue);
+      requestAnimationFrame(() => {
+        const el = textareaRef.current;
+        if (!el) return;
+        el.focus();
+        setCaretOffset(el, caret);
+      });
+    };
+    window.addEventListener(QUOTE_IN_COMPOSER_EVENT, handleQuote);
+    return () => window.removeEventListener(QUOTE_IN_COMPOSER_EVENT, handleQuote);
+  }, [onChange, textareaRef]);
 
   // Focus on session change or when input becomes enabled
   useEffect(() => {

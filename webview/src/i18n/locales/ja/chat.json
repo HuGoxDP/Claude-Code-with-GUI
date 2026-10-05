@@ -753,5 +753,14 @@
       "notARepository": "このプロジェクトは Git リポジトリではありません。",
       "emptyResult": "モデルが空のメッセージを返しました。もう一度お試しください。"
     }
+  },
+  "messageMenu": {
+    "label": "メッセージの操作",
+    "copyLink": "リンクのアドレスをコピー",
+    "quote": "引用",
+    "copy": "コピー",
+    "linkCopied": "リンクのアドレスをコピーしました",
+    "textCopied": "テキストをコピーしました",
+    "copyFailed": "コピーできませんでした"
   }
 }

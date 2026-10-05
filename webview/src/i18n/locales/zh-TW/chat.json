@@ -753,5 +753,14 @@
       "notARepository": "此專案不是 Git 儲存庫。",
       "emptyResult": "模型傳回了空訊息，請重試。"
     }
+  },
+  "messageMenu": {
+    "label": "訊息操作",
+    "copyLink": "複製連結網址",
+    "quote": "引用",
+    "copy": "複製",
+    "linkCopied": "已複製連結網址",
+    "textCopied": "已複製文字",
+    "copyFailed": "無法複製"
   }
 }

@@ -20,6 +20,7 @@ import { useSendActions } from './useSendActions';
 import { useSectionFold } from './useSectionFold';
 import { CollapsedReplyNotice } from './CollapsedReplyNotice';
 import { useTranslation } from '@/i18n';
+import { useMessageContextMenu } from './MessageContextMenu';
 
 interface Props {
   isStreaming: boolean;
@@ -63,6 +64,8 @@ export function ChatMessageArea(props: Props) {
   // Rewind and fork are answered from the whole transcript, so they are worked
   // out here and handed down rather than recomputed inside each send's menu.
   const sendActions = useSendActions(mergedMessages);
+  // Right-click on a link or on selected text: copy the link, quote or copy the text.
+  const contextMenu = useMessageContextMenu(containerRef);
 
   const isEmpty = mergedMessages.length === 0;
 
@@ -86,7 +89,8 @@ export function ChatMessageArea(props: Props) {
 
   // Render messages with widgets
   return (
-    <div ref={containerRef} className="flex-1 text-xs">
+    <div ref={containerRef} className="flex-1 text-xs" onContextMenu={contextMenu.onContextMenu}>
+      {contextMenu.menu}
       {(isLoadingMore || hasMore) && (
         <div className="flex justify-center py-4">
           {isLoadingMore ? (

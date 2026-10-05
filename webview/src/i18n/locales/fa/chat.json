@@ -753,5 +753,14 @@
       "notARepository": "این پروژه یک مخزن Git نیست.",
       "emptyResult": "مدل پیام خالی برگرداند. دوباره تلاش کنید."
     }
+  },
+  "messageMenu": {
+    "label": "کارهای پیام",
+    "copyLink": "کپی نشانی پیوند",
+    "quote": "نقل قول",
+    "copy": "کپی",
+    "linkCopied": "نشانی پیوند کپی شد",
+    "textCopied": "متن کپی شد",
+    "copyFailed": "کپی انجام نشد"
   }
 }

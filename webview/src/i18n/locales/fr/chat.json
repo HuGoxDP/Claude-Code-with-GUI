@@ -753,5 +753,14 @@
       "notARepository": "Ce projet n'est pas un dépôt Git.",
       "emptyResult": "Le modèle a renvoyé un message vide. Réessayez."
     }
+  },
+  "messageMenu": {
+    "label": "Actions du message",
+    "copyLink": "Copier l’adresse du lien",
+    "quote": "Citer",
+    "copy": "Copier",
+    "linkCopied": "Adresse du lien copiée",
+    "textCopied": "Texte copié",
+    "copyFailed": "Impossible de copier"
   }
 }

@@ -753,5 +753,14 @@
       "notARepository": "Dieses Projekt ist kein Git-Repository.",
       "emptyResult": "Das Modell hat eine leere Nachricht geliefert. Versuche es erneut."
     }
+  },
+  "messageMenu": {
+    "label": "Nachrichtenaktionen",
+    "copyLink": "Linkadresse kopieren",
+    "quote": "Zitieren",
+    "copy": "Kopieren",
+    "linkCopied": "Linkadresse kopiert",
+    "textCopied": "Text kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen"
   }
 }

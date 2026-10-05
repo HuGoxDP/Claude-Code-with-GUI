@@ -753,5 +753,14 @@
       "notARepository": "Este projeto não é um repositório Git.",
       "emptyResult": "O modelo devolveu uma mensagem vazia. Tente novamente."
     }
+  },
+  "messageMenu": {
+    "label": "Ações da mensagem",
+    "copyLink": "Copiar endereço do link",
+    "quote": "Citar",
+    "copy": "Copiar",
+    "linkCopied": "Endereço do link copiado",
+    "textCopied": "Texto copiado",
+    "copyFailed": "Não foi possível copiar"
   }
 }

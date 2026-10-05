@@ -753,5 +753,14 @@
       "notARepository": "此项目不是 Git 仓库。",
       "emptyResult": "模型返回了空信息，请重试。"
     }
+  },
+  "messageMenu": {
+    "label": "消息操作",
+    "copyLink": "复制链接地址",
+    "quote": "引用",
+    "copy": "复制",
+    "linkCopied": "已复制链接地址",
+    "textCopied": "已复制文本",
+    "copyFailed": "无法复制"
   }
 }
