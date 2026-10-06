@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "Mettre les suivis en file d’attente pendant que {{appName}} s’exécute, ou orienter l’exécution en cours.",
         "queue": "Mettre en file d’attente",
         "steer": "Orienter"
+      },
+      "confirmNewSession": {
+        "label": "Demander avant une nouvelle conversation",
+        "description": "Confirme avant que /clear ou Cmd/Ctrl+Shift+C quitte une conversation commencée."
       }
     },
     "notifications": {

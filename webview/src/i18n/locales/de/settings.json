@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "Stelle Folgenachrichten in die Warteschlange, während {{appName}} ausgeführt wird, oder steuere den aktuellen Durchlauf.",
         "queue": "In Warteschlange stellen",
         "steer": "Steuern"
+      },
+      "confirmNewSession": {
+        "label": "Vor neuer Unterhaltung fragen",
+        "description": "Vor /clear oder Cmd/Ctrl+Shift+C nachfragen, wenn eine begonnene Unterhaltung verlassen wird."
       }
     },
     "notifications": {

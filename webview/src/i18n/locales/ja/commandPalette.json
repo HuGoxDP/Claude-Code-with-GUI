@@ -94,5 +94,12 @@
     "reportProblem": "問題を報告",
     "refreshVersion": "バージョンを更新",
     "comingSoon": "近日公開"
+  },
+  "newConversation": {
+    "title": "新しい会話を始めますか？",
+    "message": "この会話はセッション一覧に残ります。",
+    "messageWhileReplying": "Claude はまだ返信中です。新しい会話を始めると返信は止まります。この会話はセッション一覧に残ります。",
+    "confirm": "新しい会話",
+    "cancel": "キャンセル"
   }
 }

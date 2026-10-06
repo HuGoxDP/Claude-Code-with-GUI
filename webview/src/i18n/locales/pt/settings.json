@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "Enfileire novas mensagens enquanto {{appName}} roda ou redirecione a execução atual.",
         "queue": "Enfileirar",
         "steer": "Orientar"
+      },
+      "confirmNewSession": {
+        "label": "Perguntar antes de uma nova conversa",
+        "description": "Confirma antes de /clear ou Cmd/Ctrl+Shift+C sair de uma conversa já iniciada."
       }
     },
     "notifications": {

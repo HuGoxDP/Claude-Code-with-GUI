@@ -94,5 +94,12 @@
     "reportProblem": "Problem melden",
     "refreshVersion": "Version aktualisieren",
     "comingSoon": "Demnächst verfügbar"
+  },
+  "newConversation": {
+    "title": "Neue Unterhaltung beginnen?",
+    "message": "Diese Unterhaltung bleibt in deiner Sitzungsliste.",
+    "messageWhileReplying": "Claude antwortet noch; eine neue Unterhaltung beendet die Antwort. Diese Unterhaltung bleibt in deiner Sitzungsliste.",
+    "confirm": "Neue Unterhaltung",
+    "cancel": "Abbrechen"
   }
 }

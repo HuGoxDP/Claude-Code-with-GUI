@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "Pon en cola los mensajes de seguimiento mientras {{appName}} se ejecuta o redirige la ejecución actual.",
         "queue": "Poner en cola",
         "steer": "Redirigir"
+      },
+      "confirmNewSession": {
+        "label": "Preguntar antes de una conversación nueva",
+        "description": "Confirma antes de que /clear o Cmd/Ctrl+Shift+C dejen una conversación ya empezada."
       }
     },
     "notifications": {

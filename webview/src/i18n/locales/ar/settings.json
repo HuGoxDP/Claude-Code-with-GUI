@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "أضِف رسائل المتابعة إلى قائمة الانتظار أثناء تشغيل {{appName}} أو وجّه التشغيل الحالي.",
         "queue": "إضافة إلى قائمة الانتظار",
         "steer": "توجيه"
+      },
+      "confirmNewSession": {
+        "label": "السؤال قبل محادثة جديدة",
+        "description": "التأكيد قبل أن يغادر ‎/clear أو Cmd/Ctrl+Shift+C محادثة بدأت."
       }
     },
     "notifications": {

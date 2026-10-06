@@ -94,5 +94,12 @@
     "reportProblem": "Report a problem",
     "refreshVersion": "Refresh version",
     "comingSoon": "Coming soon"
+  },
+  "newConversation": {
+    "title": "Start a new conversation?",
+    "message": "This conversation stays in your session list.",
+    "messageWhileReplying": "Claude is still replying; starting a new conversation stops it. This conversation stays in your session list.",
+    "confirm": "New conversation",
+    "cancel": "Cancel"
   }
 }

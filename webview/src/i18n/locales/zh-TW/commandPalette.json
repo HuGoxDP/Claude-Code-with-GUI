@@ -94,5 +94,12 @@
     "reportProblem": "回報問題",
     "refreshVersion": "重新整理版本",
     "comingSoon": "即將推出"
+  },
+  "newConversation": {
+    "title": "開始新對話？",
+    "message": "此對話會保留在工作階段清單中。",
+    "messageWhileReplying": "Claude 仍在回覆；開始新對話會停止回覆。此對話會保留在工作階段清單中。",
+    "confirm": "新對話",
+    "cancel": "取消"
   }
 }

@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "Queue follow-ups while {{appName}} runs or steer the current run.",
         "queue": "Queue",
         "steer": "Steer"
+      },
+      "confirmNewSession": {
+        "label": "Ask before a new conversation",
+        "description": "Confirm before /clear or Cmd/Ctrl+Shift+C leaves a conversation that has started."
       }
     },
     "notifications": {

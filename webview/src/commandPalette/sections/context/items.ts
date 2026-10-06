@@ -4,6 +4,7 @@ import { i18n } from '@/i18n';
 import { StaticItem } from '../../types';
 import { enKeyword } from '../../enKeyword';
 import { OPEN_COMMIT_MESSAGE_EVENT } from '@/components/CommitMessageDialog';
+import { startNewConversation } from '../startNewConversation';
 
 /**
  * Fired when the user runs `/resume`. The session dropdown opens (browse/resume
@@ -86,9 +87,7 @@ export const getContextItems = (): StaticItem[] => [
     keywords: [enKeyword('commandPalette:context.clearConversation')],
     disabled: false,
     serviceAction: async (services) => {
-      if (services.chatStream.isStreaming) services.chatStream.stop();
-      services.chatStream.resetForSessionSwitch();
-      services.session.resetToNewSession();
+      await startNewConversation(services);
     },
   }),
   // Search-only: surfaces when the user types `/resume`. Opens the session

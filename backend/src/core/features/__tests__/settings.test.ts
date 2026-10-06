@@ -527,6 +527,13 @@ describe('settings', () => {
 
     // autoOpenDiffOnPermission once fell through into the notificationBanner
     // case, which let null in and named the wrong key in the error (issue #504).
+    it('should accept only a boolean confirmNewSession', async () => {
+      expect((await saveSettingToFile('confirmNewSession', true)).status).toBe('ok');
+      const bad = await saveSettingToFile('confirmNewSession', 'yes');
+      expect(bad.status).toBe('error');
+      expect(bad.error).toBe('confirmNewSession must be a boolean');
+    });
+
     it('should accept only a boolean streaming', async () => {
       expect((await saveSettingToFile('streaming', false)).status).toBe('ok');
       expect((await saveSettingToFile('streaming', true)).status).toBe('ok');
@@ -728,6 +735,7 @@ describe('settings', () => {
         headerBarColor: null,
         userMessageColor: null,
         streaming: true,
+        confirmNewSession: false,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,
@@ -874,6 +882,7 @@ export default {
         headerBarColor: null,
         userMessageColor: null,
         streaming: true,
+        confirmNewSession: false,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,

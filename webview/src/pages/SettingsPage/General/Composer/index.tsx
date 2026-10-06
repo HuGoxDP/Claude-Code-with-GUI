@@ -3,6 +3,7 @@ import { SettingSection } from '../../common';
 import { SendShortcutRow } from './SendShortcutRow';
 import { NewlineShortcutRow } from './NewlineShortcutRow';
 import { FollowUpBehaviorRow } from './FollowUpBehaviorRow';
+import { ConfirmNewSessionRow } from './ConfirmNewSessionRow';
 import { useSettings } from '@/contexts/SettingsContext';
 import { SettingKey } from '@/types/settings';
 import type { ComposerShortcutSettings } from '@/shared';
@@ -13,7 +14,8 @@ import { useTranslation } from '@/i18n';
 type ConflictedRow = 'send' | 'newline' | null;
 
 /**
- * The composer keys: what sends the prompt, and what breaks the line.
+ * The composer keys: what sends the prompt, and what breaks the line. Then what
+ * a follow-up does, and whether clearing the chat asks first.
  *
  * A section of their own rather than two more rows under the app settings,
  * because they are the only pair of settings that constrain each other — the
@@ -56,6 +58,7 @@ export function ComposerSection() {
         error={conflicted === 'newline' ? t('general.composer.conflictWithSend') : undefined}
       />
       <FollowUpBehaviorRow />
+      <ConfirmNewSessionRow />
     </SettingSection>
   );
 }

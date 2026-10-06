@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "در حین اجرای {{appName}}، پیام‌های پیگیری را در صف قرار دهید یا اجرای فعلی را تغییر مسیر دهید.",
         "queue": "در صف قرار دادن",
         "steer": "تغییر مسیر پاسخ"
+      },
+      "confirmNewSession": {
+        "label": "پرسیدن پیش از گفتگوی تازه",
+        "description": "پیش از اینکه ‎/clear یا Cmd/Ctrl+Shift+C گفتگوی شروع‌شده را ترک کند، تأیید بگیرد."
       }
     },
     "notifications": {

@@ -56,6 +56,15 @@ export function setCurrentSettings(settings: SettingsState): void {
 }
 
 /**
+ * The live settings, for code that runs outside React (a command, a shortcut)
+ * and has to honour a preference. `undefined` until the first load resolves;
+ * callers fall back to the default then, as {@link resolveOpenMode} does.
+ */
+export function getCurrentSettings(): SettingsState | undefined {
+  return currentSettings;
+}
+
+/**
  * Resolve the user's open-mode preference without React. Falls back to the
  * default when the mirror hasn't been populated yet (boot, before the first
  * settings load resolves) — a preference lookup must never block navigation.

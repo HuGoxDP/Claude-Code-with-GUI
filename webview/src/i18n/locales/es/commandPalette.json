@@ -94,5 +94,12 @@
     "reportProblem": "Reportar un problema",
     "refreshVersion": "Actualizar versión",
     "comingSoon": "Próximamente"
+  },
+  "newConversation": {
+    "title": "¿Empezar una conversación nueva?",
+    "message": "Esta conversación sigue en tu lista de sesiones.",
+    "messageWhileReplying": "Claude aún está respondiendo; empezar una conversación nueva detiene la respuesta. Esta conversación sigue en tu lista de sesiones.",
+    "confirm": "Conversación nueva",
+    "cancel": "Cancelar"
   }
 }

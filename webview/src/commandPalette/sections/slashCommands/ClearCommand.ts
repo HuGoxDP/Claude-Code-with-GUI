@@ -1,5 +1,6 @@
 import { SlashCommand } from '../../types';
 import { i18n } from '@/i18n';
+import { startNewConversation } from '../startNewConversation';
 
 export class ClearCommand extends SlashCommand {
   readonly id = 'cmd-clear';
@@ -10,11 +11,7 @@ export class ClearCommand extends SlashCommand {
   }
 
   async execute(): Promise<void> {
-    const services = this.getServices();
-
-    if (services.chatStream.isStreaming) services.chatStream.stop();
-    services.chatStream.resetForSessionSwitch();
-    services.session.resetToNewSession();
+    await startNewConversation(this.getServices());
   }
 
   bindKeyboard(e: KeyboardEvent): boolean {

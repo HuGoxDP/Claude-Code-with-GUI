@@ -94,5 +94,12 @@
     "reportProblem": "문제 신고",
     "refreshVersion": "버전 새로고침",
     "comingSoon": "출시 예정"
+  },
+  "newConversation": {
+    "title": "새 대화를 시작할까요?",
+    "message": "이 대화는 세션 목록에 남아 있습니다.",
+    "messageWhileReplying": "Claude가 아직 답하고 있습니다. 새 대화를 시작하면 답변이 멈춥니다. 이 대화는 세션 목록에 남아 있습니다.",
+    "confirm": "새 대화",
+    "cancel": "취소"
   }
 }

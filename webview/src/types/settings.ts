@@ -56,6 +56,10 @@ export enum SettingKey {
   // `--include-partial-messages`) or whole once each message is finished.
   // On by default, which is how the chat has always behaved (ported from CC GUI).
   STREAMING = 'streaming',
+  // Ask before /clear, Cmd/Ctrl+Shift+C or "Clear conversation" leaves a
+  // conversation that has started. Off by default, like the CLI's own /clear
+  // (ported from CC GUI's new session confirmation).
+  CONFIRM_NEW_SESSION = 'confirmNewSession',
 
   // Advanced
   DEBUG_MODE = 'debugMode',
@@ -418,6 +422,7 @@ export interface SettingsState {
   [SettingKey.HEADER_BAR_COLOR]: string | null;
   [SettingKey.USER_MESSAGE_COLOR]: string | null;
   [SettingKey.STREAMING]: boolean;
+  [SettingKey.CONFIRM_NEW_SESSION]: boolean;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
   [SettingKey.TERMINAL_APP]: string | null;
@@ -470,6 +475,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.HEADER_BAR_COLOR]: null,
   [SettingKey.USER_MESSAGE_COLOR]: null,
   [SettingKey.STREAMING]: true,
+  [SettingKey.CONFIRM_NEW_SESSION]: false,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,
   [SettingKey.TERMINAL_APP]: null,

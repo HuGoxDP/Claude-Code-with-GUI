@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "{{appName}} の実行中は、フォローアップをキューに追加するか、現在の実行に今すぐ反映できます。",
         "queue": "キューに追加",
         "steer": "今すぐ反映"
+      },
+      "confirmNewSession": {
+        "label": "新しい会話の前に確認",
+        "description": "/clear や Cmd/Ctrl+Shift+C で始まっている会話を離れる前に確認します。"
       }
     },
     "notifications": {

@@ -94,5 +94,12 @@
     "reportProblem": "الإبلاغ عن مشكلة",
     "refreshVersion": "تحديث الإصدار",
     "comingSoon": "قريبًا"
+  },
+  "newConversation": {
+    "title": "بدء محادثة جديدة؟",
+    "message": "تبقى هذه المحادثة في قائمة الجلسات.",
+    "messageWhileReplying": "لا يزال Claude يرد؛ بدء محادثة جديدة يوقف الرد. تبقى هذه المحادثة في قائمة الجلسات.",
+    "confirm": "محادثة جديدة",
+    "cancel": "إلغاء"
   }
 }

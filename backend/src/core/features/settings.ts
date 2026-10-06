@@ -63,6 +63,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   headerBarColor: null,
   userMessageColor: null,
   streaming: true,
+  confirmNewSession: false,
   debugMode: false,
   logLevel: 'info',
   terminalApp: null,
@@ -136,6 +137,7 @@ const COMMENT_MAP: Record<string, string> = {
   chatBackgroundColorLight: '라이트 테마의 채팅 영역 배경색 "#rrggbb". null이면 테마 색',
   headerBarColor: '채팅 상단바 배경색 "#rrggbb". null이면 테마 색',
   userMessageColor: '내가 보낸 메시지 말풍선 배경색 "#rrggbb". null이면 테마 색',
+  confirmNewSession: '/clear·Cmd/Ctrl+Shift+C·대화 지우기로 시작된 대화를 떠나기 전에 묻는다. 기본 false(CLI의 /clear처럼 묻지 않음)',
   streaming: '답변을 쓰는 대로 보여준다(--include-partial-messages). false면 메시지가 끝난 뒤 한 번에. 바꾸면 다음 메시지에서 CLI를 다시 띄운다',
   debugMode: '디버그 모드 활성화',
   logLevel: '로그 레벨: "debug" | "info" | "warn" | "error"',
@@ -474,6 +476,7 @@ function validateSetting(key: string, value: unknown): string | null {
     case 'includeNestedSessions':
     case 'softWrap':
     case 'streaming':
+    case 'confirmNewSession':
       if (typeof value !== 'boolean') {
         return `${key} must be a boolean`;
       }

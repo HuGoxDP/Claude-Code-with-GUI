@@ -117,6 +117,10 @@
         "descriptionNoShortcut": "在 {{appName}} 執行時將後續訊息加入佇列，或引導目前的執行。",
         "queue": "加入佇列",
         "steer": "引導"
+      },
+      "confirmNewSession": {
+        "label": "新對話前詢問",
+        "description": "在 /clear 或 Cmd/Ctrl+Shift+C 離開已開始的對話前確認。"
       }
     },
     "notifications": {
