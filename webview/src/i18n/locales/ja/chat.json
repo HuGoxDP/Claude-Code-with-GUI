@@ -123,7 +123,8 @@
       "hint": "(Tabで補完)"
     },
     "queuedMessages": {
-      "cancel": "キューから削除"
+      "cancel": "キューから削除",
+      "reorder": "ドラッグして順番を変更します。一番上のメッセージが次に送信されます。"
     },
     "ariaLabel": "Claudeにメッセージを送信",
     "autoModeFallback": "ここでは自動モードは使用できません — 代わりにデフォルトの権限モードを使用します。",

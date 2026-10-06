@@ -1,4 +1,5 @@
 import type { LoadedMessageDto } from '../types';
+import { isUserSend } from '../pages/ChatPage/paging';
 
 /** What one finished turn cost, read from the CLI's `result` event. */
 export interface TurnFigures {
@@ -45,4 +46,32 @@ export function formatTokenCount(tokens: number): string {
   if (tokens >= 1_000_000) return `${(tokens / 1_000_000).toFixed(1)}M`;
   if (tokens >= 1_000) return `${(tokens / 1_000).toFixed(1)}K`;
   return String(tokens);
+}
+
+/**
+ * [messages] with a turn's `result` entry placed as the last word of that turn.
+ *
+ * That is the end of the list, unless a send that came in after the turn ended
+ * is already there: when a turn ends the backend releases the next queued
+ * message, and broadcasts its bubble, before it passes the CLI's `result` on.
+ * Appended blindly, the figures of one turn would sit under the next turn's
+ * prompt. A send dated after the turn started ([turnStartMs]) belongs to a later
+ * turn — the turn's own prompt was sent before the turn began — so the entry
+ * goes above every such send at the end of the list.
+ */
+export function placeTurnResult(
+  messages: LoadedMessageDto[],
+  result: LoadedMessageDto,
+  turnStartMs: number | null,
+): LoadedMessageDto[] {
+  let at = messages.length;
+  if (turnStartMs !== null) {
+    while (at > 0) {
+      const entry = messages[at - 1];
+      const sentAt = entry.timestamp ? Date.parse(entry.timestamp) : NaN;
+      if (!isUserSend(entry) || !(sentAt > turnStartMs)) break;
+      at--;
+    }
+  }
+  return [...messages.slice(0, at), result, ...messages.slice(at)];
 }

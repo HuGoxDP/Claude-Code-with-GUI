@@ -13,6 +13,7 @@ import {
   dequeueNextMessage,
   clearQueuedMessages,
   clearAllQueuedMessages,
+  reorderQueuedMessages,
   type QueuedMessageEntry,
 } from '../messageQueue';
 
@@ -108,5 +109,49 @@ describe('dropping a dead session\'s queue', () => {
     clearQueuedMessages('sess-1');
 
     expect(getQueuedMessages('sess-2').map(e => e.content)).toEqual(['for two']);
+  });
+});
+
+describe('reordering the queue', () => {
+  const ids = () => getQueuedMessages('s').map(e => e.id);
+  beforeEach(() => {
+    enqueueMessage('s', entry('a', 'first'));
+    enqueueMessage('s', entry('b', 'second'));
+    enqueueMessage('s', entry('c', 'third'));
+  });
+
+  it('puts the entries in the given order, so the first is released next', () => {
+    expect(reorderQueuedMessages('s', ['c', 'a', 'b'])).toBe(true);
+    expect(ids()).toEqual(['c', 'a', 'b']);
+    expect(dequeueNextMessage('s')?.content).toBe('third');
+  });
+
+  it('reports false when the order is the one already held', () => {
+    expect(reorderQueuedMessages('s', ['a', 'b', 'c'])).toBe(false);
+    expect(ids()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('skips an id that was released while the user was dragging', () => {
+    dequeueNextMessage('s');
+    expect(reorderQueuedMessages('s', ['c', 'a', 'b'])).toBe(true);
+    expect(ids()).toEqual(['c', 'b']);
+  });
+
+  it('keeps an entry the list does not name, after the named ones, instead of dropping it', () => {
+    enqueueMessage('s', entry('d', 'queued from another tab'));
+    reorderQueuedMessages('s', ['b', 'a', 'c']);
+    expect(ids()).toEqual(['b', 'a', 'c', 'd']);
+  });
+
+  it('never duplicates an entry named twice', () => {
+    reorderQueuedMessages('s', ['b', 'b', 'a']);
+    expect(ids()).toEqual(['b', 'a', 'c']);
+  });
+
+  it('leaves other sessions and an empty session alone', () => {
+    enqueueMessage('t', entry('x', 'other'));
+    reorderQueuedMessages('s', ['x', 'c']);
+    expect(getQueuedMessages('t').map(e => e.id)).toEqual(['x']);
+    expect(reorderQueuedMessages('none', ['a'])).toBe(false);
   });
 });

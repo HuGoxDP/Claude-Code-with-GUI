@@ -123,7 +123,8 @@
       "hint": "(Tab으로 완성)"
     },
     "queuedMessages": {
-      "cancel": "대기열에서 제거"
+      "cancel": "대기열에서 제거",
+      "reorder": "끌어서 순서를 바꿉니다. 맨 위 메시지가 다음에 보내집니다."
     },
     "ariaLabel": "Claude에게 메시지 보내기",
     "autoModeFallback": "여기서는 자동 모드를 사용할 수 없어 기본 권한 모드를 대신 사용합니다.",

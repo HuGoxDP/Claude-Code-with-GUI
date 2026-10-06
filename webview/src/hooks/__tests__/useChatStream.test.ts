@@ -451,6 +451,37 @@ describe('useChatStream', () => {
       expect(last.usage?.cache_read_input_tokens).toBe(11809);
     });
 
+    it('puts the figures above the next queued prompt the backend released before the result', () => {
+      const { bridge, emit } = createMockBridge();
+      const { result } = renderHook(() => useChatStream({ bridge }));
+      const turnEnd = Date.parse('2026-10-06T09:05:00.000Z');
+      const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(turnEnd);
+      try {
+        act(() => {
+          emit(MessageType.CLI_EVENT, { type: 'stream_event', event: { delta: { type: 'text_delta', text: 'The story.' } } });
+        });
+        // The backend releases the next queued message when the turn ends and
+        // broadcasts its bubble before it forwards the CLI's `result`.
+        act(() => {
+          emit(MessageType.USER_MESSAGE_BROADCAST, { content: 'Reply with exactly the word: three', sessionId: 's' });
+        });
+        act(() => {
+          emit(MessageType.CLI_EVENT, {
+            type: 'result',
+            subtype: 'success',
+            duration_ms: 18000,
+            usage: { input_tokens: 10, output_tokens: 1600 },
+          });
+        });
+        const types = result.current.messages.map((m) => m.type);
+        expect(types.slice(-2)).toEqual([LoadedMessageType.Result, LoadedMessageType.User]);
+        expect(getTextContent(result.current.messages[result.current.messages.length - 1] as LoadedMessageDto))
+          .toBe('Reply with exactly the word: three');
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
+
     it('adds no entry for a turn that reported no tokens', () => {
       const { bridge, emit } = createMockBridge();
       const { result } = renderHook(() => useChatStream({ bridge }));

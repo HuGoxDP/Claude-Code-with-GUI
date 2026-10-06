@@ -7,6 +7,7 @@ import type { QueuedMessage } from '../../shared';
 import {
   enqueueMessage,
   removeQueuedMessage,
+  reorderQueuedMessages,
   getQueuedMessages,
   type QueuedMessageEntry,
 } from '../features/messageQueue';
@@ -83,6 +84,31 @@ export async function cancelQueuedMessageHandler(
 
   if (sessionId && id) {
     removeQueuedMessage(sessionId, id);
+    broadcastQueue(sessionId, connections);
+  }
+
+  connections.sendTo(connectionId, MessageType.ACK, { requestId: message.requestId });
+}
+
+/**
+ * REORDER_QUEUED_MESSAGES — put [sessionId]'s held messages in the order the
+ * user dragged them into; the first id is released next. See
+ * `reorderQueuedMessages` for how a list that is out of date by the time it
+ * arrives is reconciled.
+ */
+export async function reorderQueuedMessagesHandler(
+  connectionId: string,
+  message: IPCMessage,
+  connections: ConnectionManager,
+  _bridge: Bridge,
+): Promise<void> {
+  const sessionId = message.payload?.sessionId as string | undefined;
+  const ids = message.payload?.ids;
+
+  if (sessionId && Array.isArray(ids) && ids.every(id => typeof id === 'string')) {
+    // Broadcast even when nothing moved: the tab that dragged is showing its
+    // own order until the next push, and an unchanged push puts it back.
+    reorderQueuedMessages(sessionId, ids);
     broadcastQueue(sessionId, connections);
   }
 

@@ -123,7 +123,8 @@
       "hint": "(Tab pour valider)"
     },
     "queuedMessages": {
-      "cancel": "Retirer de la file d’attente"
+      "cancel": "Retirer de la file d’attente",
+      "reorder": "Faites glisser pour changer l'ordre. Le message du haut est envoyé en premier."
     },
     "ariaLabel": "Message à Claude",
     "autoModeFallback": "Le mode automatique n'est pas disponible ici — utilisation du mode d'autorisation par défaut à la place.",

@@ -123,7 +123,8 @@
       "hint": "(按 Tab 补全)"
     },
     "queuedMessages": {
-      "cancel": "从队列中移除"
+      "cancel": "从队列中移除",
+      "reorder": "拖动以调整顺序。最上面的消息会最先发送。"
     },
     "ariaLabel": "给 Claude 发消息",
     "autoModeFallback": "此处无法使用自动模式 — 将改用默认权限模式。",

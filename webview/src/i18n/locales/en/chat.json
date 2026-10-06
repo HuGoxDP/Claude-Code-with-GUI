@@ -123,7 +123,8 @@
       "hint": "(Tab to accept)"
     },
     "queuedMessages": {
-      "cancel": "Remove from queue"
+      "cancel": "Remove from queue",
+      "reorder": "Drag to change the order. The message on top is sent next."
     },
     "ariaLabel": "Message Claude",
     "autoModeFallback": "Auto mode isn't available here — using the default permission mode instead.",

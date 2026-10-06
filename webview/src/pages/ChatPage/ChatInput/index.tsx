@@ -130,7 +130,7 @@ export function ChatInput() {
   const { currentSessionId, currentSession, sessionState, workingDirectory, inputMode: mode, cycleInputMode: cycleMode, setInputMode, availableModes, autoFallbackNotice, dismissAutoFallback } = useSessionContext();
   const chatStream = useChatStreamContext();
   const onboarding = useOnboarding();
-  const { handleSubmit: onSubmit, isStreaming, stop: onStop, queuedMessages, cancelQueuedMessage } = chatStream;
+  const { handleSubmit: onSubmit, isStreaming, stop: onStop, queuedMessages, cancelQueuedMessage, reorderQueuedMessages } = chatStream;
   const { input: value, setInput: onChange } = useChatInputState();
   const inputHistory = useInputHistory({ workingDirectory, sessionId: currentSessionId });
   const { pushToHistory, navigateUp, navigateDown, resetHistory } = inputHistory;
@@ -1345,7 +1345,7 @@ export function ChatInput() {
       {/* Messages held in the backend queue (the "queue" follow-up-behavior
           setting). Drawn exactly as ChatStreamContext.queuedMessages reports
           it — this component holds nothing of its own. */}
-      <QueuedMessagesStack entries={queuedMessages} onCancel={cancelQueuedMessage} />
+      <QueuedMessagesStack entries={queuedMessages} onCancel={cancelQueuedMessage} onReorder={reorderQueuedMessages} />
       {/* 메인 인풋 컨테이너 — drag/drop은 window 레벨 리스너가 패널 전체에서 처리한다.
           박스의 모양(테두리·포커스 링·구분선·하단 바)은 InputFrame이 쥐고 있고,
           에이전트 뷰의 컴포저가 같은 것을 쓴다. 여기 있는 것은 전부 슬롯에 넣을

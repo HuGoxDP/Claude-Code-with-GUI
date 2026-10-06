@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatTokenCount, formatTurnDuration, turnFiguresOf } from '../turnFigures';
+import { formatTokenCount, formatTurnDuration, placeTurnResult, turnFiguresOf } from '../turnFigures';
 import { LoadedMessageType } from '../../dto/common';
 import type { LoadedMessageDto } from '../../types';
 
@@ -36,5 +36,39 @@ describe('turn figures', () => {
     expect(formatTokenCount(58)).toBe('58');
     expect(formatTokenCount(17539)).toBe('17.5K');
     expect(formatTokenCount(1_234_567)).toBe('1.2M');
+  });
+});
+
+describe('placeTurnResult', () => {
+  const at = (iso: string) => Date.parse(iso);
+  const send = (uuid: string, timestamp: string): LoadedMessageDto =>
+    ({ type: LoadedMessageType.User, uuid, timestamp, message: { role: 'user', content: uuid } }) as LoadedMessageDto;
+  const reply = (uuid: string, timestamp: string): LoadedMessageDto =>
+    ({ type: LoadedMessageType.Assistant, uuid, timestamp, message: { role: 'assistant', content: [] } }) as LoadedMessageDto;
+  const figures = { ...result(), uuid: 'r' } as LoadedMessageDto;
+  const uuids = (list: LoadedMessageDto[]) => list.map((m) => m.uuid);
+
+  it('goes last when nothing came after the turn', () => {
+    const list = [send('q', '2026-10-06T09:00:00Z'), reply('a', '2026-10-06T09:00:05Z')];
+    expect(uuids(placeTurnResult(list, figures, at('2026-10-06T09:00:01Z')))).toEqual(['q', 'a', 'r']);
+  });
+
+  it('goes above sends dated after the turn started', () => {
+    const list = [
+      send('q', '2026-10-06T09:00:00Z'),
+      reply('a', '2026-10-06T09:00:05Z'),
+      send('next', '2026-10-06T09:00:18Z'),
+    ];
+    expect(uuids(placeTurnResult(list, figures, at('2026-10-06T09:00:01Z')))).toEqual(['q', 'a', 'r', 'next']);
+  });
+
+  it("stays under the turn's own prompt when the turn showed nothing else", () => {
+    const list = [reply('old', '2026-10-06T08:59:00Z'), send('q', '2026-10-06T09:00:00Z')];
+    expect(uuids(placeTurnResult(list, figures, at('2026-10-06T09:00:01Z')))).toEqual(['old', 'q', 'r']);
+  });
+
+  it('goes last when the start of the turn is unknown', () => {
+    const list = [reply('a', '2026-10-06T09:00:05Z'), send('next', '2026-10-06T09:00:18Z')];
+    expect(uuids(placeTurnResult(list, figures, null))).toEqual(['a', 'next', 'r']);
   });
 });

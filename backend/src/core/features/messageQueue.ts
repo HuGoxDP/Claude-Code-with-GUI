@@ -56,6 +56,35 @@ export function removeQueuedMessage(sessionId: string, id: string): boolean {
   return true;
 }
 
+/**
+ * Put [sessionId]'s queue in the order [orderedIds] names: the first id is the
+ * next one released.
+ *
+ * The list the webview sends can be out of date by the time it arrives: the
+ * front entry may have been released to the CLI, or another tab may have queued
+ * something, while the user was dragging. So ids no longer in the queue are
+ * skipped, and entries the list does not name keep their relative order after
+ * the named ones; nothing is ever dropped or duplicated.
+ *
+ * Returns whether the order actually changed.
+ */
+export function reorderQueuedMessages(sessionId: string, orderedIds: readonly string[]): boolean {
+  const queue = queues.get(sessionId);
+  if (!queue || queue.length < 2) return false;
+  const byId = new Map(queue.map(entry => [entry.id, entry]));
+  const named: QueuedMessageEntry[] = [];
+  for (const id of orderedIds) {
+    const entry = byId.get(id);
+    if (!entry) continue;
+    named.push(entry);
+    byId.delete(id);
+  }
+  const next = [...named, ...queue.filter(entry => byId.has(entry.id))];
+  if (next.every((entry, index) => entry === queue[index])) return false;
+  queue.splice(0, queue.length, ...next);
+  return true;
+}
+
 /** Everything currently waiting for [sessionId], oldest first. Never mutated by the caller. */
 export function getQueuedMessages(sessionId: string): QueuedMessageEntry[] {
   return queues.get(sessionId) ?? [];

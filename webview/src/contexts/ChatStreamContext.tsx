@@ -84,6 +84,8 @@ interface ChatStreamContextType {
   queueMessage: (content: string, attachments?: Attachment[]) => void;
   /** Remove one held message from the backend queue by id, before it is sent. */
   cancelQueuedMessage: (id: string) => void;
+  /** Put the backend queue in the order of [ids]; the first is released next. */
+  reorderQueuedMessages: (ids: string[]) => void;
 
   resetStreamState: () => void;
   // From useChatStream (message manipulation)
@@ -552,6 +554,19 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
     [bridge, session]
   );
 
+  /** Put the backend queue in the order the user dragged it into. */
+  const reorderQueuedMessages = useCallback(
+    (ids: string[]) => {
+      const sessionId = session.currentSessionId;
+      if (!sessionId) return;
+
+      bridge.send(MessageType.REORDER_QUEUED_MESSAGES, { sessionId, ids }).catch((error) => {
+        console.error('[ChatStreamContext] Failed to reorder queued messages:', error);
+      });
+    },
+    [bridge, session]
+  );
+
   // Run one of the slash commands the CLI won't take as text over stream-json.
   // Shared by the composer (typed) and the command palette (picked), so both
   // routes press the same button rather than drifting apart.
@@ -695,6 +710,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
     queuedMessages,
     queueMessage,
     cancelQueuedMessage,
+    reorderQueuedMessages,
 
     resetStreamState: chatStreamResetStreamState,
 
@@ -753,6 +769,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
     queuedMessages,
     queueMessage,
     cancelQueuedMessage,
+    reorderQueuedMessages,
     tools,
     diffs,
     isThinkingExpanded,

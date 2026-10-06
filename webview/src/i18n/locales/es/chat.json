@@ -123,7 +123,8 @@
       "hint": "(Tab para completar)"
     },
     "queuedMessages": {
-      "cancel": "Quitar de la cola"
+      "cancel": "Quitar de la cola",
+      "reorder": "Arrastra para cambiar el orden. El mensaje de arriba se envía primero."
     },
     "ariaLabel": "Mensaje para Claude",
     "autoModeFallback": "El modo automático no está disponible aquí — se usará el modo de permisos predeterminado.",

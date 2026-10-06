@@ -51,6 +51,8 @@ export enum MessageType {
   CANCEL_QUEUED_MESSAGE = 'CANCEL_QUEUED_MESSAGE',
   /** Read the session's backend-owned queue of held follow-up messages, for a webview opening or reconnecting to a session that already has messages queued. inbound webview→backend */
   GET_QUEUED_MESSAGES = 'GET_QUEUED_MESSAGES',
+  /** Put the session's backend-owned queue in the given order of ids (the first is released next), after the user drags one. inbound webview→backend */
+  REORDER_QUEUED_MESSAGES = 'REORDER_QUEUED_MESSAGES',
 
   // -- Scheduled messages ("send later" engine, session-scoped) --
   /** Create a scheduled message reservation for a session. inbound webview→backend */

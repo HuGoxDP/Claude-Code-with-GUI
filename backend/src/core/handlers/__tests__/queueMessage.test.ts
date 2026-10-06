@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ConnectionManager } from '../../../ws/connection-manager';
 import type { Bridge } from '../../../bridge/bridge-interface';
 import { MessageType } from '../../../shared';
-import { queueMessageHandler, cancelQueuedMessageHandler, getQueuedMessagesHandler } from '../queueMessage';
+import { queueMessageHandler, cancelQueuedMessageHandler, getQueuedMessagesHandler, reorderQueuedMessagesHandler } from '../queueMessage';
 import { getQueuedMessages, clearAllQueuedMessages } from '../../features/messageQueue';
 
 vi.mock('../../claude', () => ({ Claude: { killTree: vi.fn() } }));
@@ -146,5 +146,55 @@ describe('getQueuedMessagesHandler', () => {
     const [raw] = (ws.send as ReturnType<typeof vi.fn>).mock.calls[0];
     const ack = JSON.parse(raw as string);
     expect(ack.payload.queue.map((e: { content: string }) => e.content)).toEqual(['already queued']);
+  });
+});
+
+describe('reorderQueuedMessagesHandler', () => {
+  it('reorders the queue and pushes the new order to every connection watching the session', async () => {
+    const connections = new ConnectionManager(true);
+    const wsA = createMockWs();
+    const wsB = createMockWs();
+    const connA = connections.addConnection(wsA);
+    const connB = connections.addConnection(wsB);
+    connections.subscribe(connA, 'sess-1', '/fixture');
+    connections.subscribe(connB, 'sess-1', '/fixture');
+    await queue(connections, connA, { content: 'one' });
+    await queue(connections, connA, { content: 'two' });
+    const [first, second] = getQueuedMessages('sess-1').map(e => e.id);
+    (wsB.send as ReturnType<typeof vi.fn>).mockClear();
+
+    await reorderQueuedMessagesHandler(connA, {
+      type: MessageType.REORDER_QUEUED_MESSAGES,
+      requestId: 'r4',
+      timestamp: 0,
+      payload: { sessionId: 'sess-1', ids: [second, first] },
+    }, connections, bridge);
+
+    expect(getQueuedMessages('sess-1').map(e => e.content)).toEqual(['two', 'one']);
+    const pushed = (wsB.send as ReturnType<typeof vi.fn>).mock.calls
+      .map(([raw]) => JSON.parse(raw as string))
+      .find(m => m.type === MessageType.QUEUED_MESSAGES_CHANGED);
+    expect(pushed.payload.queue.map((e: { content: string }) => e.content)).toEqual(['two', 'one']);
+  });
+
+  it('ignores a malformed id list and still acknowledges', async () => {
+    const connections = new ConnectionManager(true);
+    const ws = createMockWs();
+    const connId = connections.addConnection(ws);
+    connections.subscribe(connId, 'sess-1', '/fixture');
+    await queue(connections, connId, { content: 'one' });
+    await queue(connections, connId, { content: 'two' });
+    (ws.send as ReturnType<typeof vi.fn>).mockClear();
+
+    await reorderQueuedMessagesHandler(connId, {
+      type: MessageType.REORDER_QUEUED_MESSAGES,
+      requestId: 'r5',
+      timestamp: 0,
+      payload: { sessionId: 'sess-1', ids: [1, 2] },
+    }, connections, bridge);
+
+    expect(getQueuedMessages('sess-1').map(e => e.content)).toEqual(['one', 'two']);
+    const types = (ws.send as ReturnType<typeof vi.fn>).mock.calls.map(([raw]) => JSON.parse(raw as string).type);
+    expect(types).toEqual([MessageType.ACK]);
   });
 });

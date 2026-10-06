@@ -6,7 +6,7 @@ import { toInstance, LoadedMessageType, MessageRole } from '../dto/common';
 import { parsePartialJson } from '../utils/parsePartialJson';
 import { MessageType } from '@/shared';
 import { parseControlRequestResult } from './controlRequestResult';
-import { turnFiguresOf } from '@/utils/turnFigures';
+import { placeTurnResult, turnFiguresOf } from '@/utils/turnFigures';
 import type { ControlRequestResult, ControlResponseEvent } from './controlRequestResult';
 
 /** Re-export for backwards compatibility */
@@ -1250,7 +1250,9 @@ export function useChatStream(options: UseChatStreamOptions): UseChatStreamRetur
         // (ported from CC GUI). The CLI sends it only live and never writes it to
         // the transcript, so it is kept as it came — every field, under the CLI's
         // names — and shown until the session is reopened. It goes after
-        // everything on screen, as the last word of the turn.
+        // everything the turn put on screen, as its last word — above a queued
+        // message the backend already released for the next turn (see
+        // placeTurnResult).
         //
         // Only a turn that reached the model gets one. A local slash command or
         // a request refused before it was sent reports no tokens, and its entry
@@ -1261,7 +1263,11 @@ export function useChatStream(options: UseChatStreamOptions): UseChatStreamRetur
           uuid: (cliEvent.uuid as string | undefined) || generateMessageId(),
           timestamp: new Date().toISOString(),
         } as LoadedMessageDto;
-        if (turnFiguresOf(turnResult)) appendMessage(turnResult, true);
+        if (turnFiguresOf(turnResult)) {
+          const durationMs = turnResult.duration_ms as number;
+          const turnStartMs = durationMs >= 0 ? Date.now() - durationMs : null;
+          setMessages(prev => placeTurnResult(prev, turnResult, turnStartMs));
+        }
 
         // 스트리밍 종료
         endStreaming();

@@ -123,7 +123,8 @@
       "hint": "(Tab zum Übernehmen)"
     },
     "queuedMessages": {
-      "cancel": "Aus der Warteschlange entfernen"
+      "cancel": "Aus der Warteschlange entfernen",
+      "reorder": "Ziehen, um die Reihenfolge zu ändern. Die oberste Nachricht wird als Nächstes gesendet."
     },
     "ariaLabel": "Nachricht an Claude",
     "autoModeFallback": "Der Auto-Modus ist hier nicht verfügbar — der Standard-Berechtigungsmodus wird stattdessen verwendet.",

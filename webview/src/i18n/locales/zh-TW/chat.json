@@ -123,7 +123,8 @@
       "hint": "(按 Tab 補全)"
     },
     "queuedMessages": {
-      "cancel": "從佇列中移除"
+      "cancel": "從佇列中移除",
+      "reorder": "拖曳以調整順序。最上面的訊息會最先傳送。"
     },
     "ariaLabel": "傳送訊息給 Claude",
     "autoModeFallback": "此處無法使用自動模式 — 將改用預設權限模式。",
