@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "已修改"
+    "modified": "已修改",
+    "showChanges": "显示改动",
+    "hideChanges": "隐藏改动"
   },
   "write": {
     "lineCount": "{{count}} 行"

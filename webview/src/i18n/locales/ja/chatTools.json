@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "変更済み"
+    "modified": "変更済み",
+    "showChanges": "変更を表示",
+    "hideChanges": "変更を隠す"
   },
   "write": {
     "lineCount": "{{count}} 行"

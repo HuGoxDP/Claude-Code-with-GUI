@@ -260,6 +260,10 @@
       "label": "流式显示回复",
       "description": "边写边显示回复；关闭后每条消息完成后才显示。从下一条消息开始生效。"
     },
+    "expandDiffs": {
+      "label": "展开差异",
+      "description": "在每张编辑卡片中显示改动；关闭后卡片只显示 +N −M，点击展开。"
+    },
     "chat": {
       "sectionTitle": "聊天"
     },

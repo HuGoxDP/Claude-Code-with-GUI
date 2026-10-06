@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "معدَّل"
+    "modified": "معدَّل",
+    "showChanges": "إظهار التغييرات",
+    "hideChanges": "إخفاء التغييرات"
   },
   "write": {
     "lineCount": "{{count}} أسطر"

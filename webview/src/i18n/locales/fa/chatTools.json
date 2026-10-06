@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "تغییر یافت"
+    "modified": "تغییر یافت",
+    "showChanges": "نمایش تغییرات",
+    "hideChanges": "پنهان کردن تغییرات"
   },
   "write": {
     "lineCount": "{{count}} خط"

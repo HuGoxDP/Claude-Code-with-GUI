@@ -260,6 +260,10 @@
       "label": "Antworten streamen",
       "description": "Zeigt eine Antwort, während sie geschrieben wird; aus erscheint jede Nachricht erst, wenn sie fertig ist. Gilt ab deiner nächsten Nachricht."
     },
+    "expandDiffs": {
+      "label": "Diffs aufklappen",
+      "description": "Zeigt die Änderungen in jeder Bearbeitungskarte; aus zeigt eine Karte nur +N −M und öffnet sich per Klick."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

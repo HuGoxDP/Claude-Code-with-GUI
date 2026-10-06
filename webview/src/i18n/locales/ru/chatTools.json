@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "Изменено"
+    "modified": "Изменено",
+    "showChanges": "Показать изменения",
+    "hideChanges": "Скрыть изменения"
   },
   "write": {
     "lineCount": "{{count}} строк"

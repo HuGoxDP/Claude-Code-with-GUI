@@ -260,6 +260,10 @@
       "label": "Mostrar respostas em tempo real",
       "description": "Mostra a resposta enquanto é escrita; desligado, cada mensagem aparece quando termina. Vale a partir da sua próxima mensagem."
     },
+    "expandDiffs": {
+      "label": "Expandir diffs",
+      "description": "Mostra as mudanças em cada cartão de edição; desligado, o cartão mostra +N −M e abre ao clicar."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

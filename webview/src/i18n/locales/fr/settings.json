@@ -260,6 +260,10 @@
       "label": "Afficher les réponses en direct",
       "description": "Affiche la réponse au fil de l'écriture ; désactivé, chaque message apparaît une fois terminé. S'applique à partir de votre prochain message."
     },
+    "expandDiffs": {
+      "label": "Déplier les diffs",
+      "description": "Affiche les modifications dans chaque carte d'édition ; désactivé, la carte montre +N −M et s'ouvre d'un clic."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

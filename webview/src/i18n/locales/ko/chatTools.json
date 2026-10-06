@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "수정됨"
+    "modified": "수정됨",
+    "showChanges": "변경 내용 보기",
+    "hideChanges": "변경 내용 숨기기"
   },
   "write": {
     "lineCount": "{{count}}줄"

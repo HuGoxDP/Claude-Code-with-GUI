@@ -5,6 +5,9 @@ import {useTranslation} from "@/i18n";
 import {RendererProps, ResultCaption, ToolHeader, ToolWrapper} from "./common";
 import {useSoftWrapToggle} from "@/pages/ChatPage/message-renderers/components/useSoftWrapToggle";
 import {cn} from "@/utils/cn";
+import {ChevronRightIcon} from "@heroicons/react/24/outline";
+import {useSettingsOrNull} from "@/contexts/SettingsContext";
+import {SettingKey} from "@/types/settings";
 // @ts-ignore
 import {diffAsText} from "unidiff";
 
@@ -112,7 +115,19 @@ export function EditRenderer(props: RendererProps) {
         }
     }, [result, oldString, newString]);
 
-    const showDiff = containerWidth >= 400 && diffLines.length > 0;
+    const canShowDiff = containerWidth >= 400 && diffLines.length > 0;
+
+    // Open unless the user asked for cards to start closed (Settings →
+    // Appearance → Chat → Expand diffs, ported from CC GUI). A card the user
+    // opened or closed keeps that; the rest follow the setting as it changes.
+    const expandByDefault = useSettingsOrNull()?.settings[SettingKey.EXPAND_DIFFS] !== false;
+    const [chosenOpen, setChosenOpen] = useState<boolean | null>(null);
+    const open = chosenOpen ?? expandByDefault;
+    const showDiff = canShowDiff && open;
+
+    // What the closed card still says: how much changed.
+    const added = diffLines.filter((line) => line.type === DiffLineType.Add).length;
+    const removed = diffLines.filter((line) => line.type === DiffLineType.Delete).length;
 
     return (
         <ToolWrapper message={props.message}>
@@ -120,7 +135,27 @@ export function EditRenderer(props: RendererProps) {
                 <div dir="ltr" className={cn("text-text-primary/80 text-[0.8461rem] font-mono", path && "cursor-pointer hover:underline")} onClick={path ? () => getAdapter().openFile(path) : undefined}>{fileName}</div>
             </ToolHeader>
             <div ref={containerRef}>
-                <ResultCaption>{t('edit.modified')}</ResultCaption>
+                {canShowDiff ? (
+                    <ResultCaption>
+                        <button
+                            type="button"
+                            onClick={() => setChosenOpen(!open)}
+                            aria-expanded={open}
+                            title={open ? t('edit.hideChanges') : t('edit.showChanges')}
+                            className="inline-flex items-center gap-1 hover:text-text-primary/80"
+                        >
+                            {/* Collapsed points reading-forward; open points down. */}
+                            <ChevronRightIcon className={cn("w-3 h-3 shrink-0 transition-transform rtl:-scale-x-100", open && "rotate-90 rtl:-rotate-90")} />
+                            {t('edit.modified')}
+                            <span dir="ltr" className="font-mono tabular-nums">
+                                <span className="text-state-success-fg">+{added}</span>{' '}
+                                <span className="text-state-error-fg">−{removed}</span>
+                            </span>
+                        </button>
+                    </ResultCaption>
+                ) : (
+                    <ResultCaption>{t('edit.modified')}</ResultCaption>
+                )}
 
                 {showDiff && (
                     // Class and button both on the border box, which does not

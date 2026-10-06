@@ -60,6 +60,10 @@ export enum SettingKey {
   // conversation that has started. Off by default, like the CLI's own /clear
   // (ported from CC GUI's new session confirmation).
   CONFIRM_NEW_SESSION = 'confirmNewSession',
+  // Whether an edit card in the chat shows its diff open, or closed with a
+  // `+N −M` line to open it (ported from CC GUI's "Expand diffs by default").
+  // On by default, which is how the chat has always shown them.
+  EXPAND_DIFFS = 'expandDiffs',
 
   // Advanced
   DEBUG_MODE = 'debugMode',
@@ -423,6 +427,7 @@ export interface SettingsState {
   [SettingKey.USER_MESSAGE_COLOR]: string | null;
   [SettingKey.STREAMING]: boolean;
   [SettingKey.CONFIRM_NEW_SESSION]: boolean;
+  [SettingKey.EXPAND_DIFFS]: boolean;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
   [SettingKey.TERMINAL_APP]: string | null;
@@ -476,6 +481,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.USER_MESSAGE_COLOR]: null,
   [SettingKey.STREAMING]: true,
   [SettingKey.CONFIRM_NEW_SESSION]: false,
+  [SettingKey.EXPAND_DIFFS]: true,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,
   [SettingKey.TERMINAL_APP]: null,

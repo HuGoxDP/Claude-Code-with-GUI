@@ -40,7 +40,9 @@
     }
   },
   "edit": {
-    "modified": "Modified"
+    "modified": "Modified",
+    "showChanges": "Show changes",
+    "hideChanges": "Hide changes"
   },
   "write": {
     "lineCount": "{{count}} lines"

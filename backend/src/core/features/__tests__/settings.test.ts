@@ -527,6 +527,13 @@ describe('settings', () => {
 
     // autoOpenDiffOnPermission once fell through into the notificationBanner
     // case, which let null in and named the wrong key in the error (issue #504).
+    it('should accept only a boolean expandDiffs', async () => {
+      expect((await saveSettingToFile('expandDiffs', false)).status).toBe('ok');
+      const bad = await saveSettingToFile('expandDiffs', null);
+      expect(bad.status).toBe('error');
+      expect(bad.error).toBe('expandDiffs must be a boolean');
+    });
+
     it('should accept only a boolean confirmNewSession', async () => {
       expect((await saveSettingToFile('confirmNewSession', true)).status).toBe('ok');
       const bad = await saveSettingToFile('confirmNewSession', 'yes');
@@ -736,6 +743,7 @@ describe('settings', () => {
         userMessageColor: null,
         streaming: true,
         confirmNewSession: false,
+        expandDiffs: true,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,
@@ -883,6 +891,7 @@ export default {
         userMessageColor: null,
         streaming: true,
         confirmNewSession: false,
+        expandDiffs: true,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,

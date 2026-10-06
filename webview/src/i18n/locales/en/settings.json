@@ -260,6 +260,10 @@
       "label": "Stream replies",
       "description": "Show a reply as it is written; off, each message appears once finished. Applies from your next message."
     },
+    "expandDiffs": {
+      "label": "Expand diffs",
+      "description": "Show the changes in each edit card; off, a card shows +N −M and opens on click."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

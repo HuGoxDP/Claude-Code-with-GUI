@@ -260,6 +260,10 @@
       "label": "串流顯示回覆",
       "description": "邊寫邊顯示回覆；關閉後每則訊息完成後才顯示。從下一則訊息開始生效。"
     },
+    "expandDiffs": {
+      "label": "展開差異",
+      "description": "在每張編輯卡片中顯示變更；關閉後卡片只顯示 +N −M，點擊展開。"
+    },
     "chat": {
       "sectionTitle": "聊天"
     },

@@ -260,6 +260,10 @@
       "label": "Mostrar respuestas en directo",
       "description": "Muestra la respuesta mientras se escribe; desactivado, cada mensaje aparece al terminar. Se aplica desde tu próximo mensaje."
     },
+    "expandDiffs": {
+      "label": "Desplegar diffs",
+      "description": "Muestra los cambios en cada tarjeta de edición; desactivado, la tarjeta muestra +N −M y se abre al hacer clic."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

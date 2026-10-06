@@ -1,6 +1,7 @@
 import { SettingSection } from '../../common';
 import { HideToolCallsRow } from './HideToolCallsRow';
 import { StreamingRow } from './StreamingRow';
+import { ExpandDiffsRow } from './ExpandDiffsRow';
 import { ChatColorArea, ChatColorRow } from './ChatColorRow';
 import { useTranslation } from '@/i18n';
 
@@ -12,6 +13,7 @@ export function ChatSection() {
     <SettingSection title={t('appearance.chat.sectionTitle')}>
       <HideToolCallsRow />
       <StreamingRow />
+      <ExpandDiffsRow />
       <ChatColorRow area={ChatColorArea.Background} />
       <ChatColorRow area={ChatColorArea.Header} />
       <ChatColorRow area={ChatColorArea.UserMessage} />
