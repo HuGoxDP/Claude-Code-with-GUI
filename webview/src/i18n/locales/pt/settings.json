@@ -252,6 +252,10 @@
       "label": "Ocultar chamadas de ferramentas",
       "description": "Oculta os cartões dos comandos e das leituras. As alterações de ficheiros, as perguntas e os planos continuam visíveis."
     },
+    "streaming": {
+      "label": "Mostrar respostas em tempo real",
+      "description": "Mostra a resposta enquanto é escrita; desligado, cada mensagem aparece quando termina. Vale a partir da sua próxima mensagem."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

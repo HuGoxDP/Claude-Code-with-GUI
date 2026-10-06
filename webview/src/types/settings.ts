@@ -52,6 +52,10 @@ export enum SettingKey {
   CHAT_BACKGROUND_COLOR_LIGHT = 'chatBackgroundColorLight',
   HEADER_BAR_COLOR = 'headerBarColor',
   USER_MESSAGE_COLOR = 'userMessageColor',
+  // Whether replies appear as they are written (the CLI's
+  // `--include-partial-messages`) or whole once each message is finished.
+  // On by default, which is how the chat has always behaved (ported from CC GUI).
+  STREAMING = 'streaming',
 
   // Advanced
   DEBUG_MODE = 'debugMode',
@@ -413,6 +417,7 @@ export interface SettingsState {
   [SettingKey.CHAT_BACKGROUND_COLOR_LIGHT]: string | null;
   [SettingKey.HEADER_BAR_COLOR]: string | null;
   [SettingKey.USER_MESSAGE_COLOR]: string | null;
+  [SettingKey.STREAMING]: boolean;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
   [SettingKey.TERMINAL_APP]: string | null;
@@ -464,6 +469,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.CHAT_BACKGROUND_COLOR_LIGHT]: null,
   [SettingKey.HEADER_BAR_COLOR]: null,
   [SettingKey.USER_MESSAGE_COLOR]: null,
+  [SettingKey.STREAMING]: true,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,
   [SettingKey.TERMINAL_APP]: null,

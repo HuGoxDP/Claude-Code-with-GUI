@@ -252,6 +252,10 @@
       "label": "Hide tool calls",
       "description": "Hide the cards for commands and lookups. File changes, questions and plans stay visible."
     },
+    "streaming": {
+      "label": "Stream replies",
+      "description": "Show a reply as it is written; off, each message appears once finished. Applies from your next message."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

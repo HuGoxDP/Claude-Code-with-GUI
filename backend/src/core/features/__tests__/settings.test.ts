@@ -527,6 +527,16 @@ describe('settings', () => {
 
     // autoOpenDiffOnPermission once fell through into the notificationBanner
     // case, which let null in and named the wrong key in the error (issue #504).
+    it('should accept only a boolean streaming', async () => {
+      expect((await saveSettingToFile('streaming', false)).status).toBe('ok');
+      expect((await saveSettingToFile('streaming', true)).status).toBe('ok');
+      for (const value of [null, 'off', 0]) {
+        const bad = await saveSettingToFile('streaming', value);
+        expect(bad.status).toBe('error');
+        expect(bad.error).toBe('streaming must be a boolean');
+      }
+    });
+
     it('should accept only a boolean autoOpenDiffOnPermission', async () => {
       expect((await saveSettingToFile('autoOpenDiffOnPermission', true)).status).toBe('ok');
       expect((await saveSettingToFile('autoOpenDiffOnPermission', false)).status).toBe('ok');
@@ -717,6 +727,7 @@ describe('settings', () => {
         chatBackgroundColorLight: null,
         headerBarColor: null,
         userMessageColor: null,
+        streaming: true,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,
@@ -862,6 +873,7 @@ export default {
         chatBackgroundColorLight: null,
         headerBarColor: null,
         userMessageColor: null,
+        streaming: true,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,

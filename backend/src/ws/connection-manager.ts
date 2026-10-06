@@ -88,6 +88,12 @@ interface SessionRecord {
    */
   thinkingDisplay: string | null;
   /**
+   * Whether the LIVE process was started with `--include-partial-messages`, or
+   * null with no process. Spawn-time like the flags above, so turning the GUI's
+   * streaming setting on or off mid-chat needs a restart to reach the CLI.
+   */
+  streaming: boolean | null;
+  /**
    * Saved account the LIVE process authenticated as. Credentials are read at spawn
    * from one shared slot, so a switch made for ANOTHER session does not reach this
    * one: the process keeps running as whoever it started as until it is restarted.
@@ -981,6 +987,7 @@ export class ConnectionManager {
         inputMode: null,
         effortLevel: null,
         thinkingDisplay: null,
+        streaming: null,
         accountId: null,
       };
       this.sessionRegistry.set(sessionId, session);
@@ -1001,6 +1008,8 @@ export class ConnectionManager {
     if (!proc) session.effortLevel = null;
     // And the thinking display, pinned the same way.
     if (!proc) session.thinkingDisplay = null;
+    // And whether it streams.
+    if (!proc) session.streaming = null;
     // Same for the account: no process means nothing is authenticated as anyone.
     if (!proc) session.accountId = null;
   }
@@ -1046,6 +1055,17 @@ export class ConnectionManager {
   /** Thinking display the session's live CLI was started with, or null when none was passed. */
   getThinkingDisplay(sessionId: string): string | null {
     return this.sessionRegistry.get(sessionId)?.thinkingDisplay ?? null;
+  }
+
+  /** Record whether the session's live CLI process was started streaming. */
+  setStreaming(sessionId: string, streaming: boolean | null): void {
+    const session = this.getOrCreateSession(sessionId);
+    session.streaming = streaming;
+  }
+
+  /** Whether the session's live CLI streams, or null when there is no process. */
+  getStreaming(sessionId: string): boolean | null {
+    return this.sessionRegistry.get(sessionId)?.streaming ?? null;
   }
 
   /** Record the saved account the session's live CLI process was spawned as. */

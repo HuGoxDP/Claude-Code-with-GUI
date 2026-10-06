@@ -252,6 +252,10 @@
       "label": "Masquer les appels d'outils",
       "description": "Masque les cartes des commandes et des lectures. Les modifications de fichiers, les questions et les plans restent visibles."
     },
+    "streaming": {
+      "label": "Afficher les réponses en direct",
+      "description": "Affiche la réponse au fil de l'écriture ; désactivé, chaque message apparaît une fois terminé. S'applique à partir de votre prochain message."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

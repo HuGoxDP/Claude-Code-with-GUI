@@ -168,6 +168,21 @@ export function resolveThinkingDisplayFlag(settings: Record<string, unknown>): s
 }
 
 /**
+ * Whether replies stream in as they are written, from the GUI's own `streaming`
+ * setting (ported from CC GUI). Absent or anything but `false` means yes, which
+ * is how the chat has always behaved.
+ *
+ * Off is the CLI's own non-streaming output, not something the webview imitates:
+ * without `--include-partial-messages` a terminal user's `claude -p --output-format
+ * stream-json` prints each message whole once it is finished. Measured against
+ * 2.1.291: a turn that read a file came as `assistant` [tool_use], the tool's
+ * `user` [tool_result], then `assistant` [text], with no `stream_event` between.
+ */
+export function resolveIncludePartialMessages(settings: Record<string, unknown>): boolean {
+  return settings.streaming !== false;
+}
+
+/**
  * Build the argv for spawning the Claude CLI in interactive print mode.
  * Extracted as a pure function so the flag composition (session flag,
  * permission mode, pinned model, pinned effort) is unit-testable without
@@ -180,6 +195,7 @@ export function buildClaudeArgs(
   model?: string,
   effortLevel?: string,
   thinkingDisplay?: string,
+  includePartialMessages = true,
 ): string[] {
   const args: string[] = [
     '-p',
@@ -188,7 +204,9 @@ export function buildClaudeArgs(
     '--input-format',
     'stream-json',
     '--verbose',
-    '--include-partial-messages',
+    // Streams each reply as it is written. Left out when the user turned
+    // streaming off; see resolveIncludePartialMessages.
+    ...(includePartialMessages ? ['--include-partial-messages'] : []),
     '--permission-prompt-tool',
     'stdio',
   ];
@@ -373,6 +391,16 @@ export function needsRestartForThinkingDisplay(
 }
 
 /**
+ * Whether the session's live CLI has to be restarted so the next message streams,
+ * or stops streaming, the way the settings now ask. `--include-partial-messages`
+ * is read once at spawn like the flags above. Null means no process recorded a
+ * value, which no requested value matches.
+ */
+export function needsRestartForStreaming(liveStreaming: boolean | null, requestedStreaming: boolean): boolean {
+  return liveStreaming !== null && liveStreaming !== requestedStreaming;
+}
+
+/**
  * Terminate a session's live CLI so the next message respawns it with current
  * spawn-time settings and credentials, and wait until it is really gone.
  *
@@ -479,6 +507,8 @@ export async function ensureClaudeProcess(
   const { settings: claudeSettings } = await readMergedClaudeSettings(workingDir);
   const effortLevel = resolveEffortFlag(claudeSettings);
   const thinkingDisplay = resolveThinkingDisplayFlag(claudeSettings);
+  // The GUI's own settings, not Claude's: streaming is a choice about this chat.
+  const includePartialMessages = resolveIncludePartialMessages((await readMergedSettings(workingDir)).settings);
 
   const existingSession = connections.getSession(targetSessionId);
   if (existingSession?.process) {
@@ -496,7 +526,9 @@ export async function ensureClaudeProcess(
     const modeChanged = needsRestartForMode(liveMode, inputMode);
     const effortChanged = needsRestartForEffort(liveEffort, effortLevel);
     const thinkingDisplayChanged = needsRestartForThinkingDisplay(liveThinkingDisplay, thinkingDisplay);
-    if (!modeChanged && !effortChanged && !thinkingDisplayChanged) {
+    const liveStreaming = connections.getStreaming(targetSessionId);
+    const streamingChanged = needsRestartForStreaming(liveStreaming, includePartialMessages);
+    if (!modeChanged && !effortChanged && !thinkingDisplayChanged && !streamingChanged) {
       console.error(
         '[node-backend]',
         `Reusing existing process for session ${targetSessionId} (PID: ${existingSession.process.pid})`,
@@ -510,6 +542,7 @@ export async function ensureClaudeProcess(
       modeChanged && `permission mode (${liveMode} -> ${inputMode})`,
       effortChanged && `effort level (${liveEffort} -> ${effortLevel ?? null})`,
       thinkingDisplayChanged && `thinking display (${liveThinkingDisplay} -> ${thinkingDisplay ?? null})`,
+      streamingChanged && `streaming (${liveStreaming} -> ${includePartialMessages})`,
     ].filter(Boolean);
     console.error(
       '[node-backend]',
@@ -559,7 +592,15 @@ export async function ensureClaudeProcess(
   console.error('[node-backend]', `Working directory: ${workingDir}`);
   console.error('[node-backend]', `Session: ${targetSessionId} (${sessionFlag})`);
 
-  const args = buildClaudeArgs(sessionFlag, targetSessionId, inputMode, model, effortLevel, thinkingDisplay);
+  const args = buildClaudeArgs(
+    sessionFlag,
+    targetSessionId,
+    inputMode,
+    model,
+    effortLevel,
+    thinkingDisplay,
+    includePartialMessages,
+  );
 
   console.error('[node-backend]', `Command: ${Claude.command} ${args.join(' ')}`);
 
@@ -642,6 +683,8 @@ export async function ensureClaudeProcess(
   // Same for the thinking display: `--thinking-display` holds for the life of the
   // process, so a later spawn compares against what this one started under.
   connections.setThinkingDisplay(targetSessionId, thinkingDisplay ?? null);
+  // And whether it streams.
+  connections.setStreaming(targetSessionId, includePartialMessages);
   // Remember which saved account this process authenticated as. The credential slot
   // is shared backend-wide, so by the time this session hits a usage limit the
   // registry may name a different account entirely — one another session switched

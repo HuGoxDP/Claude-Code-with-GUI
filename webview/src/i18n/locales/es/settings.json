@@ -252,6 +252,10 @@
       "label": "Ocultar llamadas a herramientas",
       "description": "Oculta las tarjetas de los comandos y las lecturas. Los cambios de archivos, las preguntas y los planes siguen visibles."
     },
+    "streaming": {
+      "label": "Mostrar respuestas en directo",
+      "description": "Muestra la respuesta mientras se escribe; desactivado, cada mensaje aparece al terminar. Se aplica desde tu próximo mensaje."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

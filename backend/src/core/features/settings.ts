@@ -62,6 +62,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   chatBackgroundColorLight: null,
   headerBarColor: null,
   userMessageColor: null,
+  streaming: true,
   debugMode: false,
   logLevel: 'info',
   terminalApp: null,
@@ -135,6 +136,7 @@ const COMMENT_MAP: Record<string, string> = {
   chatBackgroundColorLight: '라이트 테마의 채팅 영역 배경색 "#rrggbb". null이면 테마 색',
   headerBarColor: '채팅 상단바 배경색 "#rrggbb". null이면 테마 색',
   userMessageColor: '내가 보낸 메시지 말풍선 배경색 "#rrggbb". null이면 테마 색',
+  streaming: '답변을 쓰는 대로 보여준다(--include-partial-messages). false면 메시지가 끝난 뒤 한 번에. 바꾸면 다음 메시지에서 CLI를 다시 띄운다',
   debugMode: '디버그 모드 활성화',
   logLevel: '로그 레벨: "debug" | "info" | "warn" | "error"',
   terminalApp: '터미널 프로그램 (null이면 OS 기본 터미널)',
@@ -471,6 +473,7 @@ function validateSetting(key: string, value: unknown): string | null {
     case 'hideToolCalls':
     case 'includeNestedSessions':
     case 'softWrap':
+    case 'streaming':
       if (typeof value !== 'boolean') {
         return `${key} must be a boolean`;
       }

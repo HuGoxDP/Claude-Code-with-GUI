@@ -5,9 +5,11 @@ import {
   isWorkflowRunning,
   needsRestartForEffort,
   needsRestartForMode,
+  needsRestartForStreaming,
   needsRestartForThinkingDisplay,
   readReportedMode,
   resolveEffortFlag,
+  resolveIncludePartialMessages,
   resolveThinkingDisplayFlag,
   stopWorkflowsForSession,
 } from '../claude-process';
@@ -188,6 +190,36 @@ describe('thinking display', () => {
     expect(needsRestartForThinkingDisplay('summarized', 'summarized')).toBe(false);
     expect(needsRestartForThinkingDisplay(null, 'summarized')).toBe(true);
     expect(needsRestartForThinkingDisplay('summarized', undefined)).toBe(true);
+  });
+});
+
+describe('streaming', () => {
+  // The GUI's `streaming` setting (ported from CC GUI). Off is the CLI's own
+  // whole-message output, which a terminal user gets by leaving the flag out.
+  it('streams unless the setting says false', () => {
+    expect(resolveIncludePartialMessages({})).toBe(true);
+    expect(resolveIncludePartialMessages({ streaming: true })).toBe(true);
+    expect(resolveIncludePartialMessages({ streaming: 'false' })).toBe(true);
+    expect(resolveIncludePartialMessages({ streaming: false })).toBe(false);
+  });
+
+  it('leaves --include-partial-messages out of the argv only when streaming is off', () => {
+    expect(buildClaudeArgs('--resume', 's', 'plan')).toContain('--include-partial-messages');
+    const off = buildClaudeArgs('--resume', 's', 'plan', undefined, undefined, undefined, false);
+    expect(off).not.toContain('--include-partial-messages');
+    // Nothing else moves: the output is still the stream-json the chat reads.
+    expect(off).toEqual(buildClaudeArgs('--resume', 's', 'plan').filter((a) => a !== '--include-partial-messages'));
+  });
+
+  // The flag holds for the life of the process, so flipping the setting
+  // mid-chat reaches the CLI only through a restart, in either direction.
+  it('restarts only when the live process streams differently from the setting', () => {
+    expect(needsRestartForStreaming(true, true)).toBe(false);
+    expect(needsRestartForStreaming(false, false)).toBe(false);
+    expect(needsRestartForStreaming(true, false)).toBe(true);
+    expect(needsRestartForStreaming(false, true)).toBe(true);
+    // No value recorded means no process started by us to compare against.
+    expect(needsRestartForStreaming(null, false)).toBe(false);
   });
 });
 

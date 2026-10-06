@@ -252,6 +252,10 @@
       "label": "Tool-Aufrufe ausblenden",
       "description": "Blendet die Karten für Befehle und Lesezugriffe aus. Dateiänderungen, Fragen und Pläne bleiben sichtbar."
     },
+    "streaming": {
+      "label": "Antworten streamen",
+      "description": "Zeigt eine Antwort, während sie geschrieben wird; aus erscheint jede Nachricht erst, wenn sie fertig ist. Gilt ab deiner nächsten Nachricht."
+    },
     "chat": {
       "sectionTitle": "Chat"
     },
