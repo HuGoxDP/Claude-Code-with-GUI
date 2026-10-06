@@ -92,7 +92,7 @@
       "scopeProject": "项目(.mcp.json)",
       "scopeLocal": "本地(仅此项目)",
       "configLabel": "配置(JSON)",
-      "configHint": "粘贴 mcpServers 配置或单个服务器配置",
+      "configHint": "粘贴 mcpServers 配置、GitHub Copilot 或 VS Code 的 mcp.json（servers），或单个服务器配置",
       "cancel": "取消",
       "saving": "正在保存",
       "adding": "正在添加",

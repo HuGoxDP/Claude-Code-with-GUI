@@ -92,7 +92,7 @@
       "scopeProject": "المشروع (.mcp.json)",
       "scopeLocal": "محلي (هذا المشروع فقط)",
       "configLabel": "الإعداد (JSON)",
-      "configHint": "الصق إعداد mcpServers أو إعداد خادم واحد",
+      "configHint": "الصق إعداد mcpServers، أو ملف mcp.json من GitHub Copilot أو VS Code (servers)، أو إعداد خادم واحد",
       "cancel": "إلغاء",
       "saving": "جارٍ الحفظ",
       "adding": "جارٍ الإضافة",

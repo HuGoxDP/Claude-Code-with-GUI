@@ -127,3 +127,55 @@ describe('parseMcpJson', () => {
     });
   });
 });
+
+describe('parseMcpJson — GitHub Copilot / VS Code "servers" form', () => {
+  const parse = (value: unknown) => parseMcpJson(JSON.stringify(value), '');
+
+  it('adds every server, keeping the keys both tools share', () => {
+    const r = parse({
+      servers: {
+        github: { type: 'http', url: 'https://api.githubcopilot.com/mcp/', headers: { Authorization: 'Bearer abc' } },
+        fs: { type: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem', '.'], env: { DEBUG: '1' } },
+      },
+      inputs: [],
+    });
+    expect(r).toEqual({
+      ok: true,
+      servers: [
+        { name: 'github', config: { type: 'http', url: 'https://api.githubcopilot.com/mcp/', headers: { Authorization: 'Bearer abc' } } },
+        { name: 'fs', config: { type: 'stdio', command: 'npx', args: ['-y', '@modelcontextprotocol/server-filesystem', '.'], env: { DEBUG: '1' } } },
+      ],
+    });
+  });
+
+  it('moves requestInit.headers into headers, where Claude Code reads them', () => {
+    const r = parse({ servers: { api: { type: 'http', url: 'https://x.test/mcp', requestInit: { headers: { A: '1', B: '2' } }, headers: { B: 'direct' } } } });
+    expect(r.ok && r.servers[0].config).toEqual({ type: 'http', url: 'https://x.test/mcp', headers: { A: '1', B: 'direct' } });
+  });
+
+  it('infers the type Claude Code needs for a remote server', () => {
+    const r = parse({ servers: { a: { url: 'https://x.test/sse' }, b: { url: 'https://x.test/mcp' }, c: { command: 'run' } } });
+    expect(r.ok && r.servers.map((s) => s.config.type)).toEqual(['sse', 'http', 'stdio']);
+  });
+
+  it('turns ${env:NAME} into ${NAME} and drops keys only VS Code knows', () => {
+    const r = parse({ servers: { a: { type: 'stdio', command: 'run', env: { TOKEN: '${env:GH_TOKEN}' }, dev: { watch: 'x' }, gallery: true } } });
+    expect(r.ok && r.servers[0].config).toEqual({ type: 'stdio', command: 'run', env: { TOKEN: '${GH_TOKEN}' } });
+  });
+
+  it('refuses a VS Code input variable instead of adding a server that cannot work', () => {
+    const r = parse({ servers: { gh: { type: 'http', url: 'https://x.test/mcp', headers: { Authorization: 'Bearer ${input:github_token}' } } } });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.error).toContain('${input:github_token}');
+  });
+
+  it('refuses envFile, which Claude Code would drop without a word', () => {
+    const r = parse({ servers: { a: { type: 'stdio', command: 'run', envFile: '${workspaceFolder}/.env' } } });
+    expect(!r.ok && r.error).toContain('envFile');
+  });
+
+  it('leaves the Claude wrapper alone when both keys are present', () => {
+    const r = parse({ mcpServers: { a: { command: 'run', custom: 1 } }, servers: { b: { command: 'x' } } });
+    expect(r).toEqual({ ok: true, servers: [{ name: 'a', config: { command: 'run', custom: 1 } }] });
+  });
+});

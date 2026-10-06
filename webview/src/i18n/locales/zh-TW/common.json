@@ -92,7 +92,7 @@
       "scopeProject": "專案(.mcp.json)",
       "scopeLocal": "本機(僅限此專案)",
       "configLabel": "設定(JSON)",
-      "configHint": "貼上 mcpServers 設定或單一伺服器設定",
+      "configHint": "貼上 mcpServers 設定、GitHub Copilot 或 VS Code 的 mcp.json（servers），或單一伺服器設定",
       "cancel": "取消",
       "saving": "正在儲存",
       "adding": "正在新增",

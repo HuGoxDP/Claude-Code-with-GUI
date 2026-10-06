@@ -92,7 +92,7 @@
       "scopeProject": "프로젝트 (.mcp.json)",
       "scopeLocal": "로컬 (이 프로젝트만)",
       "configLabel": "설정 (JSON)",
-      "configHint": "mcpServers 설정 또는 단일 서버 설정을 붙여넣으세요",
+      "configHint": "mcpServers 설정, GitHub Copilot 또는 VS Code의 mcp.json(servers), 또는 단일 서버 설정을 붙여넣으세요",
       "cancel": "취소",
       "saving": "저장 중",
       "adding": "추가 중",

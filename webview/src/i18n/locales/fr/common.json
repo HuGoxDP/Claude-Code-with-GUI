@@ -92,7 +92,7 @@
       "scopeProject": "Projet (.mcp.json)",
       "scopeLocal": "Local (ce projet uniquement)",
       "configLabel": "Configuration (JSON)",
-      "configHint": "Collez une configuration mcpServers ou la configuration d'un seul serveur",
+      "configHint": "Collez une configuration mcpServers, un mcp.json de GitHub Copilot ou VS Code (servers), ou la configuration d'un seul serveur",
       "cancel": "Annuler",
       "saving": "Enregistrement",
       "adding": "Ajout",

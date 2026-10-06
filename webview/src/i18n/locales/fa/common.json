@@ -92,7 +92,7 @@
       "scopeProject": "پروژه (.mcp.json)",
       "scopeLocal": "محلی (فقط این پروژه)",
       "configLabel": "پیکربندی (JSON)",
-      "configHint": "یک پیکربندی mcpServers یا پیکربندی یک سرور را جای‌گذاری کنید",
+      "configHint": "یک پیکربندی mcpServers، یک mcp.json از GitHub Copilot یا VS Code (servers) یا پیکربندی یک سرور را جای‌گذاری کنید",
       "cancel": "لغو",
       "saving": "در حال ذخیره",
       "adding": "در حال افزودن",
