@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab zum Übernehmen)"
     },
+    "historySuggestion": {
+      "hint": "(Tab zum Übernehmen)"
+    },
     "queuedMessages": {
       "cancel": "Aus der Warteschlange entfernen",
       "reorder": "Ziehen, um die Reihenfolge zu ändern. Die oberste Nachricht wird als Nächstes gesendet."

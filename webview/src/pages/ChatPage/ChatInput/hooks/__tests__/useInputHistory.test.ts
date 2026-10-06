@@ -162,12 +162,17 @@ describe('useInputHistory', () => {
     act(() => { expect(result.current.navigateUp('')).toBe('the first thing typed') });
     // Nothing to ask the backend for either: the transcript has no prompt this
     // hook does not already hold, and asking would risk showing it twice.
-    expect(sendMock).not.toHaveBeenCalled();
+    expect(sendMock).not.toHaveBeenCalledWith(MessageType.LOAD_PROMPT_HISTORY, expect.anything());
   });
 
-  it('requests nothing until there is a session to ask about', () => {
+  it('asks a new chat for the project history, not for a conversation of its own', async () => {
     render(null);
-    expect(sendMock).not.toHaveBeenCalled();
+    await waitFor(() => expect(sendMock).toHaveBeenCalledWith(MessageType.LOAD_PROJECT_PROMPT_HISTORY, {
+      workingDir: '/w',
+      excludeSessionId: undefined,
+      cursor: undefined,
+    }));
+    expect(sendMock).not.toHaveBeenCalledWith(MessageType.LOAD_PROMPT_HISTORY, expect.anything());
   });
 
   it('leaves the history empty when the backend reports an error', async () => {
@@ -185,5 +190,117 @@ describe('useInputHistory', () => {
 
     await waitFor(() => expect(sendMock).toHaveBeenCalled());
     expect(result.current.isEmpty).toBe(true);
+  });
+});
+
+describe('useInputHistory across the project', () => {
+  type Handler = (payload: Record<string, unknown>) => unknown;
+  function route(handlers: { session?: Handler; project?: Handler }) {
+    sendMock.mockImplementation(async (type: string, payload: Record<string, unknown>) => {
+      if (type === MessageType.LOAD_PROMPT_HISTORY) return handlers.session?.(payload) ?? page([]);
+      if (type === MessageType.LOAD_PROJECT_PROMPT_HISTORY) return handlers.project?.(payload) ?? { status: 'ok', entries: [], hasMore: false };
+      throw new Error(`unexpected ${type}`);
+    });
+  }
+  function projectPage(texts: string[], hasMore = false, next?: Record<string, unknown>) {
+    // Oldest first, as the backend sends it.
+    return { status: 'ok', entries: texts.map((t, i) => entry(`p-${t}-${i}`, t)).reverse(), hasMore, next };
+  }
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it('goes on into the other conversations once this one runs out, leaving this one out', async () => {
+    route({
+      session: () => page([entry('u1', 'here old'), entry('u2', 'here new')]),
+      project: () => projectPage(['other new', 'other old']),
+    });
+    const { result } = render('s1');
+    await waitFor(() => expect(result.current.entries).toEqual(['here new', 'here old', 'other new', 'other old']));
+
+    expect(sendMock).toHaveBeenCalledWith(MessageType.LOAD_PROJECT_PROMPT_HISTORY, {
+      workingDir: '/w',
+      excludeSessionId: 's1',
+      cursor: undefined,
+    });
+    const walked: (string | null)[] = [];
+    for (let i = 0; i < 5; i++) act(() => { walked.push(result.current.navigateUp('draft')); });
+    expect(walked).toEqual(['here new', 'here old', 'other new', 'other old', null]);
+  });
+
+  it('does not repeat a prompt that is already in the list', async () => {
+    route({
+      session: () => page([entry('u1', 'continue'), entry('u2', 'fix the test')]),
+      project: () => projectPage(['continue', 'add a flag', 'continue', 'fix the test']),
+    });
+    const { result } = render('s1');
+    await waitFor(() => expect(result.current.entries).toContain('add a flag'));
+
+    expect(result.current.entries).toEqual(['fix the test', 'continue', 'add a flag']);
+  });
+
+  it('asks the other conversations only after this one has no more pages', async () => {
+    route({
+      session: (p) => (p.beforeUuid ? page([entry('u0', 'p0')], false) : page([entry('u1', 'p1'), entry('u2', 'p2')], true, 'u1')),
+      project: () => projectPage(['elsewhere']),
+    });
+    const { result } = render('s1');
+    await waitFor(() => expect(result.current.isEmpty).toBe(false));
+    expect(sendMock).not.toHaveBeenCalledWith(MessageType.LOAD_PROJECT_PROMPT_HISTORY, expect.anything());
+
+    act(() => { result.current.navigateUp(''); });
+    await waitFor(() => expect(result.current.entries).toEqual(['p2', 'p1', 'p0', 'elsewhere']));
+  });
+
+  it('pages on through the other conversations with the cursor it was given', async () => {
+    const next = { sessionId: 'b', sortedAt: 2, beforeUuid: 'x' };
+    route({
+      project: (p) => (p.cursor ? projectPage(['older']) : projectPage(['newer', 'new'], true, next)),
+    });
+    const { result } = render(null);
+    await waitFor(() => expect(result.current.entries).toEqual(['newer', 'new']));
+
+    act(() => { result.current.navigateUp(''); });
+    await waitFor(() => expect(sendMock).toHaveBeenCalledWith(MessageType.LOAD_PROJECT_PROMPT_HISTORY, {
+      workingDir: '/w',
+      excludeSessionId: undefined,
+      cursor: next,
+    }));
+    await waitFor(() => expect(result.current.entries).toEqual(['newer', 'new', 'older']));
+  });
+
+  it('preloads pages up to the number asked for, and stops there', async () => {
+    let calls = 0;
+    route({
+      project: (p) => {
+        calls++;
+        const n = p.cursor ? (p.cursor as { n: number }).n : 0;
+        return projectPage([`a${n}`, `b${n}`], true, { sessionId: 's', sortedAt: 1, n: n + 1 });
+      },
+    });
+    const { result } = renderHook(() => useInputHistory({ workingDirectory: '/w', sessionId: null, preload: 5 }));
+
+    await waitFor(() => expect(result.current.entries.length).toBe(6));
+    await new Promise(r => setTimeout(r, 20));
+    expect(calls).toBe(3);
+  });
+
+  it('drops a page of the other conversations that lands after a switch', async () => {
+    let release: (v: unknown) => void = () => {};
+    route({
+      session: () => page([]),
+      project: (p) => (p.excludeSessionId === 's1'
+        ? new Promise(r => { release = r; })
+        : projectPage([])),
+    });
+    const { result, rerender } = renderHook(
+      ({ sessionId }) => useInputHistory({ workingDirectory: '/w', sessionId }),
+      { initialProps: { sessionId: 's1' as string | null } },
+    );
+    await waitFor(() => expect(sendMock).toHaveBeenCalledWith(MessageType.LOAD_PROJECT_PROMPT_HISTORY, expect.objectContaining({ excludeSessionId: 's1' })));
+
+    rerender({ sessionId: 's2' });
+    await act(async () => { release(projectPage(['from before the switch'])); });
+
+    expect(result.current.entries).toEqual([]);
   });
 });

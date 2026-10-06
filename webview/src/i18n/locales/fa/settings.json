@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "پرسیدن پیش از گفتگوی تازه",
         "description": "پیش از اینکه ‎/clear یا Cmd/Ctrl+Shift+C گفتگوی شروع‌شده را ترک کند، تأیید بگیرد."
+      },
+      "suggestFromHistory": {
+        "label": "پیشنهاد از درخواست‌های قبلی",
+        "description": "هنگام تایپ، درخواست قبلی‌ای که همین‌طور شروع می‌شود نشان داده می‌شود؛ Tab آن را می‌پذیرد."
       }
     },
     "notifications": {

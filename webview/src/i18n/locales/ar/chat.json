@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab للإكمال)"
     },
+    "historySuggestion": {
+      "hint": "(Tab للإكمال)"
+    },
     "queuedMessages": {
       "cancel": "إزالة من قائمة الانتظار",
       "reorder": "اسحب لتغيير الترتيب. تُرسل الرسالة العلوية أولاً."

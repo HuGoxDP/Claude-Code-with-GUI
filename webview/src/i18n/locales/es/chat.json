@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab para completar)"
     },
+    "historySuggestion": {
+      "hint": "(Tab para completar)"
+    },
     "queuedMessages": {
       "cancel": "Quitar de la cola",
       "reorder": "Arrastra para cambiar el orden. El mensaje de arriba se envía primero."

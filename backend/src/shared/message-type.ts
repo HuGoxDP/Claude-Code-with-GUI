@@ -91,6 +91,14 @@ export enum MessageType {
    * inbound webview→backend
    */
   LOAD_PROMPT_HISTORY = 'LOAD_PROMPT_HISTORY',
+  /**
+   * One page of the prompts typed in the project's OTHER conversations, newest
+   * conversation first, so the composer's Up goes on past the conversation it is
+   * in the way the CLI's does. Optional `excludeSessionId` (the conversation the
+   * composer is in) and `cursor` (the `next` of the previous page).
+   * inbound webview→backend
+   */
+  LOAD_PROJECT_PROMPT_HISTORY = 'LOAD_PROJECT_PROMPT_HISTORY',
   /** Delete a session and its on-disk history. */
   DELETE_SESSION = 'DELETE_SESSION',
   /** Rename a session's title. */

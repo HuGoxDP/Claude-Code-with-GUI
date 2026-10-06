@@ -1,4 +1,5 @@
 import { loadActiveChain, type SessionMessage } from './loadSessionMessages';
+import { collectSortKeys } from './getSessionsList';
 import { isQueueOperation, queuedMidTurnCounts } from '../../shared';
 
 /**
@@ -231,4 +232,142 @@ export async function loadPromptHistory(
     hasMore: start > 0,
     oldestUuid: entries.find(entry => typeof entry.uuid === 'string')?.uuid as string | undefined,
   };
+}
+
+/**
+ * Where the project-wide walk continues: a conversation, and a place in it.
+ *
+ * `sortedAt` is that conversation's place in the walk's order, carried so the walk
+ * can go on from the right spot when the conversation itself is gone by the time
+ * the next page is asked for (deleted in the meantime).
+ */
+export interface ProjectPromptHistoryCursor {
+  sessionId: string;
+  sortedAt: number;
+  /** The prompts before this one come next; absent means from its newest. */
+  beforeUuid?: string;
+}
+
+export interface ProjectPromptHistoryPage {
+  /**
+   * The matching entries, oldest first, exactly as they sit in their session
+   * files, like PromptHistoryPage: reversing the list gives the order Up walks.
+   * Each entry carries its own `sessionId`, as the CLI wrote it.
+   */
+  entries: SessionMessage[];
+  /** More prompts exist further back. */
+  hasMore: boolean;
+  /** Cursor for the next page, when there is one. */
+  next?: ProjectPromptHistoryCursor;
+}
+
+/** Newest conversation first; the id settles ties so the order is stable between pages. */
+function byNewest(
+  a: { sortedAt: number; sessionId: string },
+  b: { sortedAt: number; sessionId: string },
+): number {
+  if (a.sortedAt !== b.sortedAt) return b.sortedAt - a.sortedAt;
+  return a.sessionId < b.sessionId ? -1 : a.sessionId > b.sessionId ? 1 : 0;
+}
+
+/**
+ * One page of the prompts typed in this project's OTHER conversations, newest
+ * first: the newest conversation's prompts from its newest back, then the next
+ * conversation's, and so on.
+ *
+ * This is what lets the composer's Up go on past the conversation it is in, the
+ * way the CLI's Up does: a terminal user who starts a new session still recalls
+ * what they typed in the last one. The CLI keeps that history in its own file,
+ * but only for what was typed into its interactive prompt; what is sent through
+ * this GUI reaches it as stream-json input and is not added there (measured: no
+ * history file at all after hundreds of GUI sends). The transcripts hold both, so
+ * they are the source.
+ *
+ * Conversations are walked in the order the session list shows them (last
+ * activity, from the end of each transcript), so "the conversation before" means
+ * the same thing in both places. `excludeSessionId` is the conversation the
+ * composer is in, whose own prompts LOAD_PROMPT_HISTORY already serves.
+ *
+ * The page is bounded the way a single conversation's page is (count and bytes,
+ * the first entry taken regardless), across however many conversations it takes
+ * to fill it.
+ */
+export async function loadProjectPromptHistory(
+  workingDir: string,
+  options: { excludeSessionId?: string; cursor?: ProjectPromptHistoryCursor; limit?: number } = {},
+): Promise<ProjectPromptHistoryPage> {
+  const { excludeSessionId, cursor } = options;
+  const order = (await collectSortKeys(workingDir))
+    .filter(key => key.sessionId !== excludeSessionId)
+    .sort(byNewest);
+
+  let index = 0;
+  if (cursor) {
+    index = order.findIndex(key => key.sessionId === cursor.sessionId);
+    // Gone since the last page: go on with whatever came after it in the order.
+    if (index === -1) index = order.findIndex(key => byNewest(key, cursor) > 0);
+    if (index === -1) return { entries: [], hasMore: false };
+  }
+
+  const pageSize = options.limit ?? PROMPT_HISTORY_PAGE_SIZE;
+  // Slices of the conversations walked, newest conversation first; each slice is
+  // in transcript order.
+  const slices: SessionMessage[][] = [];
+  let count = 0;
+  let bytes = 0;
+
+  for (; index < order.length; index++) {
+    const key = order[index];
+    const prompts = collectPrompts(await loadActiveChain(workingDir, key.sessionId));
+
+    let end = prompts.length;
+    if (cursor?.beforeUuid && key.sessionId === cursor.sessionId) {
+      const at = prompts.findIndex(entry => entry.uuid === cursor.beforeUuid);
+      if (at !== -1) end = at;
+    }
+
+    let start = end;
+    let full = false;
+    while (start > 0) {
+      if (count >= pageSize) { full = true; break; }
+      const size = JSON.stringify(prompts[start - 1]).length;
+      if (count > 0 && bytes + size > PROMPT_HISTORY_PAGE_BYTES) { full = true; break; }
+      bytes += size;
+      count++;
+      start--;
+    }
+    // The same snap as a single conversation's page: the cursor must be an entry
+    // with a uuid, and a queued prompt has none.
+    while (start > 0 && start < end && typeof prompts[start].uuid !== 'string') start--;
+
+    if (start < end) slices.push(prompts.slice(start, end));
+
+    // The page ended inside this conversation. Decided after the snap, which can
+    // reach back to its first prompt and finish it after all.
+    if (start > 0) {
+      return {
+        entries: slices.reverse().flat(),
+        hasMore: true,
+        next: {
+          sessionId: key.sessionId,
+          sortedAt: key.sortedAt,
+          beforeUuid: start < prompts.length ? (prompts[start].uuid as string) : undefined,
+        },
+      };
+    }
+    // The page is full and this conversation is done: the next page starts with
+    // the next conversation, if there is one.
+    if (full || count >= pageSize) {
+      const following = order[index + 1];
+      return following
+        ? {
+          entries: slices.reverse().flat(),
+          hasMore: true,
+          next: { sessionId: following.sessionId, sortedAt: following.sortedAt },
+        }
+        : { entries: slices.reverse().flat(), hasMore: false };
+    }
+  }
+
+  return { entries: slices.reverse().flat(), hasMore: false };
 }

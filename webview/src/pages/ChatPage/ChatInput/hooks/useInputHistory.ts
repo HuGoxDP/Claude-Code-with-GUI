@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useBridge } from '@/hooks/useBridge';
 import { MessageType, isQueueOperation } from '@/shared';
 import { getTextContent, type LoadedMessageDto } from '@/types';
@@ -44,9 +44,31 @@ interface PromptHistoryResponse {
   error?: string;
 }
 
+/** Where the project-wide walk goes on; opaque here, handed back as it came. */
+interface ProjectHistoryCursor {
+  sessionId: string;
+  sortedAt: number;
+  beforeUuid?: string;
+}
+
+interface ProjectHistoryResponse {
+  status: string;
+  entries?: Record<string, unknown>[];
+  hasMore?: boolean;
+  next?: ProjectHistoryCursor;
+  error?: string;
+}
+
 interface UseInputHistoryArgs {
   workingDirectory: string | null | undefined;
   sessionId: string | null;
+  /**
+   * Keep loading pages in the background until this many prompts are held, or
+   * the project has no more. Suggestions from history read what is held, so
+   * they ask for a fuller list than Up alone needs. 0 (the default) loads only
+   * what Up is about to reach.
+   */
+  preload?: number;
 }
 
 interface UseInputHistoryReturn {
@@ -58,12 +80,23 @@ interface UseInputHistoryReturn {
   navigateDown: () => string | null;
   /** Abandon navigation and forget the saved draft. */
   resetHistory: () => void;
+  /** Every prompt held, newest first, in the order Up walks them. */
+  entries: readonly string[];
   isEmpty: boolean;
   isNavigating: boolean;
 }
 
+/** The texts of a page as Up walks them: newest first, blanks dropped. */
+function textsOf(entries: Record<string, unknown>[] | undefined): string[] {
+  return (entries ?? [])
+    .map(promptTextOf)
+    .filter(text => text.trim().length > 0)
+    .reverse();
+}
+
 /**
- * The composer's up/down-arrow prompt history, for the current session only.
+ * The composer's up/down-arrow prompt history: the conversation it is in first,
+ * then the project's other conversations, the most recently active first.
  *
  * The prompts come from the backend rather than from the loaded transcript. They
  * have to: a transcript page is 50 *entries*, and entries are overwhelmingly
@@ -73,6 +106,13 @@ interface UseInputHistoryReturn {
  * way this hook used to, therefore produced an empty or near-empty list for any
  * resumed session.
  *
+ * Going on into the other conversations is what the CLI's own Up does: a new
+ * terminal session still recalls what was typed in the last one. A prompt that
+ * is already in the list is not repeated, so walking back through "yes" and
+ * "continue" does not take a press per conversation. The other conversations are
+ * asked for only once this one has no more pages, which keeps the list growing
+ * at its end only, so a walk in progress never has entries move under it.
+ *
  * Pages arrive newest-first and are appended as the user walks back, so opening a
  * session costs one small request instead of the whole prompt list (which reaches
  * 21MB for a session whose prompts carry pasted screenshots).
@@ -80,28 +120,71 @@ interface UseInputHistoryReturn {
 export function useInputHistory({
   workingDirectory,
   sessionId,
+  preload = 0,
 }: UseInputHistoryArgs): UseInputHistoryReturn {
   const { send } = useBridge();
 
-  // Prompts fetched from the backend, newest first.
+  // Prompts fetched from the backend for this conversation, newest first.
   const [fetched, setFetched] = useState<string[]>([]);
   // Prompts sent from this composer since the session was loaded, newest first.
   // Kept apart from `fetched` because the backend only learns about them once the
   // CLI has written them to the transcript; holding them here means Up finds the
   // prompt just sent immediately, with no round trip and no re-fetch.
   const [localSent, setLocalSent] = useState<string[]>([]);
+  // Prompts of the project's other conversations, newest first, as fetched.
+  const [projectFetched, setProjectFetched] = useState<string[]>([]);
 
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [unsavedDraft, setUnsavedDraft] = useState<string>('');
+  // Counts landed pages, so the preload below goes on after a page that brought
+  // nothing new (every prompt in it already held) and left the list as long.
+  const [pagesLanded, setPagesLanded] = useState(0);
 
   // Paging state lives in refs: it changes as pages land but must never re-render
   // the composer, and the fetch callback reads the current values directly.
   const cursorRef = useRef<string | undefined>(undefined);
   const hasMoreRef = useRef(false);
   const loadingRef = useRef(false);
+  const projectCursorRef = useRef<ProjectHistoryCursor | undefined>(undefined);
+  const projectHasMoreRef = useRef(true);
+  const projectLoadingRef = useRef(false);
   // Guards against a page from a session the user has already left being applied
   // to the session they moved to.
   const loadedSessionRef = useRef<string | null>(null);
+  // Bumped whenever the history is thrown away, so a project page that was asked
+  // for before that lands nowhere.
+  const generationRef = useRef(0);
+
+  const fetchProjectPage = useCallback(async () => {
+    if (!workingDirectory || projectLoadingRef.current || !projectHasMoreRef.current) return;
+    // This conversation first: its older pages would otherwise land in front of
+    // the other conversations' prompts and move a walk in progress.
+    if (hasMoreRef.current || loadingRef.current) return;
+    projectLoadingRef.current = true;
+    const generation = generationRef.current;
+    try {
+      const res = await send<ProjectHistoryResponse>(MessageType.LOAD_PROJECT_PROMPT_HISTORY, {
+        workingDir: workingDirectory,
+        excludeSessionId: loadedSessionRef.current ?? undefined,
+        cursor: projectCursorRef.current,
+      });
+      if (generation !== generationRef.current) return;
+      if (res.status !== 'ok') {
+        projectHasMoreRef.current = false;
+        return;
+      }
+      projectHasMoreRef.current = !!res.hasMore;
+      projectCursorRef.current = res.next;
+      const texts = textsOf(res.entries);
+      setProjectFetched(prev => [...prev, ...texts]);
+      setPagesLanded(n => n + 1);
+    } catch {
+      // As with this conversation's pages: Up simply stops finding older prompts.
+      if (generation === generationRef.current) projectHasMoreRef.current = false;
+    } finally {
+      if (generation === generationRef.current) projectLoadingRef.current = false;
+    }
+  }, [workingDirectory, send]);
 
   const fetchPage = useCallback(async (targetSessionId: string, beforeUuid?: string) => {
     if (!workingDirectory || loadingRef.current) return;
@@ -118,21 +201,24 @@ export function useInputHistory({
       // The backend sends the entries untouched, in transcript order. Reverse to
       // newest-first (the order Up walks) and take the text here, where display
       // processing belongs.
-      const texts = (res.entries ?? [])
-        .map(promptTextOf)
-        .filter(text => text.trim().length > 0)
-        .reverse();
+      const texts = textsOf(res.entries);
 
       hasMoreRef.current = !!res.hasMore;
       cursorRef.current = res.oldestUuid;
       setFetched(prev => (beforeUuid ? [...prev, ...texts] : texts));
+      setPagesLanded(n => n + 1);
     } catch {
       // A failed page leaves the history at whatever already loaded. Nothing to
       // report to the user: the arrow key simply stops finding older prompts.
     } finally {
       loadingRef.current = false;
     }
-  }, [workingDirectory, send]);
+    // This conversation is done: have the other conversations' first page ready
+    // before Up gets there.
+    if (loadedSessionRef.current === targetSessionId && !hasMoreRef.current) {
+      void fetchProjectPage();
+    }
+  }, [workingDirectory, send, fetchProjectPage]);
 
   // The session this hook last reacted to. `undefined` means "not yet mounted",
   // which is distinct from `null` (mounted on a session that does not exist yet).
@@ -152,20 +238,33 @@ export function useInputHistory({
     // was just sent. Everything below would throw that prompt away and then ask
     // the backend for a transcript that either does not have it yet or has it
     // already — a lost entry or a duplicated one. A session born here has no
-    // history but what was typed here, so leave it alone.
+    // history but what was typed here, so leave it alone. The other
+    // conversations' prompts already held stay right too: none of them is this
+    // new one, and the pages still to come leave it out.
     if (previous === null && sessionId) return;
 
+    generationRef.current += 1;
     setFetched([]);
     setLocalSent([]);
+    setProjectFetched([]);
     setHistoryIndex(-1);
     setUnsavedDraft('');
     cursorRef.current = undefined;
     hasMoreRef.current = false;
     loadingRef.current = false;
+    projectCursorRef.current = undefined;
+    projectHasMoreRef.current = true;
+    projectLoadingRef.current = false;
 
-    if (!sessionId || !workingDirectory) return;
+    if (!workingDirectory) return;
+    // A new chat has no conversation of its own to start with: Up goes straight
+    // to the other conversations, as it does in a new terminal session.
+    if (!sessionId) {
+      void fetchProjectPage();
+      return;
+    }
     void fetchPage(sessionId);
-  }, [sessionId, workingDirectory, fetchPage]);
+  }, [sessionId, workingDirectory, fetchPage, fetchProjectPage]);
 
   const pushToHistory = useCallback((value: string) => {
     setLocalSent(prev => [value, ...prev]);
@@ -178,28 +277,49 @@ export function useInputHistory({
     setUnsavedDraft('');
   }, []);
 
-  const history = [...localSent, ...fetched];
+  // This conversation's prompts as they are, then the other conversations' minus
+  // any prompt already in the list.
+  const history = useMemo(() => {
+    const own = [...localSent, ...fetched];
+    const seen = new Set(own);
+    const others: string[] = [];
+    for (const text of projectFetched) {
+      if (seen.has(text)) continue;
+      seen.add(text);
+      others.push(text);
+    }
+    return [...own, ...others];
+  }, [localSent, fetched, projectFetched]);
+
+  // The next page to fetch, whichever source it comes from.
+  const fetchMore = useCallback(() => {
+    if (hasMoreRef.current && sessionId) {
+      void fetchPage(sessionId, cursorRef.current);
+      return;
+    }
+    void fetchProjectPage();
+  }, [sessionId, fetchPage, fetchProjectPage]);
+
+  // Fill up to `preload` in the background. Each landed page re-renders, which
+  // runs this again, so it stops on its own once the target or the end is reached.
+  useEffect(() => {
+    if (preload <= 0 || history.length >= preload) return;
+    fetchMore();
+  }, [preload, history.length, pagesLanded, fetchMore]);
 
   const navigateUp = useCallback((currentValue: string): string | null => {
-    const combined = [...localSent, ...fetched];
     const newIndex = historyIndex + 1;
-    if (newIndex >= combined.length) return null;
+    if (newIndex >= history.length) return null;
 
     if (historyIndex === -1) setUnsavedDraft(currentValue);
     setHistoryIndex(newIndex);
 
     // Start the next page while entries are still left to walk, so it is already
     // there by the time the cursor reaches the end.
-    if (
-      hasMoreRef.current &&
-      sessionId &&
-      newIndex >= combined.length - PREFETCH_MARGIN
-    ) {
-      void fetchPage(sessionId, cursorRef.current);
-    }
+    if (newIndex >= history.length - PREFETCH_MARGIN) fetchMore();
 
-    return combined[newIndex];
-  }, [localSent, fetched, historyIndex, sessionId, fetchPage]);
+    return history[newIndex];
+  }, [history, historyIndex, fetchMore]);
 
   const navigateDown = useCallback((): string | null => {
     if (historyIndex === -1) return null;
@@ -208,15 +328,15 @@ export function useInputHistory({
     setHistoryIndex(newIndex);
     if (newIndex === -1) return unsavedDraft;
 
-    const combined = [...localSent, ...fetched];
-    return combined[newIndex];
-  }, [localSent, fetched, historyIndex, unsavedDraft]);
+    return history[newIndex];
+  }, [history, historyIndex, unsavedDraft]);
 
   return {
     pushToHistory,
     navigateUp,
     navigateDown,
     resetHistory,
+    entries: history,
     isEmpty: history.length === 0,
     isNavigating: historyIndex !== -1,
   };

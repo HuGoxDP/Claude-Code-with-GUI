@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "Спрашивать перед новой беседой",
         "description": "Подтверждать, прежде чем /clear или Cmd/Ctrl+Shift+C покинет начатую беседу."
+      },
+      "suggestFromHistory": {
+        "label": "Подсказывать прежние запросы",
+        "description": "При вводе показывает прежний запрос, который начинается так же; Tab подставляет его."
       }
     },
     "notifications": {

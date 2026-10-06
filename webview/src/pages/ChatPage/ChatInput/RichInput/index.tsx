@@ -66,6 +66,9 @@ interface Props {
   ime?: IMEComposition;
 }
 
+/** The editable div's own cap (`max-h-[200px]`), which a suggestion may not stretch it past. */
+const GHOST_MAX_HEIGHT_PX = 200;
+
 /**
  * Layout classes shared by the editable div and the mirror overlay. The two
  * layers MUST agree on font, padding, line-height and wrapping so the visible
@@ -251,6 +254,20 @@ export const RichInput = forwardRef<HTMLDivElement, Props>((props: Props, ref) =
     },
     [onChange, ime],
   );
+
+  // A suggestion runs on past what is typed, onto lines the editable div does not
+  // have, and the mirror only paints inside the editable's box: the rest of it,
+  // and the hint after it, were cut off. While a suggestion shows, the box takes
+  // the mirror's height (up to the same 200px cap), and lets go once it is gone.
+  useLayoutEffect(() => {
+    const el = elRef.current;
+    const mirror = mirrorRef.current;
+    if (!el || !mirror) return;
+    el.style.minHeight = '';
+    if (!ghostText) return;
+    const needed = Math.min(mirror.scrollHeight, GHOST_MAX_HEIGHT_PX);
+    if (needed > el.clientHeight) el.style.minHeight = `${needed}px`;
+  }, [ghostText, ghostHint, displayText]);
 
   // Keep the mirror's scroll position locked to the editable div so long /
   // multi-line input stays glyph-aligned while scrolling.

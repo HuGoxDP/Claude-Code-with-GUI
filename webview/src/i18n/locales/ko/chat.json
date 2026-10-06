@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab으로 완성)"
     },
+    "historySuggestion": {
+      "hint": "(Tab으로 완성)"
+    },
     "queuedMessages": {
       "cancel": "대기열에서 제거",
       "reorder": "끌어서 순서를 바꿉니다. 맨 위 메시지가 다음에 보내집니다."

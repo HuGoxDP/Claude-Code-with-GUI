@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab برای تکمیل)"
     },
+    "historySuggestion": {
+      "hint": "(Tab برای تکمیل)"
+    },
     "queuedMessages": {
       "cancel": "حذف از صف",
       "reorder": "برای تغییر ترتیب بکشید. پیام بالایی زودتر فرستاده می‌شود."

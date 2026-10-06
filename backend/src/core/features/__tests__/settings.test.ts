@@ -541,6 +541,13 @@ describe('settings', () => {
       expect(bad.error).toBe('confirmNewSession must be a boolean');
     });
 
+    it('should accept only a boolean suggestFromHistory', async () => {
+      expect((await saveSettingToFile('suggestFromHistory', false)).status).toBe('ok');
+      const bad = await saveSettingToFile('suggestFromHistory', 'yes');
+      expect(bad.status).toBe('error');
+      expect(bad.error).toBe('suggestFromHistory must be a boolean');
+    });
+
     it('should accept only a boolean streaming', async () => {
       expect((await saveSettingToFile('streaming', false)).status).toBe('ok');
       expect((await saveSettingToFile('streaming', true)).status).toBe('ok');
@@ -743,6 +750,7 @@ describe('settings', () => {
         userMessageColor: null,
         streaming: true,
         confirmNewSession: false,
+        suggestFromHistory: true,
         expandDiffs: true,
         debugMode: false,
         logLevel: 'info',
@@ -891,6 +899,7 @@ export default {
         userMessageColor: null,
         streaming: true,
         confirmNewSession: false,
+        suggestFromHistory: true,
         expandDiffs: true,
         debugMode: false,
         logLevel: 'info',

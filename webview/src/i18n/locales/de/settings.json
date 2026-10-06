@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "Vor neuer Unterhaltung fragen",
         "description": "Vor /clear oder Cmd/Ctrl+Shift+C nachfragen, wenn eine begonnene Unterhaltung verlassen wird."
+      },
+      "suggestFromHistory": {
+        "label": "Frühere Prompts vorschlagen",
+        "description": "Zeigt beim Tippen einen früheren Prompt, der genauso beginnt; Tab übernimmt ihn."
       }
     },
     "notifications": {

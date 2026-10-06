@@ -63,6 +63,8 @@ import {
 } from '@/commandPalette/sections/context/items';
 import { replaceRangeWithText } from './RichInput/replaceRangeWithText';
 import { renameSuggestion } from './renameSuggestion';
+import { historySuggestion, suggestionPreview, HISTORY_SUGGESTION_POOL } from './historySuggestion';
+import { SettingKey } from '@/types/settings';
 import { typedKeys } from '@/commandPalette/typedKeys';
 import {
   wrapChipForTranscript,
@@ -133,7 +135,16 @@ export function ChatInput() {
   const onboarding = useOnboarding();
   const { handleSubmit: onSubmit, isStreaming, stop: onStop, queuedMessages, cancelQueuedMessage, reorderQueuedMessages } = chatStream;
   const { input: value, setInput: onChange } = useChatInputState();
-  const inputHistory = useInputHistory({ workingDirectory, sessionId: currentSessionId });
+  // useCtrlEnterToSend + focusInputOnEditorContext migrated to the app settings.
+  const { settings: appSettings } = useSettings();
+  // Suggestions read the history the composer holds, so with them on it holds
+  // more than the page Up is about to reach.
+  const suggestFromHistory = appSettings[SettingKey.SUGGEST_FROM_HISTORY] !== false;
+  const inputHistory = useInputHistory({
+    workingDirectory,
+    sessionId: currentSessionId,
+    preload: suggestFromHistory ? HISTORY_SUGGESTION_POOL : 0,
+  });
   const { pushToHistory, navigateUp, navigateDown, resetHistory } = inputHistory;
   // The recording itself belongs to DictationProvider, which sits above this
   // component: a recording has to outlive the composer, because an approval
@@ -191,9 +202,6 @@ export function ChatInput() {
     settings: claudeSettings,
     updateSetting: updateClaudeSetting,
   } = useClaudeSettings();
-  // useCtrlEnterToSend + focusInputOnEditorContext migrated to the app settings.
-  const { settings: appSettings } = useSettings();
-
   const { cycle: cycleEffort } = useEffort();
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showModelSwitch, setShowModelSwitch] = useState(false);
@@ -999,6 +1007,16 @@ export function ChatInput() {
   // Right after `/rename ` the session's current title is previewed after the
   // caret, the way unsettled dictation is, and Tab turns it into real text.
   const renameGhost = renameSuggestion(value, currentSession?.title);
+  // Otherwise the most recent earlier prompt that starts with what is typed, the
+  // same way (ported from CC GUI's history completion). Not while a panel is open,
+  // since it owns Tab, nor while Up/Down is walking the history: the box then
+  // holds a recalled prompt, not something being typed.
+  const historyGhost = !renameGhost && suggestFromHistory && !disabled
+    && !inputHistory.isNavigating && !palette.showSlashCommands && !mention.isActive
+    && !promptLibrary.isActive && !agentMention.isActive
+    ? historySuggestion(value, inputHistory.entries)
+    : null;
+  const ghost = renameGhost ?? historyGhost;
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
     // Feed the IME truth: keyCode 229 means the IME is still processing this
@@ -1016,11 +1034,16 @@ export function ChatInput() {
     // Accept the previewed title. Ahead of every panel below because the slash
     // panel is still open on `/rename ` and would claim Tab to pick a command.
     // Written through the browser's editing pipeline so one undo takes it back.
-    if (renameGhost && e.key === 'Tab' && !e.shiftKey && !(ime.isComposing() || e.nativeEvent.isComposing)) {
+    // A suggested earlier prompt is taken the same way, but only with the caret
+    // at the end, where the preview is: elsewhere Tab keeps its usual meaning.
+    if (
+      ghost && e.key === 'Tab' && !e.shiftKey && !(ime.isComposing() || e.nativeEvent.isComposing)
+      && (renameGhost !== null || caretAtEnd)
+    ) {
       e.preventDefault();
       const el = textareaRef.current;
-      if (el && replaceRangeWithText(el, value.length, value.length, renameGhost)) return;
-      onChange(value + renameGhost);
+      if (el && replaceRangeWithText(el, value.length, value.length, ghost)) return;
+      onChange(value + ghost);
       return;
     }
 
@@ -1185,7 +1208,7 @@ export function ChatInput() {
         if (target) setCaretOffset(target, applied.length);
       });
     }
-  }, [disabled, value, attachments.length, onSubmit, pushToHistory, navigateUp, navigateDown, onChange, palette, mention, promptLibrary, cycleMode, clearAttachments, mode, appSettings.useCtrlEnterToSend, appSettings.composerSendShortcut, appSettings.composerSendShortcutCustom, appSettings.composerNewlineShortcut, appSettings.composerNewlineShortcutCustom, ime, handleRichChange, textareaRef, renameGhost]);
+  }, [disabled, value, attachments.length, onSubmit, pushToHistory, navigateUp, navigateDown, onChange, palette, mention, promptLibrary, cycleMode, clearAttachments, mode, appSettings.useCtrlEnterToSend, appSettings.composerSendShortcut, appSettings.composerSendShortcutCustom, appSettings.composerNewlineShortcut, appSettings.composerNewlineShortcutCustom, ime, handleRichChange, textareaRef, renameGhost, ghost]);
 
   // Wrap the attachment paste handler so images keep their dedicated path while
   // text goes through the browser's own editing pipeline.
@@ -1508,8 +1531,14 @@ export function ChatInput() {
             ariaLabel={t('chatInput.ariaLabel')}
             highlightTokens={recipient ? [...pathTokens, recipient.token] : pathTokens}
             interimRange={dictation.interimRange}
-            ghostText={renameGhost}
-            ghostHint={renameGhost ? t('chatInput.renameSuggestion.hint') : null}
+            ghostText={renameGhost ?? (historyGhost !== null ? suggestionPreview(historyGhost) : null)}
+            ghostHint={
+              renameGhost
+                ? t('chatInput.renameSuggestion.hint')
+                : historyGhost
+                  ? t('chatInput.historySuggestion.hint')
+                  : null
+            }
           />
           {voiceEnabled && (
             <MicButton

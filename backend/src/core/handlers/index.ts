@@ -14,7 +14,7 @@ import { sessionStartedHandler } from './sessionStarted';
 import { toolResponseHandler } from './toolResponse';
 import { getSessionsHandler } from './getSessions';
 import { loadSessionHandler } from './loadSession';
-import { loadPromptHistoryHandler } from './loadPromptHistory';
+import { loadPromptHistoryHandler, loadProjectPromptHistoryHandler } from './loadPromptHistory';
 import { deleteSessionHandler } from './deleteSession';
 import { rewindCodeHandler } from './rewindCode';
 import { forkSessionHandler } from './forkSession';
@@ -258,6 +258,9 @@ export async function handleMessage(
       break;
     case MessageType.LOAD_PROMPT_HISTORY:
       await loadPromptHistoryHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.LOAD_PROJECT_PROMPT_HISTORY:
+      await loadProjectPromptHistoryHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.DELETE_SESSION:
       await deleteSessionHandler(connectionId, message, connections, bridge);

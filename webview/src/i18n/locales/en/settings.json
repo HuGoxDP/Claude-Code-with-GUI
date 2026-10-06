@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "Ask before a new conversation",
         "description": "Confirm before /clear or Cmd/Ctrl+Shift+C leaves a conversation that has started."
+      },
+      "suggestFromHistory": {
+        "label": "Suggest from earlier prompts",
+        "description": "While you type, show an earlier prompt that starts the same way; Tab takes it."
       }
     },
     "notifications": {

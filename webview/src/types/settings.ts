@@ -60,6 +60,11 @@ export enum SettingKey {
   // conversation that has started. Off by default, like the CLI's own /clear
   // (ported from CC GUI's new session confirmation).
   CONFIRM_NEW_SESSION = 'confirmNewSession',
+  // While typing, show the most recent earlier prompt that starts with what is
+  // typed after the caret; Tab takes it. The prompts are the ones Up walks: this
+  // conversation's, then the project's other ones. On by default, as in CC GUI,
+  // which this is ported from.
+  SUGGEST_FROM_HISTORY = 'suggestFromHistory',
   // Whether an edit card in the chat shows its diff open, or closed with a
   // `+N −M` line to open it (ported from CC GUI's "Expand diffs by default").
   // On by default, which is how the chat has always shown them.
@@ -427,6 +432,7 @@ export interface SettingsState {
   [SettingKey.USER_MESSAGE_COLOR]: string | null;
   [SettingKey.STREAMING]: boolean;
   [SettingKey.CONFIRM_NEW_SESSION]: boolean;
+  [SettingKey.SUGGEST_FROM_HISTORY]: boolean;
   [SettingKey.EXPAND_DIFFS]: boolean;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
@@ -481,6 +487,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.USER_MESSAGE_COLOR]: null,
   [SettingKey.STREAMING]: true,
   [SettingKey.CONFIRM_NEW_SESSION]: false,
+  [SettingKey.SUGGEST_FROM_HISTORY]: true,
   [SettingKey.EXPAND_DIFFS]: true,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,

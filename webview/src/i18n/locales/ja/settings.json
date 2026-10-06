@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "新しい会話の前に確認",
         "description": "/clear や Cmd/Ctrl+Shift+C で始まっている会話を離れる前に確認します。"
+      },
+      "suggestFromHistory": {
+        "label": "以前のプロンプトから提案",
+        "description": "入力中、同じ書き出しの以前のプロンプトを表示します。Tabで確定します。"
       }
     },
     "notifications": {

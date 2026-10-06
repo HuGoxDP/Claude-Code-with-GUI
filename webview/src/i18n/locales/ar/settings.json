@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "السؤال قبل محادثة جديدة",
         "description": "التأكيد قبل أن يغادر ‎/clear أو Cmd/Ctrl+Shift+C محادثة بدأت."
+      },
+      "suggestFromHistory": {
+        "label": "اقتراح من الطلبات السابقة",
+        "description": "أثناء الكتابة، يُعرض طلب سابق يبدأ بالطريقة نفسها؛ يقبله Tab."
       }
     },
     "notifications": {

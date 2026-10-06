@@ -501,4 +501,32 @@ describe('RichInput — ghost text', () => {
 
     expect(container.querySelector('[data-testid=richInputGhost]')).toBeNull();
   });
+
+  describe('room for a suggestion that runs past the typed lines', () => {
+    // jsdom has no layout: the mirror reports how tall its painted content is.
+    function mirrorContentHeight(px: number) {
+      return vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(function (this: HTMLElement) {
+        return this.classList.contains('richInputMirror') ? px : 0;
+      });
+    }
+
+    it('makes the box as tall as the suggestion needs, and gives it back once it is gone', () => {
+      const spy = mirrorContentHeight(60);
+      const { getByRole, rerender } = render(
+        <RichInput value="Now wr" ghostText="ite about lighthouses" ghostHint="(Tab to accept)" onChange={() => {}} />,
+      );
+      expect(getByRole('textbox').style.minHeight).toBe('60px');
+
+      rerender(<RichInput value="Now wr" onChange={() => {}} />);
+      expect(getByRole('textbox').style.minHeight).toBe('');
+      spy.mockRestore();
+    });
+
+    it('stops at the box\'s own 200px cap', () => {
+      const spy = mirrorContentHeight(900);
+      const { getByRole } = render(<RichInput value="a" ghostText="b" onChange={() => {}} />);
+      expect(getByRole('textbox').style.minHeight).toBe('200px');
+      spy.mockRestore();
+    });
+  });
 });

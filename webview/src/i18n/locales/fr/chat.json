@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab pour valider)"
     },
+    "historySuggestion": {
+      "hint": "(Tab pour valider)"
+    },
     "queuedMessages": {
       "cancel": "Retirer de la file d’attente",
       "reorder": "Faites glisser pour changer l'ordre. Le message du haut est envoyé en premier."

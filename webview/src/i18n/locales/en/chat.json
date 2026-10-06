@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tab to accept)"
     },
+    "historySuggestion": {
+      "hint": "(Tab to accept)"
+    },
     "queuedMessages": {
       "cancel": "Remove from queue",
       "reorder": "Drag to change the order. The message on top is sent next."

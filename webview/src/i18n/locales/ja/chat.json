@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(Tabで補完)"
     },
+    "historySuggestion": {
+      "hint": "(Tabで補完)"
+    },
     "queuedMessages": {
       "cancel": "キューから削除",
       "reorder": "ドラッグして順番を変更します。一番上のメッセージが次に送信されます。"

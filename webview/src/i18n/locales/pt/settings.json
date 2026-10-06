@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "Perguntar antes de uma nova conversa",
         "description": "Confirma antes de /clear ou Cmd/Ctrl+Shift+C sair de uma conversa já iniciada."
+      },
+      "suggestFromHistory": {
+        "label": "Sugerir prompts anteriores",
+        "description": "Enquanto você digita, mostra um prompt anterior que começa igual; Tab o aceita."
       }
     },
     "notifications": {

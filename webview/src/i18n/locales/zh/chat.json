@@ -122,6 +122,9 @@
     "renameSuggestion": {
       "hint": "(按 Tab 补全)"
     },
+    "historySuggestion": {
+      "hint": "(按 Tab 补全)"
+    },
     "queuedMessages": {
       "cancel": "从队列中移除",
       "reorder": "拖动以调整顺序。最上面的消息会最先发送。"

@@ -121,6 +121,10 @@
       "confirmNewSession": {
         "label": "新對話前詢問",
         "description": "在 /clear 或 Cmd/Ctrl+Shift+C 離開已開始的對話前確認。"
+      },
+      "suggestFromHistory": {
+        "label": "根據先前的提示建議",
+        "description": "輸入時顯示以相同內容開頭的先前提示，按 Tab 採用。"
       }
     },
     "notifications": {

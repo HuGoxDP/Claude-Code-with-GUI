@@ -40,6 +40,6 @@ And on a long prompt, Up did not move the caret up a line. It jumped straight to
 
 ## Limits
 
-The history covers the conversation you are in. Prompts from your other conversations in the same project are not offered, even though the CLI's own terminal history reaches across them: recalling a line from a conversation you are not looking at is more surprise than help.
+The history covered only the conversation you are in, on the view that recalling a line from a conversation you are not looking at would be more surprise than help. It now goes on into the project's other conversations once this one's prompts run out, as the CLI's own Up does: see [Earlier prompts from your other conversations, and suggestions as you type](../103-prompt_history_across_conversations/en.md).
 
 Slash commands are left out. The transcript stores `/model haiku` as an XML expansion rather than as what you typed, and a history that hands back the expansion would be worse than one that skips it.
