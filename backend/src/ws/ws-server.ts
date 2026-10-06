@@ -191,13 +191,20 @@ const MIME_TYPES: Record<string, string> = {
 /** Collect a request body into a string, capped to guard against unbounded input. */
 const MAX_REQUEST_BODY_BYTES = 64 * 1024;
 
-function readRequestBody(req: IncomingMessage): Promise<string> {
+/**
+ * The cap for /internal/editor-context, which also carries text selected in a
+ * Run/Debug console: a stack trace or a log easily passes 64 KiB, and the IDE
+ * cuts the selection to MAX_EDITOR_CONTEXT_TEXT characters before sending it.
+ */
+const MAX_EDITOR_CONTEXT_BODY_BYTES = 1024 * 1024;
+
+function readRequestBody(req: IncomingMessage, maxBytes = MAX_REQUEST_BODY_BYTES): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     const chunks: Buffer[] = [];
     let total = 0;
     req.on('data', (chunk: Buffer) => {
       total += chunk.length;
-      if (total > MAX_REQUEST_BODY_BYTES) {
+      if (total > maxBytes) {
         reject(new Error('Request body too large'));
         req.destroy();
         return;
@@ -507,7 +514,7 @@ export function startWebSocketServer(
         if (req.method === 'POST' && urlPath === '/internal/editor-context') {
           let rawBody: string;
           try {
-            rawBody = await readRequestBody(req);
+            rawBody = await readRequestBody(req, MAX_EDITOR_CONTEXT_BODY_BYTES);
           } catch {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Failed to read request body' }));

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { MAX_EDITOR_CONTEXT_ITEMS, MAX_EDITOR_PROBLEMS, handleEditorContextRequest } from '../editor-context-route';
+import { MAX_EDITOR_CONTEXT_ITEMS, MAX_EDITOR_CONTEXT_TEXT, MAX_EDITOR_PROBLEMS, handleEditorContextRequest } from '../editor-context-route';
 import { ConnectionManager } from '../connection-manager';
 import { ClientEnv, MessageType } from '../../shared';
 
@@ -174,6 +174,36 @@ describe('handleEditorContextRequest', () => {
       success: true,
       revealTarget: { kind: 'jcef', panelId: 'panel-1' },
     });
+  });
+
+  it('forwards text selected in a console as it is, with no path', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+    const text = 'Exception in thread "main" java.lang.IllegalStateException: boom\n\tat Main.main(Main.java:3)\n';
+
+    const result = handleEditorContextRequest(cm, JSON.stringify({ text, workingDir: '/abs' }));
+
+    expect(result.status).toBe(200);
+    const sent = JSON.parse((ws.send as ReturnType<typeof vi.fn>).mock.calls[0][0]);
+    expect(sent.type).toBe(MessageType.EDITOR_CONTEXT);
+    expect(sent.payload).toEqual({ text, workingDir: '/abs' });
+  });
+
+  it('refuses blank console text', () => {
+    const cm = new ConnectionManager();
+    const ws = createMockWs();
+    cm.addConnection(ws);
+    const result = handleEditorContextRequest(cm, JSON.stringify({ text: ' \n ', workingDir: '/abs' }));
+    expect(result.status).toBe(400);
+    expect(ws.send).not.toHaveBeenCalled();
+  });
+
+  it('caps console text at the length the IDE cuts it to', () => {
+    const cm = new ConnectionManager();
+    const setPending = vi.spyOn(cm, 'setPendingEditorContext');
+    handleEditorContextRequest(cm, JSON.stringify({ text: 'x'.repeat(MAX_EDITOR_CONTEXT_TEXT + 10), workingDir: '/abs' }));
+    expect((setPending.mock.calls[0][0] as { text: string }).text).toHaveLength(MAX_EDITOR_CONTEXT_TEXT);
   });
 
   it('stashes the payload as pending when there are no connections', () => {

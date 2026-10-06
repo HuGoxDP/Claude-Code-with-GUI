@@ -38,7 +38,9 @@ vi.mock('@/contexts/BridgeContext', () => ({
 import {
   useEditorContext,
   buildEditorContextText,
+  buildPastedText,
   insertAtCursor,
+  withCaretLine,
 } from '../useEditorContext';
 
 // ---------------------------------------------------------------------------
@@ -442,7 +444,9 @@ describe('useEditorContext — Fix with Claude', () => {
     expect(onChange).toHaveBeenCalledWith(
       'Fix the problems the IDE reports in @src/a.ts#L10-12:\n'
         + "- Line 11 (error): Cannot find name 'bar'.\n"
-        + "- Line 12 (warning): 'x' is declared but never used.\n",
+        + "- Line 12 (warning): 'x' is declared but never used.\n"
+        // One more for the empty line the caret waits on (see withCaretLine).
+        + '\n',
     );
     expect(onInsertToken).toHaveBeenCalledWith('@src/a.ts#L10-12');
   });
@@ -463,5 +467,58 @@ describe('useEditorContext — Fix with Claude', () => {
       emitEditorContext({ absolutePath: '/work/a.ts', relativePath: 'a.ts', startLine: 4, endLine: 4, workingDir: '/work' });
     });
     expect(onChange).toHaveBeenCalledWith('@a.ts#L4 ');
+  });
+});
+
+describe('useEditorContext — text from a console', () => {
+  const trace = 'java.lang.IllegalStateException: boom\n\tat Main.main(Main.java:3)';
+
+  it('puts the text on lines of its own at the caret, with the caret on the line after it', () => {
+    const onChange = vi.fn();
+    const onInsertToken = vi.fn();
+    renderEditorContext({ value: 'Why does this fail?', currentWorkingDir: '/work', onInsertToken }, onChange);
+    act(() => {
+      emitEditorContext({ text: trace, workingDir: '/work' });
+    });
+    expect(onChange).toHaveBeenCalledWith(`Why does this fail?\n${trace}\n\n`);
+    expect(onInsertToken).not.toHaveBeenCalled();
+  });
+
+  it('ignores blank text and text from another project', () => {
+    const onChange = vi.fn();
+    renderEditorContext({ value: '', currentWorkingDir: '/work' }, onChange);
+    act(() => {
+      emitEditorContext({ text: '  \n', workingDir: '/work' });
+      emitEditorContext({ text: trace, workingDir: '/other' });
+    });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('buildPastedText', () => {
+  it('puts the text on its own lines', () => {
+    expect(buildPastedText('', 0, 'a\nb')).toBe('a\nb\n');
+    expect(buildPastedText('see:\n', 5, 'a')).toBe('a\n');
+    expect(buildPastedText('see: ', 5, 'a')).toBe('\na\n');
+  });
+
+  it('adds no line break before a line break that follows the caret', () => {
+    expect(buildPastedText('ab\ncd', 3, 'x')).toBe('x\n');
+    expect(buildPastedText('ab\n\ncd', 3, 'x')).toBe('x');
+  });
+
+  it("turns CRLF into LF and does not stack the selection's own trailing newlines", () => {
+    expect(buildPastedText('', 0, 'a\r\nb\r\n')).toBe('a\nb\n');
+  });
+});
+
+describe('withCaretLine', () => {
+  it('adds the empty last line the caret needs at the end of the input', () => {
+    expect(withCaretLine('a\n', '')).toBe('a\n\n');
+  });
+
+  it('leaves text that does not end a line, or that has text after it', () => {
+    expect(withCaretLine('@a.ts ', '')).toBe('@a.ts ');
+    expect(withCaretLine('a\n', 'more')).toBe('a\n');
   });
 });

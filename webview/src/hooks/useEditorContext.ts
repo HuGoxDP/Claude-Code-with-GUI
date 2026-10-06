@@ -104,16 +104,29 @@ function parseItem(raw: unknown): EditorContextItem | null {
   };
 }
 
+/** What an `EDITOR_CONTEXT` push asks the chat input to take. */
+export interface ParsedEditorContext {
+  workingDir: string;
+  items: EditorContextItem[];
+  /** Set by "Fix with Claude"; see {@link buildFixText}. */
+  problems?: EditorProblem[];
+  /** Text selected in a Run/Debug console, which names no path. */
+  text?: string;
+}
+
 /**
- * Validate an unknown IPC payload and return the paths it names: the `items`
- * the project view sends for several files at once, or the single path at the
- * top level otherwise.
+ * Validate an unknown IPC payload and return what it carries: text selected in
+ * a console, the `items` the project view sends for several files at once, or
+ * the single path at the top level otherwise.
  */
 export function parseEditorContextPayload(
   raw: Record<string, unknown> | undefined,
-): { workingDir: string; items: EditorContextItem[]; problems?: EditorProblem[] } | null {
+): ParsedEditorContext | null {
   if (!raw) return null;
   if (typeof raw.workingDir !== 'string') return null;
+  if (typeof raw.text === 'string') {
+    return raw.text.trim() === '' ? null : { workingDir: raw.workingDir, items: [], text: raw.text };
+  }
   const listed = Array.isArray(raw.items)
     ? raw.items.map(parseItem).filter((item): item is EditorContextItem => item !== null)
     : [];
@@ -149,6 +162,34 @@ export function buildFixText(reference: string, problems: EditorProblem[], t: Tr
     t('fixWithClaude.problem', { line: problem.line, severity: t(`fixWithClaude.${problem.severity}`), message: problem.message }),
   );
   return [t('fixWithClaude.withProblems', { ref: reference }), ...lines].join('\n') + '\n';
+}
+
+/**
+ * Text selected in a console, as it goes into the chat input at [cursorPos]:
+ * on lines of its own, so a stack trace keeps its shape and does not run into
+ * what is already there. The caret goes on the line after it (see
+ * {@link withCaretLine} for the end of the input).
+ */
+export function buildPastedText(value: string, cursorPos: number, text: string): string {
+  const body = text.replace(/\r\n?/g, '\n').replace(/\n+$/, '');
+  const pos = Math.max(0, Math.min(cursorPos, value.length));
+  const before = value.slice(0, pos);
+  const after = value.slice(pos);
+  const lead = before === '' || before.endsWith('\n') ? '' : '\n';
+  return lead + body + (after.startsWith('\n') ? '' : '\n');
+}
+
+/**
+ * [insertText] as it must be written for the caret to land on the empty line
+ * after it, when it ends a line and nothing follows it ([after] is empty).
+ *
+ * The composer is a `plaintext-only` editable, where an empty last line holding
+ * the caret is one more `\n` than the text shows, and the first keystroke there
+ * replaces it (the shape `appendQuote` leaves too). Without it, the first word
+ * typed lands at the end of the inserted text's last line.
+ */
+export function withCaretLine(insertText: string, after: string): string {
+  return insertText.endsWith('\n') && after === '' ? `${insertText}\n` : insertText;
 }
 
 /**
@@ -194,7 +235,9 @@ export function useEditorContext(params: UseEditorContextParams): void {
       }
 
       // Dedup identical payloads within the time window.
-      const key = payload.items.map((item) => `${item.relativePath}:${item.startLine}:${item.endLine}`).join('|');
+      const key = payload.text !== undefined
+        ? `text:${payload.text}`
+        : payload.items.map((item) => `${item.relativePath}:${item.startLine}:${item.endLine}`).join('|');
       const now = Date.now();
       if (lastKeyRef.current === key && now - lastTimeRef.current < DEDUP_WINDOW_MS) {
         return;
@@ -202,15 +245,18 @@ export function useEditorContext(params: UseEditorContextParams): void {
       lastKeyRef.current = key;
       lastTimeRef.current = now;
 
-      // Every path goes in at once: inserting them one message at a time would
-      // read the composer before the previous insertion has rendered.
-      const tokens = payload.items.map(buildEditorContextText);
-      const insertText = payload.problems
-        ? buildFixText(tokens[0], payload.problems, tRef.current as Translate)
-        : tokens.join(' ') + ' ';
       const el = textareaRef.current;
       const currentValue = valueRef.current;
       const cursorPos = el ? getCaretOffset(el) : currentValue.length;
+
+      // Every path goes in at once: inserting them one message at a time would
+      // read the composer before the previous insertion has rendered.
+      const tokens = payload.items.map(buildEditorContextText);
+      let insertText: string;
+      if (payload.text !== undefined) insertText = buildPastedText(currentValue, cursorPos, payload.text);
+      else if (payload.problems) insertText = buildFixText(tokens[0], payload.problems, tRef.current as Translate);
+      else insertText = tokens.join(' ') + ' ';
+      insertText = withCaretLine(insertText, currentValue.slice(cursorPos));
 
       const { nextValue, nextCaret } = insertAtCursor(currentValue, insertText, cursorPos);
       onChangeRef.current(nextValue);

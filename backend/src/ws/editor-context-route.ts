@@ -58,6 +58,22 @@ function parseProblem(value: unknown): EditorProblem | null {
 /** The most paths one request may name; a selection beyond it is cut. */
 export const MAX_EDITOR_CONTEXT_ITEMS = 200;
 
+/**
+ * The longest text one request may carry. Matches the cut the IDE makes before
+ * sending (`ConsoleSelection.MAX_TEXT_CHARS` in Kotlin), so this only bites a
+ * caller that skipped it.
+ */
+export const MAX_EDITOR_CONTEXT_TEXT = 200_000;
+
+/**
+ * Text selected somewhere that is not a file — a Run/Debug console — to go into
+ * the chat input as it is. It names no path, so it has no `items`.
+ */
+interface EditorContextTextPayload extends Record<string, unknown> {
+  text: string;
+  workingDir: string;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -105,6 +121,14 @@ export function handleEditorContextRequest(
     return { status: 400, body: { error: 'Body must be a JSON object' } };
   }
 
+  const workingDir = typeof parsed.workingDir === 'string' ? parsed.workingDir : '';
+  if (typeof parsed.text === 'string') {
+    if (parsed.text.trim() === '') {
+      return { status: 400, body: { error: 'text must not be blank' } };
+    }
+    return routeEditorContext(connections, { text: parsed.text.slice(0, MAX_EDITOR_CONTEXT_TEXT), workingDir });
+  }
+
   const { absolutePath, relativePath } = parsed;
   if (typeof absolutePath !== 'string' || typeof relativePath !== 'string') {
     return {
@@ -118,7 +142,7 @@ export function handleEditorContextRequest(
     relativePath,
     startLine: normalizeLine(parsed.startLine),
     endLine: normalizeLine(parsed.endLine),
-    workingDir: typeof parsed.workingDir === 'string' ? parsed.workingDir : '',
+    workingDir,
   };
   if (Array.isArray(parsed.items)) {
     const items = parsed.items
@@ -134,6 +158,14 @@ export function handleEditorContextRequest(
       .filter((problem): problem is EditorProblem => problem !== null);
   }
 
+  return routeEditorContext(connections, payload);
+}
+
+/** Hand a validated payload to the panel that should take it. */
+function routeEditorContext(
+  connections: ConnectionManager,
+  payload: EditorContextPayload | EditorContextTextPayload,
+): EditorContextRouteResult {
   // What the launcher (Kotlin) should reveal on this Alt+K, decided from the
   // most-recently-focused live panel: focus a JCEF tab, do nothing for a browser
   // tab, or open a fresh tab when nothing is focused. Computed before routing (it

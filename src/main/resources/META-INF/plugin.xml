@@ -244,6 +244,16 @@
             <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
         </action>
 
+        <!-- Put text selected in a Run/Debug console (a stack trace, a failing
+             test's output) into the Claude Code chat input -->
+        <action
+            id="ClaudeCode.SendConsoleSelection"
+            class="com.github.yhk1038.claudecodegui.actions.SendConsoleSelectionAction"
+            text="Send Selection to Claude Code"
+            description="Put the text selected in the console into the Claude Code chat input">
+            <add-to-group group-id="ConsoleView.PopupMenu" anchor="last"/>
+        </action>
+
         <!-- Rename a chat tab by hand, so its label stops following the
              conversation title (issue #301). One action per host mode, because
              a tool window tab and an editor tab are reached through different
