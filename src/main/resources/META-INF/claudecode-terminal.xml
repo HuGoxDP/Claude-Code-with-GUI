@@ -1,0 +1,24 @@
+<idea-plugin>
+    <!--
+      Loaded only where the IDE has the terminal plugin, so the classes that use
+      it (ClassicTerminalTabs) never load in an IDE without it.
+    -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Joins the action below to the terminal menus. They are joined at run
+             time, not with <add-to-group>: which menus exist depends on the IDE
+             version, and naming a missing one is a plugin error at startup
+             (see TerminalMenus). -->
+        <postStartupActivity
+            implementation="com.github.yhk1038.claudecodegui.terminal.TerminalMenusActivity"/>
+    </extensions>
+
+    <actions>
+        <!-- Put the text selected in the terminal (a command's output, an error)
+             into the Claude Code chat input -->
+        <action
+            id="ClaudeCode.SendTerminalSelection"
+            class="com.github.yhk1038.claudecodegui.terminal.SendTerminalSelectionAction"
+            text="Send Selection to Claude Code"
+            description="Put the text selected in the terminal into the Claude Code chat input"/>
+    </actions>
+</idea-plugin>

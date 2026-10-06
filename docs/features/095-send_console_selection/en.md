@@ -29,6 +29,6 @@ After **Fix with Claude** ([093](../093-fix_with_claude/en.md)) put the IDE's pr
 
 ## Limits
 
-- **Not in the Terminal tool window yet.** The terminal keeps its selection in a way that differs between IDE versions and is not part of the platform's public API; that part is tracked separately.
+- **The Terminal tool window has its own item** with the same name: see [Send terminal output to Claude](../102-send_terminal_selection/en.md).
 - **Only in a JetBrains IDE.** The browser has no Run console.
 - Console output can hold secrets (tokens in a log line, environment dumps). What you send goes to Claude like any message; look at the selection before you send it.

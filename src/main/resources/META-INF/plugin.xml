@@ -15,8 +15,12 @@
       Kept rather than deleted: the plugin classloader only sees classes of
       plugins it declares a dependency on, so removing the line would make the
       reflective lookups fail even where the terminal plugin IS present.
+
+      claudecode-terminal.xml holds "Send Selection to Claude Code" for the
+      terminal, whose classes use the terminal plugin directly and so load only
+      where it is installed.
     -->
-    <depends optional="true">org.jetbrains.plugins.terminal</depends>
+    <depends optional="true" config-file="claudecode-terminal.xml">org.jetbrains.plugins.terminal</depends>
     <depends optional="true" config-file="claudecode-jcef.xml">com.intellij.modules.jcef</depends>
     <!-- "Generate Commit Message with Claude" in the commit message box. Optional so
          an IDE without VCS support still loads the plugin; the action and the VCS

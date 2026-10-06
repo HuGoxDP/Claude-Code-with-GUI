@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 
-/** Text selected in a Run/Debug console, as the chat input takes it. */
+/** Text selected in a Run/Debug console or the terminal, as the chat input takes it. */
 object ConsoleSelection {
     /**
      * The longest selection sent. Matches `MAX_EDITOR_CONTEXT_TEXT` on the
