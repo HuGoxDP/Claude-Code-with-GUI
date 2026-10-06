@@ -42,6 +42,15 @@ export default {
           tooltip: 'rgb(var(--surface-tooltip-rgb) / <alpha-value>)',
         },
 
+        // Chat areas the user can recolor (Settings → Appearance → Chat). Each
+        // follows a surface token unless a color is set; see `--chat-*-rgb` in
+        // index.css. (usage: bg-chat-background, bg-chat-header, bg-chat-user-message)
+        chat: {
+          background: 'rgb(var(--chat-background-rgb) / <alpha-value>)',
+          header: 'rgb(var(--chat-header-rgb) / <alpha-value>)',
+          'user-message': 'rgb(var(--chat-user-message-rgb) / <alpha-value>)',
+        },
+
         // Text  (usage: text-text-primary, text-text-primary/80 ...)
         text: {
           primary: 'rgb(var(--text-primary-rgb) / <alpha-value>)',

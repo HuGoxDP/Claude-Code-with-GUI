@@ -19,6 +19,13 @@ interface MessageBoxProps {
    */
   variant?: 'default' | 'compact';
   /**
+   * Whose words these are. `'own'` (the default) is something the user sent,
+   * queued or pinned, and takes the "Your messages" color from Settings →
+   * Appearance → Chat; `'other'` is a message another session sent here, which
+   * keeps the theme's bubble so the two never read as the same author.
+   */
+  tone?: 'own' | 'other';
+  /**
    * Hand the expand state to the caller instead of keeping it here, for a
    * caller whose other parts change with it — the user send shows its
    * `MessageFooter` once a folded, pinned bubble is expanded. Give both or
@@ -30,7 +37,7 @@ interface MessageBoxProps {
 
 /**
  * 사용자 메시지 스타일의 박스 컴포넌트.
- * bg-surface-hover border border-border-default rounded-lg 스타일을 공유.
+ * bg-chat-user-message(다른 세션의 메시지는 bg-surface-hover) border border-border-default rounded-lg 스타일을 공유.
  *
  * Two things decide how tall this gets, and they never negotiate:
  *
@@ -54,7 +61,7 @@ interface MessageBoxProps {
  * looks detached but keeps its place in the flow. `StickySendHeader` makes up
  * the difference outside itself; see the spacer there.
  */
-export const MessageBox: React.FC<MessageBoxProps> = ({ children, collapsible = true, className, variant = 'default', expanded, onExpandedChange }) => {
+export const MessageBox: React.FC<MessageBoxProps> = ({ children, collapsible = true, className, variant = 'default', tone = 'own', expanded, onExpandedChange }) => {
   const [ownExpanded, setOwnExpanded] = useState(false);
   const isExpanded = expanded ?? ownExpanded;
   const setIsExpanded = onExpandedChange ?? setOwnExpanded;
@@ -74,7 +81,10 @@ export const MessageBox: React.FC<MessageBoxProps> = ({ children, collapsible = 
     <div
       // How useScrollFold finds the element whose natural height it must read.
       data-message-box
-      className={`bg-surface-hover border border-border-default rounded-lg px-[8px] py-[3.5px] ${
+      // Where a color of your own re-points the text tokens to read on it
+      // (index.css, "Chat colors of your own").
+      data-own-message={tone === 'own' ? '' : undefined}
+      className={`${tone === 'own' ? 'bg-chat-user-message' : 'bg-surface-hover'} border border-border-default rounded-lg px-[8px] py-[3.5px] ${
         collapsible && !isExpanded ? `${collapsedHeightClass} overflow-hidden` : ''
       } ${collapsible && isExpanded ? 'max-h-[80vh] overflow-y-auto overscroll-contain' : ''} ${className ?? ''}`}
       style={folding ? { height } : undefined}

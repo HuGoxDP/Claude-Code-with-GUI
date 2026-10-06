@@ -255,6 +255,27 @@
     "chat": {
       "sectionTitle": "チャット"
     },
+    "chatColors": {
+      "background": {
+        "label": "チャットの背景",
+        "description": "会話の後ろの色です。ライトとダークのテーマで別々に設定します。"
+      },
+      "header": {
+        "label": "ヘッダーバー",
+        "description": "チャット上部のバーの色です。文字は読みやすい黒か白に変わります。"
+      },
+      "userMessage": {
+        "label": "自分のメッセージ",
+        "description": "送信したメッセージの色です。文字は読みやすい黒か白に変わります。"
+      },
+      "theme": "テーマ",
+      "themeHint": "テーマの色を使う",
+      "pick": "色を選ぶ",
+      "hex": "カラーコード",
+      "use": "{{color}} を使う",
+      "notSet": "未設定",
+      "lowContrast": "この色ではテーマの文字が読みにくい場合があります。"
+    },
     "scrolling": {
       "sectionTitle": "スクロール",
       "autoScrollThreshold": {

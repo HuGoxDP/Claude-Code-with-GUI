@@ -510,6 +510,21 @@ describe('settings', () => {
       expect(bad.error).toContain('notificationBanner must be a boolean or null');
     });
 
+    it('should accept a chat color as #rrggbb or null, and nothing else', async () => {
+      for (const key of ['chatBackgroundColorDark', 'chatBackgroundColorLight', 'headerBarColor', 'userMessageColor']) {
+        expect((await saveSettingToFile(key, '#1e1f22')).status).toBe('ok');
+        expect((await saveSettingToFile(key, '#A0B1C2')).status).toBe('ok');
+        expect((await saveSettingToFile(key, null)).status).toBe('ok');
+        // Anything CSS would read differently, or not at all, is refused:
+        // short and alpha forms, names, a missing #, and stray characters.
+        for (const value of ['#fff', '#11223344', 'red', '1e1f22', '#1e1f2g', 'rgb(1,2,3)', '', 0]) {
+          const bad = await saveSettingToFile(key, value);
+          expect(bad.status).toBe('error');
+          expect(bad.error).toBe(`${key} must be null or a color written as #rrggbb`);
+        }
+      }
+    });
+
     // autoOpenDiffOnPermission once fell through into the notificationBanner
     // case, which let null in and named the wrong key in the error (issue #504).
     it('should accept only a boolean autoOpenDiffOnPermission', async () => {
@@ -698,6 +713,10 @@ describe('settings', () => {
         lineHeight: 1.6,
         autoScrollThreshold: 80,
         softWrap: false,
+        chatBackgroundColorDark: null,
+        chatBackgroundColorLight: null,
+        headerBarColor: null,
+        userMessageColor: null,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,
@@ -839,6 +858,10 @@ export default {
         lineHeight: 1.6,
         autoScrollThreshold: 80,
         softWrap: false,
+        chatBackgroundColorDark: null,
+        chatBackgroundColorLight: null,
+        headerBarColor: null,
+        userMessageColor: null,
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,

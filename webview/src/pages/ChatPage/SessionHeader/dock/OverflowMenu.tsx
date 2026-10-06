@@ -54,7 +54,7 @@ export function OverflowMenu() {
       </button>
 
       {open && (
-        <div className="absolute end-0 top-full mt-1 w-[17rem] bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50">
+        <div data-header-menu className="absolute end-0 top-full mt-1 w-[17rem] bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50">
           <DockEditor onRun={() => setOpen(false)} />
         </div>
       )}

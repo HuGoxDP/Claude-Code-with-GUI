@@ -255,6 +255,27 @@
     "chat": {
       "sectionTitle": "Chat"
     },
+    "chatColors": {
+      "background": {
+        "label": "Fond du chat",
+        "description": "La couleur derrière la conversation, à part pour le thème clair et le thème sombre."
+      },
+      "header": {
+        "label": "Barre d'en-tête",
+        "description": "La barre en haut du chat ; son texte passe en noir ou en blanc pour rester lisible."
+      },
+      "userMessage": {
+        "label": "Vos messages",
+        "description": "Les messages que vous envoyez ; leur texte passe en noir ou en blanc pour rester lisible."
+      },
+      "theme": "Thème",
+      "themeHint": "Utiliser la couleur du thème",
+      "pick": "Choisir une couleur",
+      "hex": "Code couleur",
+      "use": "Utiliser {{color}}",
+      "notSet": "Non défini",
+      "lowContrast": "Le texte du thème risque d'être peu lisible sur cette couleur."
+    },
     "scrolling": {
       "sectionTitle": "Défilement",
       "autoScrollThreshold": {

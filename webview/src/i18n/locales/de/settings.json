@@ -255,6 +255,27 @@
     "chat": {
       "sectionTitle": "Chat"
     },
+    "chatColors": {
+      "background": {
+        "label": "Chat-Hintergrund",
+        "description": "Die Farbe hinter der Unterhaltung, getrennt für helles und dunkles Theme."
+      },
+      "header": {
+        "label": "Kopfleiste",
+        "description": "Die Leiste oben im Chat; ihr Text wird schwarz oder weiß, damit er lesbar bleibt."
+      },
+      "userMessage": {
+        "label": "Eigene Nachrichten",
+        "description": "Die Nachrichten, die du sendest; ihr Text wird schwarz oder weiß, damit er lesbar bleibt."
+      },
+      "theme": "Theme",
+      "themeHint": "Farbe des Themes verwenden",
+      "pick": "Farbe wählen",
+      "hex": "Farbcode",
+      "use": "{{color}} verwenden",
+      "notSet": "Nicht festgelegt",
+      "lowContrast": "Der Text des Themes ist auf dieser Farbe womöglich schwer lesbar."
+    },
     "scrolling": {
       "sectionTitle": "Scrollen",
       "autoScrollThreshold": {

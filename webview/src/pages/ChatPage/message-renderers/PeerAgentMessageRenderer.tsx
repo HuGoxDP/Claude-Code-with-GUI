@@ -32,7 +32,7 @@ export const PeerAgentMessageRenderer: React.FC<PeerAgentMessageRendererProps> =
         {origin.name && <span className="text-text-tertiary">· {origin.name}</span>}
       </div>
       <div className="min-w-0">
-        <MessageBox>
+        <MessageBox tone="other">
           <div className="text-text-primary/80 text-[1rem] leading-[1.5] whitespace-pre-wrap break-words">
             {body}
           </div>

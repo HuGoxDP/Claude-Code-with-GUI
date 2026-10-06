@@ -130,10 +130,10 @@ export function StickySendHeader(props: Props) {
           itself and falls off below it, so text thins out as it travels
           under rather than disappearing at a boundary.
 
-          `--surface-base-rgb` is the channel triplet the theme exposes
-          for exactly this (Tailwind's own `bg-surface-base/80` is built
-          on it), so the alpha goes straight into `rgb(... / a)` and the
-          fade follows the IDE theme along with everything else.
+          `--chat-background-rgb` is the channel triplet behind the chat
+          (the theme's `--surface-base-rgb` unless the user picked a color
+          of their own), so the alpha goes straight into `rgb(... / a)` and
+          the fade matches whatever the transcript is drawn on.
 
           The falloff is squeezed into the last stretch (opaque to 88%,
           then 0.6 / 0.3 / 0) so it lands on the trailing edge rather
@@ -145,10 +145,10 @@ export function StickySendHeader(props: Props) {
         style={{
           background:
             'linear-gradient(to bottom,' +
-            ' rgb(var(--surface-base-rgb)) 88%,' +
-            ' rgb(var(--surface-base-rgb) / 0.6) 90%,' +
-            ' rgb(var(--surface-base-rgb) / 0.3) 95%,' +
-            ' rgb(var(--surface-base-rgb) / 0) 100%)',
+            ' rgb(var(--chat-background-rgb)) 88%,' +
+            ' rgb(var(--chat-background-rgb) / 0.6) 90%,' +
+            ' rgb(var(--chat-background-rgb) / 0.3) 95%,' +
+            ' rgb(var(--chat-background-rgb) / 0) 100%)',
         }}
         onClick={onClick}
       >

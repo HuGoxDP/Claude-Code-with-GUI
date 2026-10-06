@@ -292,6 +292,9 @@ export function WorkingDirMenu(props: Props) {
 
   return (
     <div
+      // Keeps the theme's text on this panel while the header bar has a color
+      // of its own (index.css, "Chat colors of your own").
+      data-header-menu
       // Mobile pins the panel to the viewport edges, matching the session
       // dropdown. On desktop `w-[22rem]` is the FLOOR, not the width: deep
       // trees push the panel wider (`w-max`) until it reaches the viewport,

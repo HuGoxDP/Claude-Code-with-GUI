@@ -54,7 +54,7 @@ export function DropdownMenu(props: Props) {
   } = props;
 
   return (
-    <div className={`absolute top-full mt-1 bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50 ${isMobile() ? 'start-2 end-2' : 'start-0 w-[23rem]'}`}>
+    <div data-header-menu className={`absolute top-full mt-1 bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50 ${isMobile() ? 'start-2 end-2' : 'start-0 w-[23rem]'}`}>
       <SearchInput value={searchQuery} onChange={onSearchChange} onKeyDown={onSearchKeyDown} />
 
       {filteredSessionsCount > 0 ? (

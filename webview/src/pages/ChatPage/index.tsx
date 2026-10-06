@@ -318,7 +318,7 @@ function ChatPageContent() {
   // default of a mousedown stops the browser from starting a word or drag
   // selection anywhere in the chat.
   return (
-    <div className="flex flex-col w-full h-full bg-surface-base text-text-primary fixed start-0 top-0">
+    <div className="flex flex-col w-full h-full bg-chat-background text-text-primary fixed start-0 top-0">
       {/*
         Header - Minimal
 
@@ -327,8 +327,11 @@ function ChatPageContent() {
         covers. Left to size itself from its contents the header came out at
         34px, and the 6px shortfall showed up as a sliver of scrolled content
         above the sticky user message (issue #274).
+
+        `data-chat-header` is where a header color of your own re-points the
+        text tokens so they read on it (index.css, "Chat colors of your own").
       */}
-      <div className="fixed w-full top-0 bg-blend-darken bg-surface-base z-30 h-10">
+      <div data-chat-header className="fixed w-full top-0 bg-blend-darken bg-chat-header text-text-primary z-30 h-10">
         <SessionHeader isAwaitingUser={isAwaitingUser} />
       </div>
 
@@ -366,7 +369,7 @@ function ChatPageContent() {
         data-chat-scroll
         onScroll={handleScroll}
         style={{ paddingInlineEnd: SEND_INDEX_RAIL_WIDTH }}
-        className="flex flex-col flex-1 overflow-y-auto w-full h-screen pt-10 pb-0 bg-surface-base z-0"
+        className="flex flex-col flex-1 overflow-y-auto w-full h-screen pt-10 pb-0 bg-chat-background z-0"
       >
         <ChatMessageArea
           isStreaming={isStreaming && !isAwaitingUser}

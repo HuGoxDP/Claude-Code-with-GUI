@@ -566,6 +566,67 @@ html.ide-theme-sync[data-ide-colors='available'] {
   --hover-bg: var(--surface-hover);
 }
 
+/* ============================================
+   Chat colors of your own (Settings → Appearance → Chat)
+   ============================================
+   Three areas of the chat take a color the user picks: the background behind
+   the conversation, the header bar and the messages they send. Unset, each
+   follows a surface token — declared here, on <html>, so the reference is
+   resolved after `.dark` and IDE theme sync have had their say. Set, the
+   webview writes the triplets inline on <html> (utils/chatColors.ts), and an
+   inline declaration outranks this one.
+
+   The background comes in two, one per palette, and `.dark` below picks
+   between them: its text is the theme's, so the light theme's dark text must
+   never land on a color chosen for the dark one.
+
+   The header and your messages also carry text that reads on the chosen color.
+   Their own text, hover and border tokens are re-pointed inside them while a
+   color is set (the class on <html> says so); the `--theme-*` copies keep the
+   theme's values for the menus that open out of the header, which sit on the
+   theme's own surfaces and would otherwise inherit text meant for the bar. */
+:root {
+  --chat-background-rgb:   var(--chat-background-light-rgb, var(--surface-base-rgb));
+  --chat-header-rgb:       var(--surface-base-rgb);
+  --chat-user-message-rgb: var(--surface-hover-rgb);
+
+  --theme-text-primary-rgb:   var(--text-primary-rgb);
+  --theme-text-secondary-rgb: var(--text-secondary-rgb);
+  --theme-text-tertiary-rgb:  var(--text-tertiary-rgb);
+  --theme-surface-hover-rgb:  var(--surface-hover-rgb);
+  --theme-surface-pressed-rgb: var(--surface-pressed-rgb);
+  --theme-border-default-rgb: var(--border-default-rgb);
+}
+
+.dark {
+  --chat-background-rgb: var(--chat-background-dark-rgb, var(--surface-base-rgb));
+}
+
+html.custom-chat-header [data-chat-header] {
+  --text-primary-rgb:    var(--chat-header-text-rgb);
+  --text-secondary-rgb:  var(--chat-header-text-secondary-rgb);
+  --text-tertiary-rgb:   var(--chat-header-text-tertiary-rgb);
+  --surface-hover-rgb:   var(--chat-header-hover-rgb);
+  --surface-pressed-rgb: var(--chat-header-pressed-rgb);
+  --border-default-rgb:  var(--chat-header-border-rgb);
+}
+
+html.custom-chat-header [data-chat-header] [data-header-menu] {
+  --text-primary-rgb:    var(--theme-text-primary-rgb);
+  --text-secondary-rgb:  var(--theme-text-secondary-rgb);
+  --text-tertiary-rgb:   var(--theme-text-tertiary-rgb);
+  --surface-hover-rgb:   var(--theme-surface-hover-rgb);
+  --surface-pressed-rgb: var(--theme-surface-pressed-rgb);
+  --border-default-rgb:  var(--theme-border-default-rgb);
+}
+
+html.custom-user-message [data-own-message] {
+  --text-primary-rgb:   var(--chat-user-message-text-rgb);
+  --text-secondary-rgb: var(--chat-user-message-text-secondary-rgb);
+  --text-tertiary-rgb:  var(--chat-user-message-text-tertiary-rgb);
+  --border-default-rgb: var(--chat-user-message-border-rgb);
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;

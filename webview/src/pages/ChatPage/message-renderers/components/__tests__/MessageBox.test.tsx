@@ -11,7 +11,7 @@ function renderBox(fold: number | null, restingHeight = FOLD_MAX_HEIGHT) {
       <MessageBox>body</MessageBox>
     </ScrollFoldContext.Provider>,
   );
-  const box = r.container.querySelector('.bg-surface-hover') as HTMLElement;
+  const box = r.container.querySelector('[data-message-box]') as HTMLElement;
   return { ...r, box };
 }
 
@@ -92,7 +92,7 @@ describe('MessageBox — where the scroll fold meets expand', () => {
         <MessageBox>body</MessageBox>
       </ScrollFoldContext.Provider>,
     );
-    const box = container.querySelector('.bg-surface-hover') as HTMLElement;
+    const box = container.querySelector('[data-message-box]') as HTMLElement;
     expect(box.style.height).toBe('200px');
 
     fireEvent.click(box);
@@ -120,7 +120,7 @@ describe('MessageBox — where the scroll fold meets expand', () => {
         <MessageBox>body</MessageBox>
       </ScrollFoldContext.Provider>,
     );
-    const box = container.querySelector('.bg-surface-hover') as HTMLElement;
+    const box = container.querySelector('[data-message-box]') as HTMLElement;
 
     expect(box.style.height).toBe('200px');
     expect(container.firstElementChild).toBe(box);
@@ -135,10 +135,10 @@ describe('MessageBox — where the scroll fold meets expand', () => {
         <MessageBox>body</MessageBox>
       </ScrollFoldContext.Provider>,
     );
-    const before = container.querySelector('.bg-surface-hover') as HTMLElement;
+    const before = container.querySelector('[data-message-box]') as HTMLElement;
 
     fireEvent.click(before);
-    const after = container.querySelector('.bg-surface-hover') as HTMLElement;
+    const after = container.querySelector('[data-message-box]') as HTMLElement;
 
     expect(after).toBe(before);
   });
@@ -149,9 +149,27 @@ describe('MessageBox — where the scroll fold meets expand', () => {
         <MessageBox collapsible={false}>body</MessageBox>
       </ScrollFoldContext.Provider>,
     );
-    const box = container.querySelector('.bg-surface-hover') as HTMLElement;
+    const box = container.querySelector('[data-message-box]') as HTMLElement;
 
     expect(box.style.height).toBe('');
     expect(box.className).not.toContain('max-h-');
+  });
+});
+
+describe('MessageBox — whose color it takes', () => {
+  it('takes the "Your messages" color and its text tokens for what the user sent', () => {
+    const { container } = render(<MessageBox>mine</MessageBox>);
+    const box = container.querySelector('[data-message-box]') as HTMLElement;
+    expect(box.className).toContain('bg-chat-user-message');
+    expect(box.hasAttribute('data-own-message')).toBe(true);
+  });
+
+  it('keeps the theme bubble for a message another session sent', () => {
+    // Recoloring it too would make two authors look like one.
+    const { container } = render(<MessageBox tone="other">theirs</MessageBox>);
+    const box = container.querySelector('[data-message-box]') as HTMLElement;
+    expect(box.className).toContain('bg-surface-hover');
+    expect(box.className).not.toContain('bg-chat-user-message');
+    expect(box.hasAttribute('data-own-message')).toBe(false);
   });
 });

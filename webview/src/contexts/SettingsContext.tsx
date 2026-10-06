@@ -5,6 +5,7 @@ import { useBridgeContext } from '@/contexts/BridgeContext';
 import { useWorkingDir } from '@/contexts/WorkingDirContext';
 import { isJetBrains, isMobile, getIdeTheme, subscribeIdeTheme } from '@/config/environment';
 import { applyZoom, MOBILE_BASE_ZOOM, ZOOM_DEFAULT } from '@/utils/zoom';
+import { applyChatColors } from '@/utils/chatColors';
 import { MessageType } from '@/shared';
 import { setCurrentSettings } from '@/utils/openSettingsAt';
 import { isShadowedByProject } from '@/utils/settingsScope';
@@ -144,6 +145,24 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       settings[SettingKey.SOFT_WRAP] === true,
     );
   }, [settings]);
+
+  // Colors of your own for the chat background, the header bar and your
+  // messages. Inline properties on <html>, like the line height above; see
+  // utils/chatColors.ts for what each one sets and index.css for the defaults.
+  // Both background colors go on at once; index.css picks the one for the
+  // palette on screen, so a theme switch needs nothing from here.
+  const chatBackgroundDark = settings[SettingKey.CHAT_BACKGROUND_COLOR_DARK];
+  const chatBackgroundLight = settings[SettingKey.CHAT_BACKGROUND_COLOR_LIGHT];
+  const headerBarColor = settings[SettingKey.HEADER_BAR_COLOR];
+  const userMessageColor = settings[SettingKey.USER_MESSAGE_COLOR];
+  useEffect(() => {
+    applyChatColors({
+      backgroundDark: chatBackgroundDark,
+      backgroundLight: chatBackgroundLight,
+      header: headerBarColor,
+      userMessage: userMessageColor,
+    });
+  }, [chatBackgroundDark, chatBackgroundLight, headerBarColor, userMessageColor]);
 
   // Apply theme to <html> element. Toggles `.dark` class based on theme setting.
   // - LIGHT: explicit light, no `.dark` class

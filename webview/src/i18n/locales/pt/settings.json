@@ -255,6 +255,27 @@
     "chat": {
       "sectionTitle": "Chat"
     },
+    "chatColors": {
+      "background": {
+        "label": "Fundo do chat",
+        "description": "A cor atrás da conversa, separada para o tema claro e o escuro."
+      },
+      "header": {
+        "label": "Barra superior",
+        "description": "A barra no topo do chat; o texto fica preto ou branco para continuar legível."
+      },
+      "userMessage": {
+        "label": "Suas mensagens",
+        "description": "As mensagens que você envia; o texto fica preto ou branco para continuar legível."
+      },
+      "theme": "Tema",
+      "themeHint": "Usar a cor do tema",
+      "pick": "Escolher uma cor",
+      "hex": "Código da cor",
+      "use": "Usar {{color}}",
+      "notSet": "Não definido",
+      "lowContrast": "O texto do tema pode ficar difícil de ler nesta cor."
+    },
     "scrolling": {
       "sectionTitle": "Rolagem",
       "autoScrollThreshold": {

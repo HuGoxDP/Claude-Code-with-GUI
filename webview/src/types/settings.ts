@@ -43,6 +43,15 @@ export enum SettingKey {
   // render with `whitespace-pre`. Off by default so the existing horizontal
   // scroll stays the default reading mode (issue #179).
   SOFT_WRAP = 'softWrap',
+  // Colors of your own for three areas of the chat, as `#rrggbb`, or null to
+  // follow the theme (ported from CC GUI). The background is kept per palette:
+  // its text stays the theme's, so a dark color under light-theme text is
+  // unreadable. The header and your messages switch their text to fit, so one
+  // value serves both palettes.
+  CHAT_BACKGROUND_COLOR_DARK = 'chatBackgroundColorDark',
+  CHAT_BACKGROUND_COLOR_LIGHT = 'chatBackgroundColorLight',
+  HEADER_BAR_COLOR = 'headerBarColor',
+  USER_MESSAGE_COLOR = 'userMessageColor',
 
   // Advanced
   DEBUG_MODE = 'debugMode',
@@ -400,6 +409,10 @@ export interface SettingsState {
   [SettingKey.LINE_HEIGHT]: number;
   [SettingKey.AUTO_SCROLL_THRESHOLD]: number;
   [SettingKey.SOFT_WRAP]: boolean;
+  [SettingKey.CHAT_BACKGROUND_COLOR_DARK]: string | null;
+  [SettingKey.CHAT_BACKGROUND_COLOR_LIGHT]: string | null;
+  [SettingKey.HEADER_BAR_COLOR]: string | null;
+  [SettingKey.USER_MESSAGE_COLOR]: string | null;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
   [SettingKey.TERMINAL_APP]: string | null;
@@ -447,6 +460,10 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.LINE_HEIGHT]: LINE_HEIGHT_DEFAULT,
   [SettingKey.AUTO_SCROLL_THRESHOLD]: AUTO_SCROLL_THRESHOLD_DEFAULT,
   [SettingKey.SOFT_WRAP]: false,
+  [SettingKey.CHAT_BACKGROUND_COLOR_DARK]: null,
+  [SettingKey.CHAT_BACKGROUND_COLOR_LIGHT]: null,
+  [SettingKey.HEADER_BAR_COLOR]: null,
+  [SettingKey.USER_MESSAGE_COLOR]: null,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,
   [SettingKey.TERMINAL_APP]: null,

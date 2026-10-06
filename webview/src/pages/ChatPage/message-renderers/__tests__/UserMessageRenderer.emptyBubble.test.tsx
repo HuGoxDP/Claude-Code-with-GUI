@@ -34,7 +34,7 @@ function userMessage(content: unknown, extra: Record<string, unknown> = {}): Loa
 
 /** The empty bubble is `MessageBox` with nothing in it — border, no content. */
 function renderedBox(container: HTMLElement): Element | null {
-  return container.querySelector('.bg-surface-hover.border');
+  return container.querySelector('[data-message-box]');
 }
 
 /**

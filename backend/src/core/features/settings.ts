@@ -58,6 +58,10 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   lineHeight: 1.6,
   autoScrollThreshold: 80,
   softWrap: false,
+  chatBackgroundColorDark: null,
+  chatBackgroundColorLight: null,
+  headerBarColor: null,
+  userMessageColor: null,
   debugMode: false,
   logLevel: 'info',
   terminalApp: null,
@@ -127,6 +131,10 @@ const COMMENT_MAP: Record<string, string> = {
   lineHeight: '채팅 메시지 줄 간격(line-height 배수, 0.5~10)',
   autoScrollThreshold: '자동 스크롤 임계점(px). 메시지 끝에서 이 거리 안에 있을 때만 스트림을 따라 내려간다',
   softWrap: '긴 줄을 코드 블록 너비에 맞춰 접는다(diff, 도구 입출력 등). false면 가로 스크롤',
+  chatBackgroundColorDark: '다크 테마의 채팅 영역 배경색 "#rrggbb". null이면 테마 색',
+  chatBackgroundColorLight: '라이트 테마의 채팅 영역 배경색 "#rrggbb". null이면 테마 색',
+  headerBarColor: '채팅 상단바 배경색 "#rrggbb". null이면 테마 색',
+  userMessageColor: '내가 보낸 메시지 말풍선 배경색 "#rrggbb". null이면 테마 색',
   debugMode: '디버그 모드 활성화',
   logLevel: '로그 레벨: "debug" | "info" | "warn" | "error"',
   terminalApp: '터미널 프로그램 (null이면 OS 기본 터미널)',
@@ -465,6 +473,14 @@ function validateSetting(key: string, value: unknown): string | null {
     case 'softWrap':
       if (typeof value !== 'boolean') {
         return `${key} must be a boolean`;
+      }
+      break;
+    case 'chatBackgroundColorDark':
+    case 'chatBackgroundColorLight':
+    case 'headerBarColor':
+    case 'userMessageColor':
+      if (value !== null && (typeof value !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(value))) {
+        return `${key} must be null or a color written as #rrggbb`;
       }
       break;
     case 'uiDirection':

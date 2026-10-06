@@ -255,6 +255,27 @@
     "chat": {
       "sectionTitle": "聊天"
     },
+    "chatColors": {
+      "background": {
+        "label": "聊天背景",
+        "description": "對話後方的顏色，淺色與深色主題分別設定。"
+      },
+      "header": {
+        "label": "頂部列",
+        "description": "聊天頂部列的顏色；文字會變為黑色或白色以便閱讀。"
+      },
+      "userMessage": {
+        "label": "我的訊息",
+        "description": "你傳送的訊息的顏色；文字會變為黑色或白色以便閱讀。"
+      },
+      "theme": "主題",
+      "themeHint": "使用主題顏色",
+      "pick": "選擇顏色",
+      "hex": "色碼",
+      "use": "使用 {{color}}",
+      "notSet": "未設定",
+      "lowContrast": "在此顏色上主題文字可能不易閱讀。"
+    },
     "scrolling": {
       "sectionTitle": "捲動",
       "autoScrollThreshold": {

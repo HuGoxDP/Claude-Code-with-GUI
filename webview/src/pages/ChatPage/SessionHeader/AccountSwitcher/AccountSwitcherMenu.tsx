@@ -72,7 +72,7 @@ export function AccountSwitcherMenu(props: Props) {
   };
 
   return (
-    <div className="absolute end-0 top-full mt-1 w-[20rem] bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50">
+    <div data-header-menu className="absolute end-0 top-full mt-1 w-[20rem] bg-surface-raised border border-border-default rounded-md shadow-xl overflow-hidden z-50">
       {error && (
         <p className="text-[0.7692rem] text-state-error-fg px-3 py-2 border-b border-border-default">{error}</p>
       )}
