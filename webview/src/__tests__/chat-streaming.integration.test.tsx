@@ -18,6 +18,7 @@ import { LimitReachedRenderer } from '../pages/ChatPage/message-renderers/LimitR
 import { isLimitErrorMessage } from '../types';
 import { i18n } from '../i18n';
 import { AutoResumeProvider, useAutoResumeContext } from '../contexts/AutoResumeContext';
+import { ChatInstructionsProvider, useOptionalChatInstructions } from '../contexts/ChatInstructionsContext';
 
 // Mock requestAnimationFrame/cancelAnimationFrame
 globalThis.requestAnimationFrame = vi.fn((cb) => {
@@ -733,5 +734,64 @@ describe('채팅 스트리밍 통합 테스트', () => {
     // Verify final state
     expect(screen.getByTestId('messages-count')).toHaveTextContent('2');
     expect(screen.getAllByTestId(/^msg-/).length).toBe(2);
+  });
+});
+
+describe('instructions for a new conversation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSession.currentSessionId = null;
+    mockSession.requestedInputMode = 'ask_before_edit';
+    mockBridge.subscribe.mockImplementation(() => () => {});
+    mockBridge.send.mockResolvedValue(undefined);
+  });
+
+  /** Chooses a saved prompt for the next new conversation, as the picker does. */
+  function ChooseInstructions() {
+    const instructions = useOptionalChatInstructions();
+    return (
+      <button data-testid="choose" onClick={() => instructions?.setDraft({ id: 'prompt-1', name: 'Reviewer' })}>
+        Choose
+      </button>
+    );
+  }
+
+  const sentPayloads = () => mockBridge.send.mock.calls
+    .filter(([type]) => type === MessageType.SEND_MESSAGE)
+    .map(([, payload]) => payload as Record<string, unknown>);
+
+  it('rides the message that creates the session, and only that one', async () => {
+    // Above the chat stream, as in the app: the stream reads the choice.
+    render(
+      <ChatInstructionsProvider>
+        <TestWrapper>
+          <ChooseInstructions />
+          <TestChatComponent />
+        </TestWrapper>
+      </ChatInstructionsProvider>,
+    );
+    fireEvent.click(screen.getByTestId('choose'));
+    fireEvent.click(screen.getByTestId('submit-with-mode'));
+    fireEvent.click(screen.getByTestId('submit-with-mode'));
+
+    await waitFor(() => expect(sentPayloads()).toHaveLength(2));
+    const [first, second] = sentPayloads();
+    expect(first.isNewSession).toBe(true);
+    expect(first.instructionsPromptId).toBe('prompt-1');
+    // Taken by the first message: the CLI keeps it from there.
+    expect(second).not.toHaveProperty('instructionsPromptId');
+  });
+
+  it('sends none when nothing was chosen', async () => {
+    render(
+      <ChatInstructionsProvider>
+        <TestWrapper>
+          <TestChatComponent />
+        </TestWrapper>
+      </ChatInstructionsProvider>,
+    );
+    fireEvent.click(screen.getByTestId('submit-with-mode'));
+    await waitFor(() => expect(sentPayloads()).toHaveLength(1));
+    expect(sentPayloads()[0]).not.toHaveProperty('instructionsPromptId');
   });
 });

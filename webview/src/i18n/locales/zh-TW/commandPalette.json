@@ -15,7 +15,8 @@
     "showBackgroundTasks": "工作流程:顯示背景工作",
     "scheduleSend": "排程傳送訊息...",
     "promptLibrary": "提示詞庫",
-    "commitMessage": "撰寫提交訊息..."
+    "commitMessage": "撰寫提交訊息...",
+    "chatInstructions": "帶指示開始聊天..."
   },
   "scheduleSend": {
     "title": "排程傳送訊息",

@@ -15,7 +15,8 @@
     "showBackgroundTasks": "جریان کاری: نمایش کارهای پس‌زمینه",
     "scheduleSend": "زمان‌بندی پیام...",
     "promptLibrary": "کتابخانهٔ پرامپت",
-    "commitMessage": "نوشتن پیام کامیت..."
+    "commitMessage": "نوشتن پیام کامیت...",
+    "chatInstructions": "شروع گفتگو با دستورالعمل..."
   },
   "scheduleSend": {
     "title": "زمان‌بندی پیام",

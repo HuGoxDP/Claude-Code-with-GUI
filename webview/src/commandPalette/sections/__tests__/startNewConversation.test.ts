@@ -81,3 +81,37 @@ describe('startNewConversation', () => {
     expect(services.session.resetToNewSession).not.toHaveBeenCalled();
   });
 });
+
+describe('Start a chat with instructions...', () => {
+  async function run(services: CommandPaletteServices) {
+    const { getContextItems } = await import('../context/items');
+    const { OPEN_INSTRUCTIONS_PICKER_EVENT } = await import('@/components/InstructionsPicker');
+    const item = getContextItems().find((candidate) => candidate.id === 'chat-instructions')!;
+    item._bind(() => services);
+    const opened = vi.fn();
+    window.addEventListener(OPEN_INSTRUCTIONS_PICKER_EVENT, opened);
+    await item.execute();
+    window.removeEventListener(OPEN_INSTRUCTIONS_PICKER_EVENT, opened);
+    return opened;
+  }
+
+  it('opens the picker right away in an empty chat', async () => {
+    const services = servicesWith({ sessionId: null, messages: 0 });
+    expect(await run(services)).toHaveBeenCalledTimes(1);
+    // Already the conversation the choice is for: nothing to leave.
+    expect(services.session.resetToNewSession).not.toHaveBeenCalled();
+  });
+
+  it('leaves a started chat first, by the same rule as /clear', async () => {
+    const services = servicesWith();
+    expect(await run(services)).toHaveBeenCalledTimes(1);
+    expect(services.session.resetToNewSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays put, picker closed, when leaving is declined', async () => {
+    askFirst(true);
+    const services = servicesWith({ answer: false });
+    expect(await run(services)).not.toHaveBeenCalled();
+    expect(services.session.resetToNewSession).not.toHaveBeenCalled();
+  });
+});

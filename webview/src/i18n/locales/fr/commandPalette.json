@@ -15,7 +15,8 @@
     "showBackgroundTasks": "Workflow : afficher les tâches en arrière-plan",
     "scheduleSend": "Planifier un message...",
     "promptLibrary": "Bibliothèque de prompts",
-    "commitMessage": "Rédiger un message de commit..."
+    "commitMessage": "Rédiger un message de commit...",
+    "chatInstructions": "Commencer un chat avec des instructions..."
   },
   "scheduleSend": {
     "title": "Planifier un message",

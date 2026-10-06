@@ -1,4 +1,7 @@
 import type { ChildProcess } from 'child_process';
+import { mkdtemp, rm, writeFile } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import type { ConnectionManager } from '../ws/connection-manager';
 import type { Bridge } from '../bridge/bridge-interface';
 import { Claude } from './claude';
@@ -196,6 +199,7 @@ export function buildClaudeArgs(
   effortLevel?: string,
   thinkingDisplay?: string,
   includePartialMessages = true,
+  appendSystemPromptFile?: string,
 ): string[] {
   const args: string[] = [
     '-p',
@@ -244,6 +248,14 @@ export function buildClaudeArgs(
   // See resolveThinkingDisplayFlag.
   if (thinkingDisplay) {
     args.push('--thinking-display', thinkingDisplay);
+  }
+
+  // The instructions a new conversation was started with: the documented flag a
+  // terminal user passes for the same thing. A file rather than the text itself,
+  // so no free text rides the command line (see buildWin32CmdLine for why that
+  // matters on Windows). See writeInstructionsFile.
+  if (appendSystemPromptFile) {
+    args.push('--append-system-prompt-file', appendSystemPromptFile);
   }
 
   return args;
@@ -401,6 +413,24 @@ export function needsRestartForStreaming(liveStreaming: boolean | null, requeste
 }
 
 /**
+ * Put a new conversation's instructions in a file of their own for
+ * `--append-system-prompt-file`, and return its path and how to remove it.
+ *
+ * Only a new conversation gets one. Measured against 2.1.291: the CLI records
+ * the system prompt of a session in a `prompt_snapshot` entry of its transcript,
+ * and `--resume` keeps that one. Resuming without the flag still answered by the
+ * first instructions, and resuming with a different file left them unchanged.
+ * So instructions are fixed when a conversation starts, and a restart (mode,
+ * effort, a dead process) carries them on its own.
+ */
+export async function writeInstructionsFile(text: string): Promise<{ path: string; remove: () => Promise<void> }> {
+  const dir = await mkdtemp(join(tmpdir(), 'ccg-instructions-'));
+  const path = join(dir, 'instructions.md');
+  await writeFile(path, text, { encoding: 'utf8', mode: 0o600 });
+  return { path, remove: () => rm(dir, { recursive: true, force: true }) };
+}
+
+/**
  * Terminate a session's live CLI so the next message respawns it with current
  * spawn-time settings and credentials, and wait until it is really gone.
  *
@@ -476,6 +506,12 @@ export async function ensureClaudeProcess(
   inputMode: string | undefined,
   bridge: Bridge,
   model?: string,
+  /**
+   * Instructions for a conversation that starts with this spawn, from a saved
+   * prompt. Ignored when the session already exists: the CLI keeps the system
+   * prompt a session started with (see writeInstructionsFile).
+   */
+  instructions?: string,
 ): Promise<void> {
   // Standalone mode on Windows can't reach a WSL project's tooling: cmd.exe rejects
   // the UNC cwd and the CLI would use PowerShell instead of bash. Guide the user to
@@ -592,6 +628,10 @@ export async function ensureClaudeProcess(
   console.error('[node-backend]', `Working directory: ${workingDir}`);
   console.error('[node-backend]', `Session: ${targetSessionId} (${sessionFlag})`);
 
+  // The file only has to outlive the CLI reading it at startup; it goes when
+  // the process does (or right away if the spawn fails).
+  const instructionsFile = !useResume && instructions ? await writeInstructionsFile(instructions) : undefined;
+
   const args = buildClaudeArgs(
     sessionFlag,
     targetSessionId,
@@ -600,6 +640,7 @@ export async function ensureClaudeProcess(
     effortLevel,
     thinkingDisplay,
     includePartialMessages,
+    instructionsFile?.path,
   );
 
   console.error('[node-backend]', `Command: ${Claude.command} ${args.join(' ')}`);
@@ -626,7 +667,14 @@ export async function ensureClaudeProcess(
     // win32: route this long-lived chat CLI through a Job Object wrapper so its
     // whole tree (incl. MSYS/git-bash workers that escape taskkill /F /T) dies with
     // the backend. POSIX uses the detached process-group above instead.
-  }, targetSessionId);
+  }, targetSessionId).catch(async (err) => {
+    await instructionsFile?.remove();
+    throw err;
+  });
+  if (instructionsFile) {
+    proc.once('close', () => void instructionsFile.remove());
+    proc.once('error', () => void instructionsFile.remove());
+  }
 
   let stderrBuffer = '';
 

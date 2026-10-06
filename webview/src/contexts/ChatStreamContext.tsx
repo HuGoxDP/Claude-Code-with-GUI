@@ -6,6 +6,7 @@ import { useTools } from '../hooks/useTools';
 import { useBridgeContext } from './BridgeContext';
 import { useSessionContext, type SessionHandoff } from './SessionContext';
 import { useOptionalAllowAllCommands } from './AllowAllCommandsContext';
+import { useOptionalChatInstructions, type ChatInstructions } from './ChatInstructionsContext';
 import { useCliConfig } from './CliConfigContext';
 import { useClaudeSettings } from './ClaudeSettingsContext';
 import { useSettings } from './SettingsContext';
@@ -49,6 +50,12 @@ interface SendMessagePayload {
   // explicit model is selected (CLI uses its default).
   model?: string;
   accountId?: string;
+  /**
+   * A saved prompt to start the conversation with, by its library id. Only on
+   * the message that creates the session: the CLI keeps the instructions a
+   * session began with (ChatInstructionsContext).
+   */
+  instructionsPromptId?: string;
 }
 
 interface ChatStreamContextType {
@@ -163,6 +170,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
   // The function, not the context value: the value is a new object every render and
   // would invalidate the send callbacks below on each one.
   const adoptAllowAllDraft = useOptionalAllowAllCommands()?.adoptDraft;
+  const takeInstructions = useOptionalChatInstructions()?.take;
   const { controlResponse, refresh: refreshCliConfig } = useCliConfig();
   const { settings: claudeSettings } = useClaudeSettings();
   const { settings: appSettings } = useSettings();
@@ -462,10 +470,12 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
       // Resolve session ID: use existing or generate new one
       let sessionId = session.currentSessionId;
       const isNewSession = !sessionId;
+      let instructions: ChatInstructions | null = null;
       if (!sessionId) {
         sessionId = crypto.randomUUID();
         session.addNewSession(sessionId, content);
         adoptAllowAllDraft?.(sessionId);
+        instructions = takeInstructions?.() ?? null;
         console.log('[ChatStreamContext] New session created:', sessionId);
       }
 
@@ -490,6 +500,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
         inputMode: session.requestedInputMode ?? undefined,
         model: sessionModel ?? undefined,
         ...(accountId ? { accountId } : {}),
+        ...(instructions ? { instructionsPromptId: instructions.id } : {}),
       };
 
       // Send straight through, even mid-turn. The CLI buffers its stdin and picks
@@ -506,7 +517,7 @@ export function ChatStreamProvider(props: ChatStreamProviderProps) {
         console.error('[ChatStreamContext] Failed to send message to bridge:', error);
       });
     },
-    [addUserMessage, adoptAllowAllDraft, bridge, session, sessionModel]
+    [addUserMessage, adoptAllowAllDraft, takeInstructions, bridge, session, sessionModel]
   );
 
   /**

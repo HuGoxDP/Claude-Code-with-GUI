@@ -15,7 +15,8 @@
     "showBackgroundTasks": "ワークフロー: バックグラウンドタスクを表示",
     "scheduleSend": "メッセージを予約送信...",
     "promptLibrary": "プロンプトライブラリ",
-    "commitMessage": "コミットメッセージを書く..."
+    "commitMessage": "コミットメッセージを書く...",
+    "chatInstructions": "指示付きでチャットを開始..."
   },
   "scheduleSend": {
     "title": "メッセージを予約",

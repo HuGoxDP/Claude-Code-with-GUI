@@ -93,6 +93,7 @@ import { useIMEComposition } from './RichInput/useIMEComposition';
 import { insertNewlineAtCursor } from './RichInput/insertNewlineAtCursor';
 import { TelemetryConsentBanner } from '../TelemetryConsentBanner';
 import { InputBanner } from '../InputBanner';
+import { InstructionsBanner } from './InstructionsBanner';
 import { QueuedMessagesStack } from './QueuedMessagesStack';
 import { AnnouncementInputBannerSlot } from '@/components/Announcements/placements';
 import {
@@ -1223,6 +1224,8 @@ export function ChatInput() {
           }}
         />
       )}
+      {/* The saved prompt this new conversation will start with, until it starts. */}
+      <InstructionsBanner />
       {/* Auto mode 강등 안내: auto를 요청했으나 CLI가 이 환경에서 미지원이라 기본 모드로 적용한 경우 */}
       {autoFallbackNotice && (
         <InputBanner

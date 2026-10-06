@@ -778,5 +778,18 @@
     "noProblems": "修正 {{ref}}：",
     "error": "錯誤",
     "warning": "警告"
+  },
+  "instructions": {
+    "pickerTitle": "新聊天的指示",
+    "pickerHint": "Claude 會在平常的指示之外，在整段對話中遵循所選提示詞。它在對話開始時確定。",
+    "search": "篩選提示詞",
+    "none": "無",
+    "loading": "正在載入提示詞…",
+    "loadFailed": "無法讀取提示詞庫。",
+    "empty": "還沒有儲存的提示詞。請在提示詞庫中建立。",
+    "openLibrary": "開啟提示詞庫",
+    "cancel": "取消",
+    "banner": "以此指示開始：",
+    "change": "變更"
   }
 }

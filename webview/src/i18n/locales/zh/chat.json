@@ -778,5 +778,18 @@
     "noProblems": "修复 {{ref}}：",
     "error": "错误",
     "warning": "警告"
+  },
+  "instructions": {
+    "pickerTitle": "新聊天的指令",
+    "pickerHint": "Claude 会在平常的指令之外，在整个对话中遵循所选提示词。它在对话开始时确定。",
+    "search": "筛选提示词",
+    "none": "无",
+    "loading": "正在加载提示词…",
+    "loadFailed": "无法读取提示词库。",
+    "empty": "还没有保存的提示词。请在提示词库中创建。",
+    "openLibrary": "打开提示词库",
+    "cancel": "取消",
+    "banner": "以此指令开始：",
+    "change": "更改"
   }
 }

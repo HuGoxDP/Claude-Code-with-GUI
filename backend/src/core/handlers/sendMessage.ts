@@ -10,6 +10,7 @@ import { resetUsageCache } from './getUsage';
 import { resetAllUsageCache } from './getAllUsage';
 import { invalidateFableProbeCache } from '../features/fable-probe';
 import { clearAccountPoolRecovery, claimAccountPoolContinuation } from '../features/account-pool-recovery-store';
+import { readPromptContentForProject } from '../features/prompts';
 
 export async function sendMessageHandler(
   connectionId: string,
@@ -37,6 +38,10 @@ export async function sendMessageHandler(
   // 미리 생성해 보내므로(ChatStreamContext), 백엔드에서 sessionId 유무로는 판정할 수 없다.
   const isNewSession = message.payload?.isNewSession === true;
   const resolvedSessionId = msgSessionId || generateSessionId();
+  // A saved prompt to start a new conversation with, by its library id. Only a
+  // new conversation takes one: the CLI keeps the instructions a session began
+  // with (see writeInstructionsFile).
+  const instructionsPromptId = message.payload?.instructionsPromptId;
   const attachments = message.payload?.attachments as Array<
     | { type: 'image'; fileName: string; mimeType: string; base64: string }
     | { type: 'file'; fileName: string; absolutePath: string }
@@ -57,8 +62,25 @@ export async function sendMessageHandler(
       // The directory goes with it: the session is what later answers
       // "which project is this?", and per-project settings depend on it.
       connections.subscribe(connectionId, resolvedSessionId, workingDir);
+      const instructions = isNewSession && typeof instructionsPromptId === 'string'
+        ? await readPromptContentForProject(instructionsPromptId, workingDir)
+        : null;
+      if (isNewSession && typeof instructionsPromptId === 'string' && instructions === null) {
+        // Deleted or moved since it was picked. The conversation still starts,
+        // without instructions, rather than losing the message.
+        console.error('[node-backend]', `Instructions prompt ${instructionsPromptId} not found; starting without it`);
+      }
       const send = async () => {
-        await ensureClaudeProcess(connections, connectionId, workingDir, resolvedSessionId, inputMode, bridge, model);
+        await ensureClaudeProcess(
+          connections,
+          connectionId,
+          workingDir,
+          resolvedSessionId,
+          inputMode,
+          bridge,
+          model,
+          instructions ?? undefined,
+        );
         sendMessageToProcess(connections, resolvedSessionId, content, attachments);
       };
       if (accountId) {

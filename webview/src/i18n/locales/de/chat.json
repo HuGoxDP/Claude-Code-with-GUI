@@ -778,5 +778,18 @@
     "noProblems": "Behebe {{ref}}:",
     "error": "Fehler",
     "warning": "Warnung"
+  },
+  "instructions": {
+    "pickerTitle": "Anweisungen für den neuen Chat",
+    "pickerHint": "Claude folgt dem gewählten Prompt die ganze Unterhaltung lang, zusätzlich zu seinen üblichen Anweisungen. Er wird beim Start der Unterhaltung festgelegt.",
+    "search": "Prompts filtern",
+    "none": "Keine",
+    "loading": "Prompts werden geladen…",
+    "loadFailed": "Die Prompt-Bibliothek konnte nicht gelesen werden.",
+    "empty": "Noch keine gespeicherten Prompts. Lege einen in der Prompt-Bibliothek an.",
+    "openLibrary": "Prompt-Bibliothek öffnen",
+    "cancel": "Abbrechen",
+    "banner": "Beginnt mit Anweisungen:",
+    "change": "Ändern"
   }
 }

@@ -15,7 +15,8 @@
     "showBackgroundTasks": "Workflow: Hintergrundaufgaben anzeigen",
     "scheduleSend": "Nachricht planen...",
     "promptLibrary": "Prompt-Bibliothek",
-    "commitMessage": "Commit-Nachricht schreiben..."
+    "commitMessage": "Commit-Nachricht schreiben...",
+    "chatInstructions": "Chat mit Anweisungen beginnen..."
   },
   "scheduleSend": {
     "title": "Nachricht planen",

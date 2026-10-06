@@ -15,7 +15,8 @@
     "showBackgroundTasks": "Fluxo de trabalho: Mostrar tarefas em segundo plano",
     "scheduleSend": "Agendar uma mensagem...",
     "promptLibrary": "Biblioteca de prompts",
-    "commitMessage": "Escrever uma mensagem de commit..."
+    "commitMessage": "Escrever uma mensagem de commit...",
+    "chatInstructions": "Começar um chat com instruções..."
   },
   "scheduleSend": {
     "title": "Agendar uma mensagem",

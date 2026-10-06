@@ -24,6 +24,7 @@ import { WorkflowStateProvider } from './WorkflowStateContext';
 import { ScheduledMessagesProvider } from './ScheduledMessagesContext';
 import { AutoResumeOverrideProvider } from './AutoResumeOverrideContext';
 import { AllowAllCommandsProvider } from './AllowAllCommandsContext';
+import { ChatInstructionsProvider } from './ChatInstructionsContext';
 import { CommandPaletteProvider } from '../commandPalette/CommandPaletteProvider';
 import { useApi } from './ApiContext';
 import { SessionState } from '../types';
@@ -321,7 +322,9 @@ export function AppProviders({ children }: AppProvidersProps) {
                         <ScheduledMessagesProvider>
                           <AutoResumeOverrideProvider>
                             <AllowAllCommandsProvider>
-                              <ChatProviderBridge>{children}</ChatProviderBridge>
+                              <ChatInstructionsProvider>
+                                <ChatProviderBridge>{children}</ChatProviderBridge>
+                              </ChatInstructionsProvider>
                             </AllowAllCommandsProvider>
                           </AutoResumeOverrideProvider>
                         </ScheduledMessagesProvider>

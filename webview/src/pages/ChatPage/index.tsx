@@ -29,6 +29,7 @@ import {
   type OpenPromptLibraryDetail,
 } from '@/commandPalette/sections/context/items';
 import { PromptLibraryModal } from '@/components/PromptLibraryModal';
+import { InstructionsPickerHost } from '@/components/InstructionsPicker/InstructionsPickerHost';
 import { CommitMessageDialogSlot } from '@/components/CommitMessageDialog/Slot';
 import { useMcpServers, MCP_SERVERS_QUERY_KEY } from '@/hooks/useMcpServers';
 import { useQueryClient } from '@tanstack/react-query';
@@ -467,6 +468,7 @@ function ChatPageContent() {
         />
       )}
       <CommitMessageDialogSlot />
+      <InstructionsPickerHost />
       <AnnouncementModalSlot />
       <WhatsNewSlot />
     </div>

@@ -778,5 +778,18 @@
     "noProblems": "Corrige {{ref}} :",
     "error": "erreur",
     "warning": "avertissement"
+  },
+  "instructions": {
+    "pickerTitle": "Instructions pour le nouveau chat",
+    "pickerHint": "Claude suit le prompt choisi pendant toute la conversation, en plus de ses instructions habituelles. Il est fixé au début de la conversation.",
+    "search": "Filtrer les prompts",
+    "none": "Aucun",
+    "loading": "Chargement des prompts…",
+    "loadFailed": "La bibliothèque de prompts n'a pas pu être lue.",
+    "empty": "Aucun prompt enregistré pour l'instant. Créez-en un dans la bibliothèque de prompts.",
+    "openLibrary": "Ouvrir la bibliothèque de prompts",
+    "cancel": "Annuler",
+    "banner": "Commence avec les instructions :",
+    "change": "Changer"
   }
 }

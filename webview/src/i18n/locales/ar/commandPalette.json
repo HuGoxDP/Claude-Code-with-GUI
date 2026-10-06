@@ -15,7 +15,8 @@
     "showBackgroundTasks": "مهمة سير العمل: عرض المهام الخلفية",
     "scheduleSend": "جدولة رسالة...",
     "promptLibrary": "مكتبة المطالبات",
-    "commitMessage": "كتابة رسالة الإيداع..."
+    "commitMessage": "كتابة رسالة الإيداع...",
+    "chatInstructions": "بدء دردشة بتعليمات..."
   },
   "scheduleSend": {
     "title": "جدولة رسالة",

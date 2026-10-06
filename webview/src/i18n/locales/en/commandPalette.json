@@ -15,7 +15,8 @@
     "showBackgroundTasks": "Workflow: Show background tasks",
     "scheduleSend": "Schedule a message...",
     "promptLibrary": "Prompt Library",
-    "commitMessage": "Write a commit message..."
+    "commitMessage": "Write a commit message...",
+    "chatInstructions": "Start a chat with instructions..."
   },
   "scheduleSend": {
     "title": "Schedule a message",

@@ -258,6 +258,24 @@ export async function readPrompts(scope: PromptScope, projectPath?: string): Pro
 }
 
 /**
+ * The text of the saved prompt [id], as a chat in [projectPath] can see it: a
+ * global prompt, or one of that project's own. Null when there is no such
+ * prompt there (deleted, another project's, or not an id we hand out).
+ *
+ * Used to start a new conversation with a saved prompt as its instructions.
+ * The id travels, not the text, so what Claude gets is what is saved now.
+ */
+export async function readPromptContentForProject(id: string, projectPath: string): Promise<string | null> {
+  if (!VALID_ID_PATTERN.test(id)) return null;
+  const resolved = await resolveScopeProject('project', projectPath);
+  const projectId = resolved.status === 'ok' ? resolved.projectId : null;
+  const [item] = await new PromptItemCollection().where(
+    (candidate) => candidate.uuid === id && (candidate.projectId === null || candidate.projectId === projectId),
+  );
+  return item ? item.content : null;
+}
+
+/**
  * The order of the prompts inside each category, for one scope: category uuid to
  * the prompt uuids filed under it, top first.
  */

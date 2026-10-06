@@ -5,6 +5,7 @@ import { StaticItem } from '../../types';
 import { enKeyword } from '../../enKeyword';
 import { OPEN_COMMIT_MESSAGE_EVENT } from '@/components/CommitMessageDialog';
 import { startNewConversation } from '../startNewConversation';
+import { OPEN_INSTRUCTIONS_PICKER_EVENT } from '@/components/InstructionsPicker';
 
 /**
  * Fired when the user runs `/resume`. The session dropdown opens (browse/resume
@@ -131,6 +132,20 @@ export const getContextItems = (): StaticItem[] => [
     disabled: false,
     action: async () => {
       window.dispatchEvent(new CustomEvent(OPEN_PROMPT_LIBRARY_EVENT));
+    },
+  }),
+  // A new conversation that starts with a saved prompt as its instructions
+  // (ported from CC GUI's agents). Instructions can only be set when a
+  // conversation starts, so from a chat that has started this first leaves it,
+  // by the same rule as /clear; then the picker sets them for the new one.
+  new StaticItem('chat-instructions', i18n.t('commandPalette:context.chatInstructions'), {
+    keywords: [enKeyword('commandPalette:context.chatInstructions'), 'instructions', 'system prompt', 'agent', 'persona'],
+    icon: IconType.Bookmark,
+    disabled: false,
+    serviceAction: async (services) => {
+      const started = services.session.currentSessionId !== null || services.chatStream.messages.length > 0;
+      if (started && !(await startNewConversation(services))) return;
+      window.dispatchEvent(new CustomEvent(OPEN_INSTRUCTIONS_PICKER_EVENT));
     },
   }),
   // Writes a commit message for what `git commit` would commit here, to copy.

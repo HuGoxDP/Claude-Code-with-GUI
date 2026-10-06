@@ -12,7 +12,9 @@ import {
   resolveIncludePartialMessages,
   resolveThinkingDisplayFlag,
   stopWorkflowsForSession,
+  writeInstructionsFile,
 } from '../claude-process';
+import { existsSync, readFileSync, statSync } from 'fs';
 
 describe('buildClaudeArgs', () => {
   it('includes the core stream-json print-mode flags and the session flag', () => {
@@ -220,6 +222,22 @@ describe('streaming', () => {
     expect(needsRestartForStreaming(false, true)).toBe(true);
     // No value recorded means no process started by us to compare against.
     expect(needsRestartForStreaming(null, false)).toBe(false);
+  });
+});
+
+describe('instructions for a new conversation', () => {
+  it('passes the file with the documented flag, and nothing without one', () => {
+    const args = buildClaudeArgs('--session-id', 's', 'plan', undefined, undefined, undefined, true, '/tmp/x/instructions.md');
+    expect(args[args.indexOf('--append-system-prompt-file') + 1]).toBe('/tmp/x/instructions.md');
+    expect(buildClaudeArgs('--session-id', 's', 'plan')).not.toContain('--append-system-prompt-file');
+  });
+
+  it('writes the text to a private file and removes it again', async () => {
+    const file = await writeInstructionsFile('Answer in haiku.\nAlways.');
+    expect(readFileSync(file.path, 'utf8')).toBe('Answer in haiku.\nAlways.');
+    if (process.platform !== 'win32') expect(statSync(file.path).mode & 0o777).toBe(0o600);
+    await file.remove();
+    expect(existsSync(file.path)).toBe(false);
   });
 });
 

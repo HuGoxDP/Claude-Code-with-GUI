@@ -782,5 +782,18 @@
     "noProblems": "Fix {{ref}}:",
     "error": "error",
     "warning": "warning"
+  },
+  "instructions": {
+    "pickerTitle": "Instructions for the new chat",
+    "pickerHint": "Claude follows the chosen prompt for the whole conversation, on top of its usual instructions. It is set when the conversation starts.",
+    "search": "Filter prompts",
+    "none": "None",
+    "loading": "Loading prompts…",
+    "loadFailed": "The prompt library could not be read.",
+    "empty": "No saved prompts yet. Write one in the Prompt Library.",
+    "openLibrary": "Open Prompt Library",
+    "cancel": "Cancel",
+    "banner": "Starts with instructions:",
+    "change": "Change"
   }
 }
