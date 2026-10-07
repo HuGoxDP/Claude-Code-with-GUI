@@ -3,6 +3,13 @@ import { DEFAULT_SETTINGS, SettingKey } from '@/types/settings';
 import { getCurrentSettings } from '@/utils/openSettingsAt';
 import type { CommandPaletteServices } from '../types';
 
+/** The parts of the palette's services that leaving a conversation needs, so a dialog outside the palette can do it too. */
+export interface NewConversationServices {
+  chatStream: Pick<CommandPaletteServices['chatStream'], 'messages' | 'isStreaming' | 'stop' | 'resetForSessionSwitch'>;
+  session: Pick<CommandPaletteServices['session'], 'currentSessionId' | 'resetToNewSession'>;
+  ui: CommandPaletteServices['ui'];
+}
+
 /**
  * Leave the current conversation for a new one in this tab: `/clear`,
  * Cmd/Ctrl+Shift+C and "Clear conversation" all come here, so they ask (or do
@@ -16,7 +23,7 @@ import type { CommandPaletteServices } from '../types';
  *
  * Returns whether the new conversation was started.
  */
-export async function startNewConversation(services: CommandPaletteServices): Promise<boolean> {
+export async function startNewConversation(services: NewConversationServices): Promise<boolean> {
   const { chatStream, session, ui } = services;
   const ask = (getCurrentSettings() ?? DEFAULT_SETTINGS)[SettingKey.CONFIRM_NEW_SESSION] === true;
   const hasStarted = session.currentSessionId !== null || chatStream.messages.length > 0;

@@ -16,7 +16,9 @@
     "scheduleSend": "定时发送消息...",
     "promptLibrary": "提示词库",
     "commitMessage": "撰写提交信息...",
-    "chatInstructions": "带指令开始聊天..."
+    "chatInstructions": "带指令开始聊天...",
+    "saveSessionTemplate": "保存为模板...",
+    "newChatFromTemplate": "从模板新建聊天..."
   },
   "scheduleSend": {
     "title": "定时发送消息",

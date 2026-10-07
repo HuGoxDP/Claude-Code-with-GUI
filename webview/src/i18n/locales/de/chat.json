@@ -794,5 +794,28 @@
     "cancel": "Abbrechen",
     "banner": "Beginnt mit Anweisungen:",
     "change": "Ändern"
+  },
+  "sessionTemplates": {
+    "saveTitle": "Als Vorlage speichern",
+    "saveHint": "Eine Vorlage speichert Modell, Modus und Effort dieses Chats unter einem Namen, damit ein neuer Chat damit beginnen kann.",
+    "model": "Modell",
+    "mode": "Modus",
+    "effort": "Effort",
+    "name": "Name",
+    "namePlaceholder": "z. B. Gründliche Prüfung",
+    "replaces": "Ersetzt die Vorlage „{{name}}“.",
+    "save": "Speichern",
+    "replace": "Ersetzen",
+    "cancel": "Abbrechen",
+    "saveFailed": "Die Vorlage konnte nicht gespeichert werden.",
+    "pickerTitle": "Neuer Chat aus Vorlage",
+    "pickerHint": "Startet einen neuen Chat mit Modell, Modus und Effort der Vorlage.",
+    "loading": "Vorlagen werden geladen…",
+    "loadFailed": "Die Vorlagen konnten nicht gelesen werden.",
+    "empty": "Noch keine Vorlagen. „Save as template...“ im Slash-Panel speichert die Einstellungen dieses Chats.",
+    "delete": "Vorlage {{name}} löschen",
+    "deleteTitle": "Diese Vorlage löschen?",
+    "deleteMessage": "Die Vorlage „{{name}}“ löschen? Das lässt sich nicht rückgängig machen.",
+    "deleteConfirm": "Löschen"
   }
 }

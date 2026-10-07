@@ -16,7 +16,9 @@
     "scheduleSend": "Nachricht planen...",
     "promptLibrary": "Prompt-Bibliothek",
     "commitMessage": "Commit-Nachricht schreiben...",
-    "chatInstructions": "Chat mit Anweisungen beginnen..."
+    "chatInstructions": "Chat mit Anweisungen beginnen...",
+    "saveSessionTemplate": "Als Vorlage speichern...",
+    "newChatFromTemplate": "Neuer Chat aus Vorlage..."
   },
   "scheduleSend": {
     "title": "Nachricht planen",

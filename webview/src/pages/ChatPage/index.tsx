@@ -30,6 +30,7 @@ import {
 } from '@/commandPalette/sections/context/items';
 import { PromptLibraryModal } from '@/components/PromptLibraryModal';
 import { InstructionsPickerHost } from '@/components/InstructionsPicker/InstructionsPickerHost';
+import { SessionTemplatesHost } from '@/components/SessionTemplates/SessionTemplatesHost';
 import { CommitMessageDialogSlot } from '@/components/CommitMessageDialog/Slot';
 import { useMcpServers, MCP_SERVERS_QUERY_KEY } from '@/hooks/useMcpServers';
 import { useQueryClient } from '@tanstack/react-query';
@@ -469,6 +470,7 @@ function ChatPageContent() {
       )}
       <CommitMessageDialogSlot />
       <InstructionsPickerHost />
+      <SessionTemplatesHost />
       <AnnouncementModalSlot />
       <WhatsNewSlot />
     </div>

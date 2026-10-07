@@ -794,5 +794,28 @@
     "cancel": "取消",
     "banner": "以此指示開始：",
     "change": "變更"
+  },
+  "sessionTemplates": {
+    "saveTitle": "儲存為範本",
+    "saveHint": "範本以一個名稱儲存此聊天的模型、模式和 effort，新聊天可以用它們開始。",
+    "model": "模型",
+    "mode": "模式",
+    "effort": "Effort",
+    "name": "名稱",
+    "namePlaceholder": "例如：仔細審查",
+    "replaces": "將取代範本「{{name}}」。",
+    "save": "儲存",
+    "replace": "取代",
+    "cancel": "取消",
+    "saveFailed": "無法儲存範本。",
+    "pickerTitle": "從範本新增聊天",
+    "pickerHint": "用範本的模型、模式和 effort 開始新聊天。",
+    "loading": "正在載入範本…",
+    "loadFailed": "無法讀取範本。",
+    "empty": "還沒有範本。斜線面板中的「Save as template...」可以儲存此聊天的設定。",
+    "delete": "刪除範本 {{name}}",
+    "deleteTitle": "刪除此範本？",
+    "deleteMessage": "刪除範本「{{name}}」？此操作無法復原。",
+    "deleteConfirm": "刪除"
   }
 }

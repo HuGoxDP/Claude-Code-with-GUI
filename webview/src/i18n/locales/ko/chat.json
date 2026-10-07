@@ -794,5 +794,28 @@
     "cancel": "취소",
     "banner": "이 지침으로 시작:",
     "change": "바꾸기"
+  },
+  "sessionTemplates": {
+    "saveTitle": "템플릿으로 저장",
+    "saveHint": "템플릿은 이 채팅의 모델, 모드, effort를 이름으로 저장해 두었다가 새 채팅을 그 설정으로 시작하게 합니다.",
+    "model": "모델",
+    "mode": "모드",
+    "effort": "Effort",
+    "name": "이름",
+    "namePlaceholder": "예: 꼼꼼한 리뷰",
+    "replaces": "\"{{name}}\" 템플릿을 바꿉니다.",
+    "save": "저장",
+    "replace": "바꾸기",
+    "cancel": "취소",
+    "saveFailed": "템플릿을 저장하지 못했습니다.",
+    "pickerTitle": "템플릿으로 새 채팅",
+    "pickerHint": "템플릿의 모델, 모드, effort로 새 채팅을 시작합니다.",
+    "loading": "템플릿을 불러오는 중…",
+    "loadFailed": "템플릿을 읽지 못했습니다.",
+    "empty": "아직 템플릿이 없습니다. 슬래시 패널의 \"Save as template...\"이 이 채팅의 설정을 저장합니다.",
+    "delete": "{{name}} 템플릿 삭제",
+    "deleteTitle": "이 템플릿을 삭제할까요?",
+    "deleteMessage": "\"{{name}}\" 템플릿을 삭제할까요? 되돌릴 수 없습니다.",
+    "deleteConfirm": "삭제"
   }
 }

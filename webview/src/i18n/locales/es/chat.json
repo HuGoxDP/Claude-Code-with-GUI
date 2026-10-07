@@ -794,5 +794,28 @@
     "cancel": "Cancelar",
     "banner": "Empieza con instrucciones:",
     "change": "Cambiar"
+  },
+  "sessionTemplates": {
+    "saveTitle": "Guardar como plantilla",
+    "saveHint": "Una plantilla guarda el modelo, el modo y el effort de este chat con un nombre, para empezar un chat nuevo con ellos.",
+    "model": "Modelo",
+    "mode": "Modo",
+    "effort": "Effort",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Revisión cuidadosa",
+    "replaces": "Reemplaza la plantilla «{{name}}».",
+    "save": "Guardar",
+    "replace": "Reemplazar",
+    "cancel": "Cancelar",
+    "saveFailed": "No se pudo guardar la plantilla.",
+    "pickerTitle": "Chat nuevo desde plantilla",
+    "pickerHint": "Empieza un chat nuevo con el modelo, el modo y el effort de la plantilla.",
+    "loading": "Cargando plantillas…",
+    "loadFailed": "No se pudieron leer las plantillas.",
+    "empty": "Aún no hay plantillas. «Save as template...» en el panel de barra guarda la configuración de este chat.",
+    "delete": "Eliminar plantilla {{name}}",
+    "deleteTitle": "¿Eliminar esta plantilla?",
+    "deleteMessage": "¿Eliminar la plantilla «{{name}}»? No se puede deshacer.",
+    "deleteConfirm": "Eliminar"
   }
 }

@@ -16,7 +16,9 @@
     "scheduleSend": "Schedule a message...",
     "promptLibrary": "Prompt Library",
     "commitMessage": "Write a commit message...",
-    "chatInstructions": "Start a chat with instructions..."
+    "chatInstructions": "Start a chat with instructions...",
+    "saveSessionTemplate": "Save as template...",
+    "newChatFromTemplate": "New chat from template..."
   },
   "scheduleSend": {
     "title": "Schedule a message",

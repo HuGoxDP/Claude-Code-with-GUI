@@ -120,6 +120,19 @@ export enum MessageType {
   /** The starred sessions changed in some window. outbound backend→webview (broadcast) */
   SESSION_FAVORITES_CHANGED = 'SESSION_FAVORITES_CHANGED',
   /**
+   * Session templates: named sets of the choices a new conversation starts
+   * with (model, permission mode, effort), ported from CC GUI. GET answers
+   * `{ templates }`; SAVE takes `{ name, model, inputMode, effort }` and
+   * replaces a template of the same name; DELETE takes `{ name }`. Both reply
+   * with the list as stored.
+   * inbound webview→backend
+   */
+  GET_SESSION_TEMPLATES = 'GET_SESSION_TEMPLATES',
+  /** inbound webview→backend; see GET_SESSION_TEMPLATES. */
+  SAVE_SESSION_TEMPLATE = 'SAVE_SESSION_TEMPLATE',
+  /** inbound webview→backend; see GET_SESSION_TEMPLATES. */
+  DELETE_SESSION_TEMPLATE = 'DELETE_SESSION_TEMPLATE',
+  /**
    * Rewrite the composer's draft into a clearer prompt with one `claude -p` call
    * ({ prompt, workingDir?, model?, context? }); the ACK carries { enhancedPrompt }.
    * Nothing is sent to the session: the user picks the version to keep.

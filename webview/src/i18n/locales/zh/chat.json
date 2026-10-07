@@ -794,5 +794,28 @@
     "cancel": "取消",
     "banner": "以此指令开始：",
     "change": "更改"
+  },
+  "sessionTemplates": {
+    "saveTitle": "保存为模板",
+    "saveHint": "模板以一个名称保存此聊天的模型、模式和 effort，新聊天可以用它们开始。",
+    "model": "模型",
+    "mode": "模式",
+    "effort": "Effort",
+    "name": "名称",
+    "namePlaceholder": "例如：仔细审查",
+    "replaces": "将替换模板“{{name}}”。",
+    "save": "保存",
+    "replace": "替换",
+    "cancel": "取消",
+    "saveFailed": "无法保存模板。",
+    "pickerTitle": "从模板新建聊天",
+    "pickerHint": "用模板的模型、模式和 effort 开始新聊天。",
+    "loading": "正在加载模板…",
+    "loadFailed": "无法读取模板。",
+    "empty": "还没有模板。斜杠面板中的“Save as template...”可以保存此聊天的设置。",
+    "delete": "删除模板 {{name}}",
+    "deleteTitle": "删除此模板？",
+    "deleteMessage": "删除模板“{{name}}”？此操作无法撤销。",
+    "deleteConfirm": "删除"
   }
 }

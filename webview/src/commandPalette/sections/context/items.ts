@@ -6,6 +6,7 @@ import { enKeyword } from '../../enKeyword';
 import { OPEN_COMMIT_MESSAGE_EVENT } from '@/components/CommitMessageDialog';
 import { startNewConversation } from '../startNewConversation';
 import { OPEN_INSTRUCTIONS_PICKER_EVENT } from '@/components/InstructionsPicker';
+import { OPEN_SAVE_TEMPLATE_EVENT, OPEN_TEMPLATE_PICKER_EVENT } from '@/components/SessionTemplates/sessionTemplate';
 
 /**
  * Fired when the user runs `/resume`. The session dropdown opens (browse/resume
@@ -146,6 +147,24 @@ export const getContextItems = (): StaticItem[] => [
       const started = services.session.currentSessionId !== null || services.chatStream.messages.length > 0;
       if (started && !(await startNewConversation(services))) return;
       window.dispatchEvent(new CustomEvent(OPEN_INSTRUCTIONS_PICKER_EVENT));
+    },
+  }),
+  // Session templates (ported from CC GUI): the chat's model, mode and effort
+  // under a name, and a new chat that starts with them. Picking one leaves a
+  // conversation that has started by the same rule as /clear, but only once a
+  // template is picked, so the picker can be opened just to look or to delete.
+  new StaticItem('save-session-template', i18n.t('commandPalette:context.saveSessionTemplate'), {
+    keywords: [enKeyword('commandPalette:context.saveSessionTemplate'), 'template', 'preset', 'save'],
+    disabled: false,
+    action: async () => {
+      window.dispatchEvent(new CustomEvent(OPEN_SAVE_TEMPLATE_EVENT));
+    },
+  }),
+  new StaticItem('new-chat-from-template', i18n.t('commandPalette:context.newChatFromTemplate'), {
+    keywords: [enKeyword('commandPalette:context.newChatFromTemplate'), 'template', 'preset', 'new chat'],
+    disabled: false,
+    action: async () => {
+      window.dispatchEvent(new CustomEvent(OPEN_TEMPLATE_PICKER_EVENT));
     },
   }),
   // Writes a commit message for what `git commit` would commit here, to copy.

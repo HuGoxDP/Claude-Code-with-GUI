@@ -16,7 +16,9 @@
     "scheduleSend": "زمان‌بندی پیام...",
     "promptLibrary": "کتابخانهٔ پرامپت",
     "commitMessage": "نوشتن پیام کامیت...",
-    "chatInstructions": "شروع گفتگو با دستورالعمل..."
+    "chatInstructions": "شروع گفتگو با دستورالعمل...",
+    "saveSessionTemplate": "ذخیره به‌عنوان الگو...",
+    "newChatFromTemplate": "گفتگوی تازه از الگو..."
   },
   "scheduleSend": {
     "title": "زمان‌بندی پیام",

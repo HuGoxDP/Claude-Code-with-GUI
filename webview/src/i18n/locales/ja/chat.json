@@ -794,5 +794,28 @@
     "cancel": "キャンセル",
     "banner": "この指示で開始:",
     "change": "変更"
+  },
+  "sessionTemplates": {
+    "saveTitle": "テンプレートとして保存",
+    "saveHint": "テンプレートはこのチャットのモデル、モード、effort を名前付きで保存し、新しいチャットをその設定で始められるようにします。",
+    "model": "モデル",
+    "mode": "モード",
+    "effort": "Effort",
+    "name": "名前",
+    "namePlaceholder": "例: 丁寧なレビュー",
+    "replaces": "テンプレート「{{name}}」を置き換えます。",
+    "save": "保存",
+    "replace": "置き換え",
+    "cancel": "キャンセル",
+    "saveFailed": "テンプレートを保存できませんでした。",
+    "pickerTitle": "テンプレートから新しいチャット",
+    "pickerHint": "テンプレートのモデル、モード、effort で新しいチャットを始めます。",
+    "loading": "テンプレートを読み込み中…",
+    "loadFailed": "テンプレートを読み込めませんでした。",
+    "empty": "まだテンプレートがありません。スラッシュパネルの「Save as template...」でこのチャットの設定を保存できます。",
+    "delete": "テンプレート {{name}} を削除",
+    "deleteTitle": "このテンプレートを削除しますか?",
+    "deleteMessage": "テンプレート「{{name}}」を削除しますか? 元に戻せません。",
+    "deleteConfirm": "削除"
   }
 }

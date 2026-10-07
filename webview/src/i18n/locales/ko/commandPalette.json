@@ -16,7 +16,9 @@
     "scheduleSend": "메시지 예약 보내기...",
     "promptLibrary": "프롬프트 라이브러리",
     "commitMessage": "커밋 메시지 작성...",
-    "chatInstructions": "지침을 정해 새 채팅 시작..."
+    "chatInstructions": "지침을 정해 새 채팅 시작...",
+    "saveSessionTemplate": "템플릿으로 저장...",
+    "newChatFromTemplate": "템플릿으로 새 채팅..."
   },
   "scheduleSend": {
     "title": "메시지 예약",

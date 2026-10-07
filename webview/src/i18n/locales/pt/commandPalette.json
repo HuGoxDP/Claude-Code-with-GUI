@@ -16,7 +16,9 @@
     "scheduleSend": "Agendar uma mensagem...",
     "promptLibrary": "Biblioteca de prompts",
     "commitMessage": "Escrever uma mensagem de commit...",
-    "chatInstructions": "Começar um chat com instruções..."
+    "chatInstructions": "Começar um chat com instruções...",
+    "saveSessionTemplate": "Salvar como modelo...",
+    "newChatFromTemplate": "Novo chat a partir de modelo..."
   },
   "scheduleSend": {
     "title": "Agendar uma mensagem",

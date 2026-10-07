@@ -798,5 +798,28 @@
     "cancel": "Cancel",
     "banner": "Starts with instructions:",
     "change": "Change"
+  },
+  "sessionTemplates": {
+    "saveTitle": "Save as template",
+    "saveHint": "A template keeps this chat's model, mode and effort under a name, so a new chat can start with them.",
+    "model": "Model",
+    "mode": "Mode",
+    "effort": "Effort",
+    "name": "Name",
+    "namePlaceholder": "e.g. Careful review",
+    "replaces": "Replaces the template \"{{name}}\".",
+    "save": "Save",
+    "replace": "Replace",
+    "cancel": "Cancel",
+    "saveFailed": "Could not save the template.",
+    "pickerTitle": "New chat from template",
+    "pickerHint": "Starts a new chat with the template's model, mode and effort.",
+    "loading": "Loading templates…",
+    "loadFailed": "Could not read the templates.",
+    "empty": "No templates yet. \"Save as template...\" in the slash panel keeps this chat's choices.",
+    "delete": "Delete template {{name}}",
+    "deleteTitle": "Delete this template?",
+    "deleteMessage": "Delete the template \"{{name}}\"? This cannot be undone.",
+    "deleteConfirm": "Delete"
   }
 }

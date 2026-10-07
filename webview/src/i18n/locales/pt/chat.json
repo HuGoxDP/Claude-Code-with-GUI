@@ -794,5 +794,28 @@
     "cancel": "Cancelar",
     "banner": "Começa com as instruções:",
     "change": "Trocar"
+  },
+  "sessionTemplates": {
+    "saveTitle": "Salvar como modelo",
+    "saveHint": "Um modelo guarda o modelo de IA, o modo e o effort deste chat com um nome, para começar um chat novo com eles.",
+    "model": "Modelo",
+    "mode": "Modo",
+    "effort": "Effort",
+    "name": "Nome",
+    "namePlaceholder": "ex.: Revisão cuidadosa",
+    "replaces": "Substitui o modelo \"{{name}}\".",
+    "save": "Salvar",
+    "replace": "Substituir",
+    "cancel": "Cancelar",
+    "saveFailed": "Não foi possível salvar o modelo.",
+    "pickerTitle": "Novo chat a partir de modelo",
+    "pickerHint": "Começa um chat novo com o modelo de IA, o modo e o effort do modelo.",
+    "loading": "Carregando modelos…",
+    "loadFailed": "Não foi possível ler os modelos.",
+    "empty": "Ainda não há modelos. \"Save as template...\" no painel de barra guarda as escolhas deste chat.",
+    "delete": "Excluir modelo {{name}}",
+    "deleteTitle": "Excluir este modelo?",
+    "deleteMessage": "Excluir o modelo \"{{name}}\"? Isso não pode ser desfeito.",
+    "deleteConfirm": "Excluir"
   }
 }

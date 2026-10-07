@@ -25,6 +25,7 @@ import { enhancePromptHandler } from './enhancePrompt';
 import { generateCommitMessageHandler } from './generateCommitMessage';
 import { getSkillsHandler, setSkillStateHandler } from './skills';
 import { getSessionFavoritesHandler, setSessionFavoriteHandler } from './sessionFavorites';
+import { deleteSessionTemplateHandler, getSessionTemplatesHandler, saveSessionTemplateHandler } from './sessionTemplates';
 import { getAgentTranscriptHandler } from './getAgentTranscript';
 import { watchBackgroundTaskOutputHandler, unwatchBackgroundTaskOutputHandler } from './watchBackgroundTaskOutput';
 import { getSettingsHandler } from './getSettings';
@@ -276,6 +277,15 @@ export async function handleMessage(
       break;
     case MessageType.EXPORT_SESSION:
       await exportSessionHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_SESSION_TEMPLATES:
+      await getSessionTemplatesHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SAVE_SESSION_TEMPLATE:
+      await saveSessionTemplateHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.DELETE_SESSION_TEMPLATE:
+      await deleteSessionTemplateHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SESSION_FAVORITES:
       await getSessionFavoritesHandler(connectionId, message, connections, bridge);

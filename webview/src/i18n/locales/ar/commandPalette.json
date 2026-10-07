@@ -16,7 +16,9 @@
     "scheduleSend": "جدولة رسالة...",
     "promptLibrary": "مكتبة المطالبات",
     "commitMessage": "كتابة رسالة الإيداع...",
-    "chatInstructions": "بدء دردشة بتعليمات..."
+    "chatInstructions": "بدء دردشة بتعليمات...",
+    "saveSessionTemplate": "حفظ كقالب...",
+    "newChatFromTemplate": "محادثة جديدة من قالب..."
   },
   "scheduleSend": {
     "title": "جدولة رسالة",

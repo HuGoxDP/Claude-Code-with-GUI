@@ -16,7 +16,9 @@
     "scheduleSend": "排程傳送訊息...",
     "promptLibrary": "提示詞庫",
     "commitMessage": "撰寫提交訊息...",
-    "chatInstructions": "帶指示開始聊天..."
+    "chatInstructions": "帶指示開始聊天...",
+    "saveSessionTemplate": "儲存為範本...",
+    "newChatFromTemplate": "從範本新增聊天..."
   },
   "scheduleSend": {
     "title": "排程傳送訊息",

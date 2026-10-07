@@ -794,5 +794,28 @@
     "cancel": "Annuler",
     "banner": "Commence avec les instructions :",
     "change": "Changer"
+  },
+  "sessionTemplates": {
+    "saveTitle": "Enregistrer comme modèle",
+    "saveHint": "Un modèle garde le modèle d'IA, le mode et l'effort de ce chat sous un nom, pour démarrer un nouveau chat avec.",
+    "model": "Modèle",
+    "mode": "Mode",
+    "effort": "Effort",
+    "name": "Nom",
+    "namePlaceholder": "p. ex. Revue attentive",
+    "replaces": "Remplace le modèle « {{name}} ».",
+    "save": "Enregistrer",
+    "replace": "Remplacer",
+    "cancel": "Annuler",
+    "saveFailed": "Impossible d'enregistrer le modèle.",
+    "pickerTitle": "Nouveau chat depuis un modèle",
+    "pickerHint": "Démarre un nouveau chat avec le modèle d'IA, le mode et l'effort du modèle.",
+    "loading": "Chargement des modèles…",
+    "loadFailed": "Impossible de lire les modèles.",
+    "empty": "Aucun modèle pour l'instant. « Save as template... » dans le panneau slash garde les réglages de ce chat.",
+    "delete": "Supprimer le modèle {{name}}",
+    "deleteTitle": "Supprimer ce modèle ?",
+    "deleteMessage": "Supprimer le modèle « {{name}} » ? C'est définitif.",
+    "deleteConfirm": "Supprimer"
   }
 }

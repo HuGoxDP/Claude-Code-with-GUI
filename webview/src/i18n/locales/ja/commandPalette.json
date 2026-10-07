@@ -16,7 +16,9 @@
     "scheduleSend": "メッセージを予約送信...",
     "promptLibrary": "プロンプトライブラリ",
     "commitMessage": "コミットメッセージを書く...",
-    "chatInstructions": "指示付きでチャットを開始..."
+    "chatInstructions": "指示付きでチャットを開始...",
+    "saveSessionTemplate": "テンプレートとして保存...",
+    "newChatFromTemplate": "テンプレートから新しいチャット..."
   },
   "scheduleSend": {
     "title": "メッセージを予約",

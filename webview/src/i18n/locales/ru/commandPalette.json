@@ -16,7 +16,9 @@
     "scheduleSend": "Запланировать сообщение...",
     "promptLibrary": "Библиотека промптов",
     "commitMessage": "Написать сообщение коммита...",
-    "chatInstructions": "Начать чат с инструкциями..."
+    "chatInstructions": "Начать чат с инструкциями...",
+    "saveSessionTemplate": "Сохранить как шаблон...",
+    "newChatFromTemplate": "Новый чат из шаблона..."
   },
   "scheduleSend": {
     "title": "Запланировать сообщение",
