@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "管理者が管理するマネージド設定（{{path}}）でオンになっているため変更できません。",
       "saveFailed": "設定を保存できませんでした"
+    },
+    "envVars": {
+      "label": "環境変数",
+      "description": "すべての Claude Code セッションに設定されます。settings.json の env と同じです。",
+      "count": "変数: {{count}}",
+      "empty": "ここに設定された変数はありません。",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "値",
+      "add": "追加",
+      "remove": "{{name}} を削除",
+      "valueOf": "{{name}} の値",
+      "show": "値を表示",
+      "hide": "値を隠す",
+      "invalidName": "名前は英字・数字・_ で、数字から始められません。",
+      "saveFailed": "変数を保存できませんでした",
+      "projectNote": "このプロジェクトの .claude/settings.json に保存され、通常は git で共有されます（settings.local.json にある変数はそのまま）。キーやトークンはユーザータブに置いてください。"
     }
   },
   "diffView": {

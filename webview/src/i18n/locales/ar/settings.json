@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "مُشغَّل في الإعدادات المُدارة ({{path}}) التي يتحكم بها المسؤول.",
       "saveFailed": "تعذّر حفظ الإعداد"
+    },
+    "envVars": {
+      "label": "متغيرات البيئة",
+      "description": "تُضبط لكل جلسة من Claude Code. مثل env في settings.json.",
+      "count": "المتغيرات: {{count}}",
+      "empty": "لا توجد متغيرات مضبوطة هنا.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "القيمة",
+      "add": "إضافة",
+      "remove": "إزالة {{name}}",
+      "valueOf": "قيمة {{name}}",
+      "show": "إظهار القيمة",
+      "hide": "إخفاء القيمة",
+      "invalidName": "يتكون الاسم من أحرف لاتينية وأرقام و_ ولا يبدأ برقم.",
+      "saveFailed": "تعذّر حفظ المتغير",
+      "projectNote": "يُحفظ في ‎.claude/settings.json الخاص بهذا المشروع، والذي يُشارك عادة عبر git (المتغير الموجود في settings.local.json يبقى هناك). احفظ المفاتيح والرموز في تبويب المستخدم."
     }
   },
   "diffView": {

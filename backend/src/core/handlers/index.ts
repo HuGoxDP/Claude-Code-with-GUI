@@ -137,6 +137,7 @@ import { getPluginUpdatesHandler } from './getPluginUpdates';
 import { updatePluginHandler } from './updatePlugin';
 import { getClaudeSettingsHandler } from './getClaudeSettings';
 import { saveClaudeSettingsHandler } from './saveClaudeSettings';
+import { saveClaudeEnvVarHandler } from './saveClaudeEnvVar';
 import { setModelHandler } from './setModel';
 import { setPermissionModeHandler } from './setPermissionMode';
 import { probeFableAvailabilityHandler } from './probeFableAvailability';
@@ -638,6 +639,9 @@ export async function handleMessage(
       break;
     case MessageType.SAVE_CLAUDE_SETTINGS:
       await saveClaudeSettingsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SAVE_CLAUDE_ENV_VAR:
+      await saveClaudeEnvVarHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.SET_MODEL:
       setModelHandler(connectionId, message, connections, bridge);

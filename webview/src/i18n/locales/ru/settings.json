@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "Включено в управляемых настройках ({{path}}), которые контролирует администратор.",
       "saveFailed": "Не удалось сохранить настройку"
+    },
+    "envVars": {
+      "label": "Переменные окружения",
+      "description": "Задаются для каждой сессии Claude Code. То же, что env в settings.json.",
+      "count": "Переменных: {{count}}",
+      "empty": "Здесь переменные не заданы.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "значение",
+      "add": "Добавить",
+      "remove": "Удалить {{name}}",
+      "valueOf": "Значение {{name}}",
+      "show": "Показать значение",
+      "hide": "Скрыть значение",
+      "invalidName": "Имя состоит из латинских букв, цифр и _ и не начинается с цифры.",
+      "saveFailed": "Не удалось сохранить переменную",
+      "projectNote": "Сохраняется в .claude/settings.json этого проекта, который обычно попадает в git (переменная из settings.local.json остаётся там). Ключи и токены держите на вкладке пользователя."
     }
   },
   "diffView": {

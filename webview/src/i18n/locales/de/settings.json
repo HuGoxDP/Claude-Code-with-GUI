@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "In den verwalteten Einstellungen ({{path}}) eingeschaltet, die ein Administrator steuert.",
       "saveFailed": "Einstellung konnte nicht gespeichert werden"
+    },
+    "envVars": {
+      "label": "Umgebungsvariablen",
+      "description": "Für jede Claude-Code-Sitzung gesetzt. Wie env in settings.json.",
+      "count": "Variablen: {{count}}",
+      "empty": "Hier sind keine Variablen gesetzt.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "Wert",
+      "add": "Hinzufügen",
+      "remove": "{{name}} entfernen",
+      "valueOf": "Wert von {{name}}",
+      "show": "Wert anzeigen",
+      "hide": "Wert verbergen",
+      "invalidName": "Ein Name besteht aus Buchstaben, Ziffern und _ und beginnt nicht mit einer Ziffer.",
+      "saveFailed": "Die Variable konnte nicht gespeichert werden",
+      "projectNote": "Gespeichert in .claude/settings.json dieses Projekts, das meist über git geteilt wird (eine Variable in settings.local.json bleibt dort). Schlüssel und Tokens gehören in den Benutzer-Tab."
     }
   },
   "diffView": {

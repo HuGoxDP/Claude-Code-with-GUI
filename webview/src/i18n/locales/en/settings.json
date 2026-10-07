@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "Turned on in managed settings ({{path}}), which an administrator controls.",
       "saveFailed": "Could not save the setting"
+    },
+    "envVars": {
+      "label": "Environment variables",
+      "description": "Set for every Claude Code session. Same as env in settings.json.",
+      "count": "Variables: {{count}}",
+      "empty": "No variables set here.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "value",
+      "add": "Add",
+      "remove": "Remove {{name}}",
+      "valueOf": "Value of {{name}}",
+      "show": "Show value",
+      "hide": "Hide value",
+      "invalidName": "A name is letters, digits and _, and does not start with a digit.",
+      "saveFailed": "Could not save the variable",
+      "projectNote": "Saved in this project's .claude/settings.json, which is usually shared through git (a variable already in settings.local.json stays there). Keep keys and tokens in the user tab."
     }
   },
   "diffView": {

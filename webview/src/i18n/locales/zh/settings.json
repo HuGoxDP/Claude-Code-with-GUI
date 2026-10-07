@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "已在由管理员控制的托管设置（{{path}}）中开启，无法更改。",
       "saveFailed": "无法保存设置"
+    },
+    "envVars": {
+      "label": "环境变量",
+      "description": "为每个 Claude Code 会话设置。与 settings.json 中的 env 相同。",
+      "count": "变量：{{count}}",
+      "empty": "这里没有设置变量。",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "值",
+      "add": "添加",
+      "remove": "删除 {{name}}",
+      "valueOf": "{{name}} 的值",
+      "show": "显示值",
+      "hide": "隐藏值",
+      "invalidName": "名称由字母、数字和 _ 组成，且不能以数字开头。",
+      "saveFailed": "无法保存该变量",
+      "projectNote": "保存在此项目的 .claude/settings.json 中，通常会通过 git 共享（已在 settings.local.json 中的变量仍留在那里）。密钥和令牌请放在用户标签页。"
     }
   },
   "diffView": {

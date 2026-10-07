@@ -204,6 +204,8 @@ export enum MessageType {
   GET_CLAUDE_SETTINGS = 'GET_CLAUDE_SETTINGS',
   /** Persist a single Claude Code setting at a given scope. */
   SAVE_CLAUDE_SETTINGS = 'SAVE_CLAUDE_SETTINGS',
+  /** Set or remove one variable of Claude's settings.json `env` block, as {name, value (null removes it), scope, workingDir}, in the file (settings.json or settings.local.json) that already holds it. inbound webview→backend */
+  SAVE_CLAUDE_ENV_VAR = 'SAVE_CLAUDE_ENV_VAR',
   /** Read the effective CLAUDE_CONFIG_DIR: active value, per-scope plugin settings, and the value inherited from the environment at startup. inbound webview→backend */
   GET_CLAUDE_CONFIG_DIR = 'GET_CLAUDE_CONFIG_DIR',
   /** Persist CLAUDE_CONFIG_DIR into the plugin settings `env` map at a scope (global/project) and re-apply it. inbound webview→backend */

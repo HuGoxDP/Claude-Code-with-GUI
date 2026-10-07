@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "در تنظیمات مدیریت‌شده ({{path}}) روشن شده است که مدیر سیستم آن را کنترل می‌کند.",
       "saveFailed": "ذخیره تنظیم ممکن نشد"
+    },
+    "envVars": {
+      "label": "متغیرهای محیطی",
+      "description": "برای هر نشست Claude Code تنظیم می‌شوند. همان env در settings.json.",
+      "count": "متغیرها: {{count}}",
+      "empty": "اینجا متغیری تنظیم نشده است.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "مقدار",
+      "add": "افزودن",
+      "remove": "حذف {{name}}",
+      "valueOf": "مقدار {{name}}",
+      "show": "نمایش مقدار",
+      "hide": "پنهان کردن مقدار",
+      "invalidName": "نام از حروف لاتین، رقم و _ تشکیل می‌شود و با رقم شروع نمی‌شود.",
+      "saveFailed": "ذخیره متغیر ممکن نشد",
+      "projectNote": "در ‎.claude/settings.json این پروژه ذخیره می‌شود که معمولاً با git به اشتراک گذاشته می‌شود (متغیری که در settings.local.json است همان‌جا می‌ماند). کلیدها و توکن‌ها را در زبانه کاربر نگه دارید."
     }
   },
   "diffView": {

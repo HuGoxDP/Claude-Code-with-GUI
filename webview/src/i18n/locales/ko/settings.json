@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "관리자가 관리하는 관리형 설정({{path}})에서 켜 두어 바꿀 수 없습니다.",
       "saveFailed": "설정을 저장하지 못했습니다"
+    },
+    "envVars": {
+      "label": "환경 변수",
+      "description": "모든 Claude Code 세션에 설정됩니다. settings.json의 env와 같습니다.",
+      "count": "변수: {{count}}개",
+      "empty": "여기에 설정된 변수가 없습니다.",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "값",
+      "add": "추가",
+      "remove": "{{name}} 삭제",
+      "valueOf": "{{name}}의 값",
+      "show": "값 보기",
+      "hide": "값 숨기기",
+      "invalidName": "이름은 영문자, 숫자, _로 쓰고 숫자로 시작할 수 없습니다.",
+      "saveFailed": "변수를 저장하지 못했습니다",
+      "projectNote": "이 프로젝트의 .claude/settings.json에 저장되며, 보통 git으로 공유됩니다(이미 settings.local.json에 있는 변수는 그대로 거기에). 키와 토큰은 사용자 탭에 두세요."
     }
   },
   "diffView": {

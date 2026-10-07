@@ -248,6 +248,84 @@ export async function saveClaudeSettingToScope(
   return saveClaudeSetting(key, value);
 }
 
+// ─── One environment variable ──────────────────────────────────────────────
+
+/** A name the CLI can pass to a child as an environment variable. */
+const ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+/** Longest value written; a certificate bundle in a variable fits comfortably. */
+const ENV_VALUE_MAX = 32 * 1024;
+
+function envBlock(data: Record<string, unknown>): Record<string, unknown> {
+  const env = data.env;
+  return env && typeof env === 'object' && !Array.isArray(env) ? (env as Record<string, unknown>) : {};
+}
+
+/** Write [env] as the file's `env` block, or remove the block once it is empty. */
+function writeEnvBlock(filePath: string, env: Record<string, unknown>): Promise<JsonUpdateResult> {
+  return writeKeyToJsonFile(filePath, 'env', Object.keys(env).length > 0 ? env : null);
+}
+
+/**
+ * Set or remove one variable of Claude's `env` block at [scope] (the settings
+ * editor's "Environment variables").
+ *
+ * Saving the whole block back would be wrong whenever it is split between
+ * `settings.json` and `settings.local.json`: the editor shows the two merged, and
+ * writing that into one file would copy the other file's values into it, while a
+ * variable removed in the editor would live on in the file it came from. So one
+ * variable is set in whichever file already holds it (`.local` first, else the
+ * base file), and removing it removes it from both. Every other key of either
+ * file, and every other variable, is left exactly as it was.
+ */
+export async function saveClaudeEnvVar(
+  name: string,
+  value: string | null,
+  scope: 'global' | 'project',
+  projectPath?: string,
+): Promise<{ status: 'ok' | 'error'; error?: string }> {
+  if (!ENV_NAME.test(name)) {
+    return { status: 'error', error: 'An environment variable name is letters, digits and _, not starting with a digit' };
+  }
+  if (value !== null && (typeof value !== 'string' || value.length > ENV_VALUE_MAX)) {
+    return { status: 'error', error: `An environment variable value is text of at most ${ENV_VALUE_MAX} characters` };
+  }
+  if (scope === 'project' && !projectPath) return { status: 'error', error: 'projectPath required for project scope' };
+
+  const dir = scope === 'project' ? join(projectPath as string, '.claude') : getClaudeConfigDir();
+  const baseFile = join(dir, 'settings.json');
+  const localFile = join(dir, 'settings.local.json');
+  try {
+    const local = await readJsonForUpdate(localFile);
+    if (local.status === 'unreadable') {
+      return { status: 'error', error: `${localFile} exists but could not be read (${local.reason})` };
+    }
+    const base = await readJsonForUpdate(baseFile);
+    if (base.status === 'unreadable') {
+      return { status: 'error', error: `${baseFile} exists but could not be read (${base.reason})` };
+    }
+
+    const results: JsonUpdateResult[] = [];
+    if (value === null) {
+      for (const [file, data] of [[baseFile, base.data], [localFile, local.data]] as const) {
+        const env = envBlock(data);
+        if (!(name in env)) continue;
+        const rest = { ...env };
+        delete rest[name];
+        results.push(await writeEnvBlock(file, rest));
+      }
+    } else {
+      await mkdir(dir, { recursive: true });
+      const inLocal = name in envBlock(local.data);
+      const [file, data] = inLocal ? [localFile, local.data] : [baseFile, base.data];
+      results.push(await writeEnvBlock(file, { ...envBlock(data), [name]: value }));
+    }
+    const failed = results.find((r) => r.status === 'error');
+    return failed ? { status: 'error', error: failed.error } : { status: 'ok' };
+  } catch (err) {
+    return { status: 'error', error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 // ─── API Key Detection ─────────────────────────────────────────────────────
 
 // API 키 패턴 — env 값의 키 이름이 이 패턴에 매칭되면 API 키로 간주

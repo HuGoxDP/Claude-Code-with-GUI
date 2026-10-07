@@ -205,6 +205,22 @@
       "keys": "env: CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
       "managed": "已在由管理員控制的受管理設定（{{path}}）中開啟，無法變更。",
       "saveFailed": "無法儲存設定"
+    },
+    "envVars": {
+      "label": "環境變數",
+      "description": "為每個 Claude Code 工作階段設定。與 settings.json 中的 env 相同。",
+      "count": "變數：{{count}}",
+      "empty": "這裡沒有設定變數。",
+      "namePlaceholder": "NAME",
+      "valuePlaceholder": "值",
+      "add": "新增",
+      "remove": "刪除 {{name}}",
+      "valueOf": "{{name}} 的值",
+      "show": "顯示值",
+      "hide": "隱藏值",
+      "invalidName": "名稱由字母、數字和 _ 組成，且不能以數字開頭。",
+      "saveFailed": "無法儲存該變數",
+      "projectNote": "儲存在此專案的 .claude/settings.json，通常會透過 git 共用（已在 settings.local.json 中的變數仍留在那裡）。金鑰和權杖請放在使用者分頁。"
     }
   },
   "diffView": {
