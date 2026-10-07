@@ -550,7 +550,7 @@ export enum MessageType {
   ADD_MCP_SERVER = 'ADD_MCP_SERVER',
   /** Remove a named MCP server via `claude mcp remove`. inbound webview→backend */
   REMOVE_MCP_SERVER = 'REMOVE_MCP_SERVER',
-  /** Search the official MCP registry for installable servers. inbound webview→backend */
+  /** Search an MCP catalog for installable servers, as {query, cursor?, source?}: the official registry by default, or GitHub's registry, the built-in list or all of them (McpCatalogSource). inbound webview→backend */
   SEARCH_MCP_REGISTRY = 'SEARCH_MCP_REGISTRY',
   /** Fetch the tool list of one MCP server by connecting to it (MCP tools/list). inbound webview→backend */
   GET_MCP_SERVER_TOOLS = 'GET_MCP_SERVER_TOOLS',

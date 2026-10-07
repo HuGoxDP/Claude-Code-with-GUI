@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "Zurück",
       "searchPlaceholder": "MCP-Registry durchsuchen…",
+      "searchAnyPlaceholder": "MCP-Server suchen…",
       "searchPrompt": "Durchsuche die offizielle MCP-Registry, um Server zu finden und zu installieren.",
+      "searchPromptGithub": "Durchsuche GitHubs MCP-Registry, um Server zu finden und zu installieren.",
+      "searchPromptAll": "Durchsuche alle Kataloge, um Server zu finden und zu installieren.",
       "searching": "Wird gesucht…",
       "noServers": "Keine Server gefunden.",
       "openRepo": "{{url}} öffnen",
@@ -111,7 +114,15 @@
       "needsInputs_other": "Benötigt {{count}} Eingaben: {{inputs}}",
       "configureAdd": "Konfigurieren & hinzufügen",
       "noInstallInfo": "Keine Installationsinformationen verfügbar",
-      "add": "Hinzufügen"
+      "add": "Hinzufügen",
+      "source": {
+        "label": "Katalog",
+        "official": "Offizielle MCP-Registry",
+        "github": "GitHub-MCP-Registry",
+        "builtIn": "Eingebaut",
+        "all": "Alle Quellen"
+      },
+      "unavailable": "Gerade nicht erreichbar: {{sources}}. Der Rest wird angezeigt."
     },
     "list": {
       "noServersConfigured": "Keine MCP-Server konfiguriert.",

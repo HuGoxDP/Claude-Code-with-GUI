@@ -1,14 +1,14 @@
 import type { ConnectionManager } from '../../ws/connection-manager';
 import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
-import { MessageType } from '../../shared';
+import { McpCatalogSource, MessageType } from '../../shared';
 import {
   reconnectMcpServer,
   setMcpServerEnabled,
   addMcpServer,
   removeMcpServer,
 } from '../features/mcp-manager';
-import { searchMcpRegistry } from '../features/mcp-registry';
+import { searchMcpCatalog } from '../features/mcp-catalog';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -202,8 +202,8 @@ export async function addMcpServerHandler(
 // ─── SEARCH_MCP_REGISTRY ──────────────────────────────────────────────────────
 
 /**
- * Search the official MCP registry for installable servers.
- * Payload: { query: string, cursor?: string }
+ * Search an MCP catalog for installable servers.
+ * Payload: { query: string, cursor?: string, source?: McpCatalogSource } (default: the official registry)
  *
  * CLI-equivalence note: `claude mcp` has no `search` subcommand, so this is a
  * GUI-only capability backed by the registry's PUBLIC REST API (not the Claude
@@ -218,8 +218,9 @@ export async function searchMcpRegistryHandler(
   const payload = message.payload as Record<string, unknown>;
   const query = typeof payload?.query === 'string' ? payload.query : '';
   const cursor = typeof payload?.cursor === 'string' ? payload.cursor : undefined;
+  const source = Object.values(McpCatalogSource).find((s) => s === payload?.source) ?? McpCatalogSource.OFFICIAL;
   try {
-    const result = await searchMcpRegistry(query, cursor);
+    const result = await searchMcpCatalog(source, query, cursor);
     ack(connectionId, message, connections, { status: 'ok', ...result });
   } catch (err) {
     ack(connectionId, message, connections, {

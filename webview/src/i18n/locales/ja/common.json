@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "戻る",
       "searchPlaceholder": "MCPレジストリを検索…",
+      "searchAnyPlaceholder": "MCP サーバーを検索…",
       "searchPrompt": "公式MCPレジストリを検索して、サーバーを見つけてインストールします。",
+      "searchPromptGithub": "GitHub の MCP レジストリでサーバーを探してインストールします。",
+      "searchPromptAll": "すべてのカタログでサーバーを探してインストールします。",
       "searching": "検索中…",
       "noServers": "サーバーが見つかりませんでした。",
       "openRepo": "{{url}} を開く",
@@ -111,7 +114,15 @@
       "needsInputs_other": "{{count}} 件の入力が必要です: {{inputs}}",
       "configureAdd": "設定して追加",
       "noInstallInfo": "インストール情報がありません",
-      "add": "追加"
+      "add": "追加",
+      "source": {
+        "label": "カタログ",
+        "official": "公式 MCP レジストリ",
+        "github": "GitHub MCP レジストリ",
+        "builtIn": "組み込み",
+        "all": "すべてのソース"
+      },
+      "unavailable": "現在接続できません: {{sources}}。残りを表示しています。"
     },
     "list": {
       "noServersConfigured": "MCPサーバーが設定されていません。",

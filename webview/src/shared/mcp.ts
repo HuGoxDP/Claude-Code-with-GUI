@@ -172,6 +172,23 @@ export interface McpRegistryServer {
   config: McpServerConfig | null;
   /** Names of env vars / headers the user must fill in before the server will connect. */
   requiredInputs: string[];
+  /** The catalog the entry came from, so a list from every source can say which. */
+  source?: McpCatalogSource;
+}
+
+/**
+ * Where the MCP marketplace looks for servers (ported from CC GUI's marketplace
+ * sources). Every remote one is a PUBLIC REST catalog, not a Claude interface.
+ */
+export enum McpCatalogSource {
+  /** The official MCP Registry, which does the searching itself. */
+  OFFICIAL = 'official',
+  /** GitHub's MCP Registry: the same API, run by GitHub, searched here. */
+  GITHUB = 'github',
+  /** A few well-known servers listed by the plugin itself. */
+  BUILT_IN = 'built-in',
+  /** All of the above at once. */
+  ALL = 'all',
 }
 
 /** Payload of SEARCH_MCP_REGISTRY ACK response. */
@@ -179,6 +196,8 @@ export interface McpRegistrySearchResult {
   servers: McpRegistryServer[];
   /** Opaque cursor for the next page, or null when there are no more results. */
   nextCursor: string | null;
+  /** With ALL: the sources that could not be reached, whose servers are missing. */
+  unavailableSources?: McpCatalogSource[];
 }
 
 /**

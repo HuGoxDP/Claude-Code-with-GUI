@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "بازگشت",
       "searchPlaceholder": "جستجو در رجیستری MCP…",
+      "searchAnyPlaceholder": "جستجوی سرورهای MCP…",
       "searchPrompt": "برای یافتن و نصب سرورها، رجیستری رسمی MCP را جستجو کنید.",
+      "searchPromptGithub": "در رجیستری MCP گیت‌هاب سرور پیدا و نصب کنید.",
+      "searchPromptAll": "در همه فهرست‌ها سرور پیدا و نصب کنید.",
       "searching": "در حال جستجو…",
       "noServers": "سروری یافت نشد.",
       "openRepo": "باز کردن {{url}}",
@@ -111,7 +114,15 @@
       "needsInputs_other": "به {{count}} ورودی نیاز دارد: {{inputs}}",
       "configureAdd": "پیکربندی و افزودن",
       "noInstallInfo": "اطلاعات نصب موجود نیست",
-      "add": "افزودن"
+      "add": "افزودن",
+      "source": {
+        "label": "فهرست",
+        "official": "رجیستری رسمی MCP",
+        "github": "رجیستری MCP گیت‌هاب",
+        "builtIn": "داخلی",
+        "all": "همه منابع"
+      },
+      "unavailable": "اکنون در دسترس نیست: {{sources}}. بقیه نمایش داده می‌شود."
     },
     "list": {
       "noServersConfigured": "هیچ سرور MCP پیکربندی نشده است.",

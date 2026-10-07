@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "رجوع",
       "searchPlaceholder": "ابحث في سجل MCP…",
+      "searchAnyPlaceholder": "ابحث عن خوادم MCP…",
       "searchPrompt": "ابحث في سجل MCP الرسمي للعثور على الخوادم وتثبيتها.",
+      "searchPromptGithub": "ابحث في سجل MCP من GitHub للعثور على الخوادم وتثبيتها.",
+      "searchPromptAll": "ابحث في كل الفهارس للعثور على الخوادم وتثبيتها.",
       "searching": "جارٍ البحث…",
       "noServers": "لم يتم العثور على خوادم.",
       "openRepo": "فتح {{url}}",
@@ -115,7 +118,15 @@
       "needsInputs_other": "يتطلب {{count}} مدخل: {{inputs}}",
       "configureAdd": "إعداد وإضافة",
       "noInstallInfo": "لا تتوفر معلومات تثبيت",
-      "add": "إضافة"
+      "add": "إضافة",
+      "source": {
+        "label": "الفهرس",
+        "official": "سجل MCP الرسمي",
+        "github": "سجل MCP من GitHub",
+        "builtIn": "مدمج",
+        "all": "كل المصادر"
+      },
+      "unavailable": "يتعذر الوصول الآن: {{sources}}. يُعرض الباقي."
     },
     "list": {
       "noServersConfigured": "لا توجد خوادم MCP مُعدّة.",

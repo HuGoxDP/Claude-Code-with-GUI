@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "返回",
       "searchPlaceholder": "搜索 MCP 注册表…",
+      "searchAnyPlaceholder": "搜索 MCP 服务器…",
       "searchPrompt": "搜索官方 MCP 注册表以查找并安装服务器。",
+      "searchPromptGithub": "在 GitHub 的 MCP 注册表中查找并安装服务器。",
+      "searchPromptAll": "在所有目录中查找并安装服务器。",
       "searching": "正在搜索…",
       "noServers": "未找到服务器。",
       "openRepo": "打开 {{url}}",
@@ -111,7 +114,15 @@
       "needsInputs_other": "需要 {{count}} 项输入:{{inputs}}",
       "configureAdd": "配置并添加",
       "noInstallInfo": "暂无安装信息",
-      "add": "添加"
+      "add": "添加",
+      "source": {
+        "label": "目录",
+        "official": "官方 MCP 注册表",
+        "github": "GitHub MCP 注册表",
+        "builtIn": "内置",
+        "all": "所有来源"
+      },
+      "unavailable": "暂时无法连接：{{sources}}。显示其余结果。"
     },
     "list": {
       "noServersConfigured": "尚未配置 MCP 服务器。",

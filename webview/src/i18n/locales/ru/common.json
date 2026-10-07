@@ -102,7 +102,10 @@
     "marketplace": {
       "back": "Назад",
       "searchPlaceholder": "Поиск по реестру MCP…",
+      "searchAnyPlaceholder": "Поиск MCP-серверов…",
       "searchPrompt": "Найдите и установите серверы в официальном реестре MCP.",
+      "searchPromptGithub": "Ищите серверы в реестре MCP от GitHub и устанавливайте их.",
+      "searchPromptAll": "Ищите серверы во всех каталогах и устанавливайте их.",
       "searching": "Поиск…",
       "noServers": "Серверы не найдены.",
       "openRepo": "Открыть {{url}}",
@@ -113,7 +116,15 @@
       "needsInputs_other": "Требуется {{count}} параметра: {{inputs}}",
       "configureAdd": "Настроить и добавить",
       "noInstallInfo": "Нет информации об установке",
-      "add": "Добавить"
+      "add": "Добавить",
+      "source": {
+        "label": "Каталог",
+        "official": "Официальный реестр MCP",
+        "github": "Реестр MCP GitHub",
+        "builtIn": "Встроенные",
+        "all": "Все источники"
+      },
+      "unavailable": "Сейчас недоступно: {{sources}}. Показано остальное."
     },
     "list": {
       "noServersConfigured": "Нет настроенных MCP-серверов.",
