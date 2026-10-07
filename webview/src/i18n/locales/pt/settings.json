@@ -268,6 +268,14 @@
       "label": "Expandir diffs",
       "description": "Mostra as mudanças em cada cartão de edição; desligado, o cartão mostra +N −M e abre ao clicar."
     },
+    "diffTheme": {
+      "label": "Cores do diff",
+      "description": "Cores das alterações nos cartões de edição do chat.",
+      "follow": "Seguir o tema do chat",
+      "ide": "Seguir o tema do IDE",
+      "light": "Claro",
+      "softDark": "Escuro suave"
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

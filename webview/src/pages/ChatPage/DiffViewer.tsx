@@ -30,7 +30,7 @@ export function DiffViewer({ diffText }: DiffViewerProps) {
       // scrolls sideways.
       <div className={`group/wrap relative ${softWrap.blockClassName}`}>
         {softWrap.button}
-        <div className="diff-viewer overflow-x-auto">
+        <div className="diff-viewer diff-surface overflow-x-auto">
           <Diff
             viewType="unified"
             diffType={file.type}

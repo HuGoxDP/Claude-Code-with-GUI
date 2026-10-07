@@ -268,6 +268,14 @@
       "label": "展开差异",
       "description": "在每张编辑卡片中显示改动；关闭后卡片只显示 +N −M，点击展开。"
     },
+    "diffTheme": {
+      "label": "差异配色",
+      "description": "聊天中编辑卡片里变更的颜色。",
+      "follow": "跟随聊天主题",
+      "ide": "跟随 IDE 主题",
+      "light": "浅色",
+      "softDark": "柔和深色"
+    },
     "chat": {
       "sectionTitle": "聊天"
     },

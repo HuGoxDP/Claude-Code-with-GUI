@@ -268,6 +268,14 @@
       "label": "Déplier les diffs",
       "description": "Affiche les modifications dans chaque carte d'édition ; désactivé, la carte montre +N −M et s'ouvre d'un clic."
     },
+    "diffTheme": {
+      "label": "Couleurs des diffs",
+      "description": "Couleurs des modifications dans les cartes d’édition du chat.",
+      "follow": "Suivre le thème du chat",
+      "ide": "Suivre le thème de l’IDE",
+      "light": "Clair",
+      "softDark": "Sombre doux"
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

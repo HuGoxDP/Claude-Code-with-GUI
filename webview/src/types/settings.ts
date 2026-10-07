@@ -69,6 +69,9 @@ export enum SettingKey {
   // `+N −M` line to open it (ported from CC GUI's "Expand diffs by default").
   // On by default, which is how the chat has always shown them.
   EXPAND_DIFFS = 'expandDiffs',
+  // The colours of the diffs in the chat (ported from CC GUI's "Diff Theme"):
+  // the chat theme's, the IDE theme's lightness, or a fixed light or soft dark.
+  DIFF_THEME = 'diffTheme',
 
   // Advanced
   DEBUG_MODE = 'debugMode',
@@ -327,6 +330,16 @@ export enum ThemeMode {
   DARK = 'dark',
 }
 
+/** The colours of the diffs in the chat; see utils/diffTheme.ts. */
+export enum DiffTheme {
+  /** The chat theme's own diff colours (no override). */
+  FOLLOW = 'follow',
+  /** Light or dark as the IDE theme is, whatever the chat theme. JetBrains only. */
+  IDE = 'ide',
+  LIGHT = 'light',
+  SOFT_DARK = 'soft-dark',
+}
+
 /**
  * UI 미러링(레이아웃 방향) Enum. 'auto'(로케일 자동연동) 확장 여지를 위해
  * boolean이 아닌 문자열 값을 사용한다.
@@ -434,6 +447,7 @@ export interface SettingsState {
   [SettingKey.CONFIRM_NEW_SESSION]: boolean;
   [SettingKey.SUGGEST_FROM_HISTORY]: boolean;
   [SettingKey.EXPAND_DIFFS]: boolean;
+  [SettingKey.DIFF_THEME]: DiffTheme;
   [SettingKey.DEBUG_MODE]: boolean;
   [SettingKey.LOG_LEVEL]: LogLevel;
   [SettingKey.TERMINAL_APP]: string | null;
@@ -489,6 +503,7 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.CONFIRM_NEW_SESSION]: false,
   [SettingKey.SUGGEST_FROM_HISTORY]: true,
   [SettingKey.EXPAND_DIFFS]: true,
+  [SettingKey.DIFF_THEME]: DiffTheme.FOLLOW,
   [SettingKey.DEBUG_MODE]: false,
   [SettingKey.LOG_LEVEL]: LogLevel.INFO,
   [SettingKey.TERMINAL_APP]: null,

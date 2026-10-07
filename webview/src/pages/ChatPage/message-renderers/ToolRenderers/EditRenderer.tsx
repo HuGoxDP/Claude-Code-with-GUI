@@ -160,7 +160,7 @@ export function EditRenderer(props: RendererProps) {
                 {showDiff && (
                     // Class and button both on the border box, which does not
                     // scroll — the <pre> inside it does.
-                    <div className={cn("group/wrap relative rounded overflow-hidden border border-border-default mt-2.5", softWrap.blockClassName)}>
+                    <div className={cn("diff-surface group/wrap relative rounded overflow-hidden border border-border-default mt-2.5", softWrap.blockClassName)}>
                         {softWrap.button}
                         <pre dir="ltr" className="text-[0.9230rem] leading-[1.5] font-mono overflow-x-auto m-0">
                             {/* Sized to the longest line rather than to the visible width, so the

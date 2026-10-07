@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { SettingsState, DEFAULT_SETTINGS, SettingKey, ThemeMode, UiDirection } from '@/types/settings';
+import { SettingsState, DEFAULT_SETTINGS, SettingKey, ThemeMode, UiDirection, DiffTheme } from '@/types/settings';
 import { useBridgeContext } from '@/contexts/BridgeContext';
 import { useWorkingDir } from '@/contexts/WorkingDirContext';
 import { isJetBrains, isMobile, getIdeTheme, subscribeIdeTheme } from '@/config/environment';
 import { applyZoom, MOBILE_BASE_ZOOM, ZOOM_DEFAULT } from '@/utils/zoom';
 import { applyChatColors } from '@/utils/chatColors';
+import { applyDiffPalette, resolveDiffPalette } from '@/utils/diffTheme';
 import { MessageType } from '@/shared';
 import { setCurrentSettings } from '@/utils/openSettingsAt';
 import { isShadowedByProject } from '@/utils/settingsScope';
@@ -145,6 +146,16 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       settings[SettingKey.SOFT_WRAP] === true,
     );
   }, [settings]);
+
+  // The palette of the diffs in the chat (utils/diffTheme.ts). "ide" follows the
+  // IDE theme's lightness, so it listens for the IDE changing theme as well.
+  const diffThemeSetting = settings[SettingKey.DIFF_THEME];
+  useEffect(() => {
+    const apply = () => applyDiffPalette(resolveDiffPalette(diffThemeSetting, isJetBrains() ? getIdeTheme() : null));
+    apply();
+    if (diffThemeSetting !== DiffTheme.IDE || !isJetBrains()) return;
+    return subscribeIdeTheme(apply);
+  }, [diffThemeSetting]);
 
   // Colors of your own for the chat background, the header bar and your
   // messages. Inline properties on <html>, like the line height above; see

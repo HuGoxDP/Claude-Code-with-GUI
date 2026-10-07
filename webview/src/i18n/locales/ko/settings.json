@@ -268,6 +268,14 @@
       "label": "diff 펼치기",
       "description": "편집 카드마다 바뀐 내용을 보여 줍니다. 끄면 카드에 +N −M만 보이고 눌러서 엽니다."
     },
+    "diffTheme": {
+      "label": "Diff 색",
+      "description": "채팅 편집 카드의 변경 색입니다.",
+      "follow": "채팅 테마 따르기",
+      "ide": "IDE 테마 따르기",
+      "light": "라이트",
+      "softDark": "부드러운 다크"
+    },
     "chat": {
       "sectionTitle": "채팅"
     },

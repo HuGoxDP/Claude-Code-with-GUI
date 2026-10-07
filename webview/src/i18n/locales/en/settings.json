@@ -268,6 +268,14 @@
       "label": "Expand diffs",
       "description": "Show the changes in each edit card; off, a card shows +N −M and opens on click."
     },
+    "diffTheme": {
+      "label": "Diff colors",
+      "description": "Colors of the changes in the chat’s edit cards.",
+      "follow": "Follow chat theme",
+      "ide": "Follow IDE theme",
+      "light": "Light",
+      "softDark": "Soft dark"
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

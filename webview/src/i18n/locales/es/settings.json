@@ -268,6 +268,14 @@
       "label": "Desplegar diffs",
       "description": "Muestra los cambios en cada tarjeta de edición; desactivado, la tarjeta muestra +N −M y se abre al hacer clic."
     },
+    "diffTheme": {
+      "label": "Colores del diff",
+      "description": "Colores de los cambios en las tarjetas de edición del chat.",
+      "follow": "Seguir el tema del chat",
+      "ide": "Seguir el tema del IDE",
+      "light": "Claro",
+      "softDark": "Oscuro suave"
+    },
     "chat": {
       "sectionTitle": "Chat"
     },

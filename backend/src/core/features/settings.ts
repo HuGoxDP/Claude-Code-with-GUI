@@ -66,6 +66,7 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   confirmNewSession: false,
   suggestFromHistory: true,
   expandDiffs: true,
+  diffTheme: 'follow',
   debugMode: false,
   logLevel: 'info',
   terminalApp: null,
@@ -140,6 +141,7 @@ const COMMENT_MAP: Record<string, string> = {
   headerBarColor: '채팅 상단바 배경색 "#rrggbb". null이면 테마 색',
   userMessageColor: '내가 보낸 메시지 말풍선 배경색 "#rrggbb". null이면 테마 색',
   expandDiffs: '채팅의 편집 카드가 diff를 펼친 채로 보여준다. false면 +N −M 줄만 보이고 눌러서 연다',
+  diffTheme: '채팅의 diff 색: "follow"(채팅 테마) | "ide"(IDE 테마의 밝기, JetBrains 전용) | "light" | "soft-dark"',
   confirmNewSession: '/clear·Cmd/Ctrl+Shift+C·대화 지우기로 시작된 대화를 떠나기 전에 묻는다. 기본 false(CLI의 /clear처럼 묻지 않음)',
   suggestFromHistory: '입력 중 지금까지 친 글로 시작하는 가장 최근 프롬프트(이 대화, 그다음 프로젝트의 다른 대화)를 커서 뒤에 흐리게 보여 주고 Tab으로 받는다. 기본 true',
   streaming: '답변을 쓰는 대로 보여준다(--include-partial-messages). false면 메시지가 끝난 뒤 한 번에. 바꾸면 다음 메시지에서 CLI를 다시 띄운다',
@@ -493,6 +495,11 @@ function validateSetting(key: string, value: unknown): string | null {
     case 'userMessageColor':
       if (value !== null && (typeof value !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(value))) {
         return `${key} must be null or a color written as #rrggbb`;
+      }
+      break;
+    case 'diffTheme':
+      if (!['follow', 'ide', 'light', 'soft-dark'].includes(value as string)) {
+        return 'diffTheme must be one of "follow", "ide", "light", "soft-dark"';
       }
       break;
     case 'uiDirection':

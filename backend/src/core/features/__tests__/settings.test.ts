@@ -548,6 +548,17 @@ describe('settings', () => {
       expect(bad.error).toBe('suggestFromHistory must be a boolean');
     });
 
+    it('should accept only a known diffTheme', async () => {
+      for (const value of ['follow', 'ide', 'light', 'soft-dark']) {
+        expect((await saveSettingToFile('diffTheme', value)).status).toBe('ok');
+      }
+      for (const value of ['dark', null, true]) {
+        const bad = await saveSettingToFile('diffTheme', value);
+        expect(bad.status).toBe('error');
+        expect(bad.error).toBe('diffTheme must be one of "follow", "ide", "light", "soft-dark"');
+      }
+    });
+
     it('should accept only a boolean streaming', async () => {
       expect((await saveSettingToFile('streaming', false)).status).toBe('ok');
       expect((await saveSettingToFile('streaming', true)).status).toBe('ok');
@@ -752,6 +763,7 @@ describe('settings', () => {
         confirmNewSession: false,
         suggestFromHistory: true,
         expandDiffs: true,
+        diffTheme: 'follow',
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,
@@ -901,6 +913,7 @@ export default {
         confirmNewSession: false,
         suggestFromHistory: true,
         expandDiffs: true,
+        diffTheme: 'follow',
         debugMode: false,
         logLevel: 'info',
         terminalApp: null,

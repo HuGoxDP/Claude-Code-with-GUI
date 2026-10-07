@@ -648,6 +648,76 @@ body {
 }
 
 /* ============================================
+   Diff theme (GUI setting `diffTheme`, utils/diffTheme.ts; ported from CC GUI)
+   ============================================
+   Without `data-diff-theme` on <html> the diffs keep the chat theme's colours.
+   With it, every `diff-surface` (the edit cards, the diff viewer) takes one of
+   three fixed palettes, whatever the chat theme. The palette re-points the very
+   tokens those blocks already draw with, so no component knows about it.
+
+   The `-rgb` tokens are read where they are used (Tailwind writes
+   `rgb(var(--x-rgb) / a)`), so re-pointing them here reaches the lines inside.
+   `--text-primary` is not: it is resolved on :root and inherited as a colour, so
+   the block sets its own `color` instead. */
+html[data-diff-theme] .diff-surface {
+  background-color: var(--diff-theme-bg);
+  color: rgb(var(--diff-theme-text-rgb));
+  --text-primary-rgb: var(--diff-theme-text-rgb);
+  --text-secondary-rgb: var(--diff-theme-muted-rgb);
+  --text-tertiary-rgb: var(--diff-theme-muted-rgb);
+  --surface-pressed-rgb: var(--diff-theme-gutter-rgb);
+  --state-success-bg: var(--diff-theme-add-bg);
+  --state-success-fg-rgb: var(--diff-theme-add-fg-rgb);
+  --state-error-bg: var(--diff-theme-delete-bg);
+  --state-error-fg-rgb: var(--diff-theme-delete-fg-rgb);
+  /* The diff viewer's own tokens (below). */
+  --diff-bg: var(--diff-theme-bg);
+  --diff-gutter-bg: rgb(var(--diff-theme-gutter-rgb));
+  --diff-gutter-text: rgb(var(--diff-theme-muted-rgb));
+  --diff-add-bg: var(--diff-theme-add-bg);
+  --diff-add-text: rgb(var(--diff-theme-add-fg-rgb));
+  --diff-delete-bg: var(--diff-theme-delete-bg);
+  --diff-delete-text: rgb(var(--diff-theme-delete-fg-rgb));
+  --diff-normal-text: rgb(var(--diff-theme-text-rgb));
+}
+
+/* CC GUI's light palette: clean, close to a code review page. */
+html[data-diff-theme="light"] .diff-surface {
+  --diff-theme-bg: #F8FAFC;
+  --diff-theme-gutter-rgb: 238 242 247;
+  --diff-theme-text-rgb: 36 50 68;
+  --diff-theme-muted-rgb: 100 116 139;
+  --diff-theme-add-bg: #E8F5E9;
+  --diff-theme-add-fg-rgb: 46 125 50;
+  --diff-theme-delete-bg: #FDECEA;
+  --diff-theme-delete-fg-rgb: 198 40 40;
+}
+
+/* For "ide" on a dark IDE while the chat is light: the chat's own dark diff colours. */
+html[data-diff-theme="dark"] .diff-surface {
+  --diff-theme-bg: #1E1F22;
+  --diff-theme-gutter-rgb: 43 45 48;
+  --diff-theme-text-rgb: 223 225 229;
+  --diff-theme-muted-rgb: 134 138 145;
+  --diff-theme-add-bg: rgba(34, 197, 94, 0.15);
+  --diff-theme-add-fg-rgb: 74 222 128;
+  --diff-theme-delete-bg: rgba(239, 68, 68, 0.15);
+  --diff-theme-delete-fg-rgb: 248 113 113;
+}
+
+/* CC GUI's soft dark: code contrast without a harsh black background. */
+html[data-diff-theme="soft-dark"] .diff-surface {
+  --diff-theme-bg: #1F2430;
+  --diff-theme-gutter-rgb: 39 45 58;
+  --diff-theme-text-rgb: 215 221 232;
+  --diff-theme-muted-rgb: 127 138 155;
+  --diff-theme-add-bg: rgba(63, 185, 80, 0.18);
+  --diff-theme-add-fg-rgb: 137 209 133;
+  --diff-theme-delete-bg: rgba(248, 81, 73, 0.18);
+  --diff-theme-delete-fg-rgb: 255 143 138;
+}
+
+/* ============================================
    Diff Viewer (semantic-token wired)
    ============================================ */
 .diff-viewer {
