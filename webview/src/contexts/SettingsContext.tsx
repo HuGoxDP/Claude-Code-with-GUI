@@ -7,6 +7,7 @@ import { isJetBrains, isMobile, getIdeTheme, subscribeIdeTheme } from '@/config/
 import { applyZoom, MOBILE_BASE_ZOOM, ZOOM_DEFAULT } from '@/utils/zoom';
 import { applyChatColors } from '@/utils/chatColors';
 import { applyDiffPalette, resolveDiffPalette } from '@/utils/diffTheme';
+import { applyFontFile, FontFileKind, type FontFileResponse } from '@/utils/fontFiles';
 import { MessageType } from '@/shared';
 import { setCurrentSettings } from '@/utils/openSettingsAt';
 import { isShadowedByProject } from '@/utils/settingsScope';
@@ -156,6 +157,26 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     if (diffThemeSetting !== DiffTheme.IDE || !isJetBrains()) return;
     return subscribeIdeTheme(apply);
   }, [diffThemeSetting]);
+
+  // Font files of your own for the text and for code (utils/fontFiles.ts). The
+  // backend reads the file, so nothing is asked of it before the bridge is up;
+  // a cleared setting puts the built-in font back at once.
+  // A large font is tens of MB of base64, which a phone on the tunnel may take
+  // longer than the usual 30 seconds to receive.
+  const textFontFile = settings[SettingKey.TEXT_FONT_FILE];
+  const codeFontFile = settings[SettingKey.CODE_FONT_FILE];
+  const fetchFont = useCallback(
+    (path: string) => send<FontFileResponse>(MessageType.GET_FONT_FILE, { path }, { timeout: 120_000 }),
+    [send],
+  );
+  useEffect(() => {
+    if (textFontFile && !isConnected) return;
+    void applyFontFile(FontFileKind.TEXT, textFontFile ?? null, { fetchFont });
+  }, [textFontFile, isConnected, fetchFont]);
+  useEffect(() => {
+    if (codeFontFile && !isConnected) return;
+    void applyFontFile(FontFileKind.CODE, codeFontFile ?? null, { fetchFont });
+  }, [codeFontFile, isConnected, fetchFont]);
 
   // Colors of your own for the chat background, the header bar and your
   // messages. Inline properties on <html>, like the line height above; see

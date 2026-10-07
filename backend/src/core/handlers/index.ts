@@ -30,6 +30,7 @@ import { getAgentTranscriptHandler } from './getAgentTranscript';
 import { watchBackgroundTaskOutputHandler, unwatchBackgroundTaskOutputHandler } from './watchBackgroundTaskOutput';
 import { getSettingsHandler } from './getSettings';
 import { saveSettingsHandler } from './saveSettings';
+import { getFontFileHandler } from './getFontFile';
 import { getClaudeConfigDirHandler } from './getClaudeConfigDir';
 import { traceEnvOriginHandler } from './traceEnvOrigin';
 import { saveClaudeConfigDirHandler } from './saveClaudeConfigDir';
@@ -320,6 +321,9 @@ export async function handleMessage(
       break;
     case MessageType.SAVE_SETTINGS:
       await saveSettingsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_FONT_FILE:
+      await getFontFileHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_CLAUDE_CONFIG_DIR:
       await getClaudeConfigDirHandler(connectionId, message, connections, bridge);

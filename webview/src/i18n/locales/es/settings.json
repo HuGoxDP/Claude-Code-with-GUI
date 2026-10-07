@@ -246,10 +246,33 @@
         "description": "Tamaño de fuente base para la interfaz",
         "notSetPlaceholder": "Sin definir"
       },
+      "textFont": {
+        "label": "Fuente del texto",
+        "description": "Un archivo de fuente propio para el texto de la interfaz."
+      },
+      "codeFont": {
+        "label": "Fuente del código",
+        "description": "Un archivo de fuente propio para el código, los diffs y la salida de herramientas."
+      },
       "lineSpacing": {
         "label": "Interlineado",
         "description": "Altura de línea del texto de los mensajes del chat",
         "notSetPlaceholder": "Sin definir"
+      }
+    },
+    "fontFile": {
+      "builtIn": "Fuente integrada",
+      "choose": "Elegir…",
+      "loading": "Cargando la fuente…",
+      "using": "Usando {{name}}",
+      "errors": {
+        "notAbsolute": "Escribe la ruta completa, empezando por / o ~ (o una letra de unidad).",
+        "unsupported": "Elige un archivo .ttf, .otf, .woff o .woff2.",
+        "notFound": "No hay ningún archivo ahí. Se usa la fuente integrada.",
+        "tooLarge": "El archivo supera los 32 MB. Se usa la fuente integrada.",
+        "unreadable": "No se pudo leer el archivo. Se usa la fuente integrada.",
+        "invalid": "Este archivo no es una fuente utilizable. Se usa la fuente integrada.",
+        "failed": "No se pudo cargar la fuente. Se usa la fuente integrada."
       }
     },
     "softWrap": {

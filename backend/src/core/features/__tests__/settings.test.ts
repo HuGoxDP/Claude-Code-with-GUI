@@ -559,6 +559,38 @@ describe('settings', () => {
       }
     });
 
+    it('should accept a font file path, or null for the built-in font', async () => {
+      for (const key of ['textFontFile', 'codeFontFile']) {
+        for (const value of ['/fonts/Inter.ttf', '/fonts/Mono.OTF', '~/fonts/a.woff', 'C:\\Fonts\\b.woff2', null]) {
+          // A Windows path is absolute only on Windows; skip it elsewhere.
+          if (typeof value === 'string' && value.startsWith('C:') && process.platform !== 'win32') continue;
+          expect((await saveSettingToFile(key, value)).status).toBe('ok');
+        }
+      }
+    });
+
+    it('should reject a font file path that is relative or not a font', async () => {
+      const relative = await saveSettingToFile('textFontFile', 'fonts/Inter.ttf');
+      expect(relative.status).toBe('error');
+      expect(relative.error).toBe('textFontFile must be an absolute path (or start with ~)');
+
+      const notFont = await saveSettingToFile('codeFontFile', '/fonts/readme.txt');
+      expect(notFont.status).toBe('error');
+      expect(notFont.error).toBe('codeFontFile must be a .ttf, .otf, .woff or .woff2 file');
+
+      const notString = await saveSettingToFile('codeFontFile', 12);
+      expect(notString.status).toBe('error');
+      expect(notString.error).toBe('codeFontFile must be null or the path of a font file');
+    });
+
+    it('should store a blank font file path as null, the built-in font', async () => {
+      const result = await saveSettingToFile('textFontFile', '   ');
+      expect(result.status).toBe('ok');
+
+      const [, content] = mockWriteFile.mock.calls[mockWriteFile.mock.calls.length - 1];
+      expect(content).toContain('textFontFile: null');
+    });
+
     it('should accept only a boolean streaming', async () => {
       expect((await saveSettingToFile('streaming', false)).status).toBe('ok');
       expect((await saveSettingToFile('streaming', true)).status).toBe('ok');
@@ -751,6 +783,8 @@ describe('settings', () => {
         nodePath: null,
         theme: 'system',
         fontSize: 13,
+        textFontFile: null,
+        codeFontFile: null,
         zoomLevel: 1,
         lineHeight: 1.6,
         autoScrollThreshold: 80,
@@ -901,6 +935,8 @@ export default {
         nodePath: null,
         theme: 'system',
         fontSize: 13,
+        textFontFile: null,
+        codeFontFile: null,
         zoomLevel: 1,
         lineHeight: 1.6,
         autoScrollThreshold: 80,

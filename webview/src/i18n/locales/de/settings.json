@@ -246,10 +246,33 @@
         "description": "Basis-Schriftgröße für die Oberfläche",
         "notSetPlaceholder": "Nicht festgelegt"
       },
+      "textFont": {
+        "label": "Textschrift",
+        "description": "Eine eigene Schriftdatei für den Text der Oberfläche."
+      },
+      "codeFont": {
+        "label": "Codeschrift",
+        "description": "Eine eigene Schriftdatei für Code, Diffs und Werkzeugausgaben."
+      },
       "lineSpacing": {
         "label": "Zeilenabstand",
         "description": "Zeilenhöhe für den Text von Chat-Nachrichten",
         "notSetPlaceholder": "Nicht festgelegt"
+      }
+    },
+    "fontFile": {
+      "builtIn": "Eingebaute Schrift",
+      "choose": "Auswählen…",
+      "loading": "Schrift wird geladen…",
+      "using": "Verwendet {{name}}",
+      "errors": {
+        "notAbsolute": "Gib den vollständigen Pfad an, beginnend mit / oder ~ (oder einem Laufwerksbuchstaben).",
+        "unsupported": "Wähle eine .ttf-, .otf-, .woff- oder .woff2-Datei.",
+        "notFound": "Dort ist keine Datei. Die eingebaute Schrift wird verwendet.",
+        "tooLarge": "Die Datei ist größer als 32 MB. Die eingebaute Schrift wird verwendet.",
+        "unreadable": "Die Datei konnte nicht gelesen werden. Die eingebaute Schrift wird verwendet.",
+        "invalid": "Diese Datei ist keine verwendbare Schrift. Die eingebaute Schrift wird verwendet.",
+        "failed": "Die Schrift konnte nicht geladen werden. Die eingebaute Schrift wird verwendet."
       }
     },
     "softWrap": {

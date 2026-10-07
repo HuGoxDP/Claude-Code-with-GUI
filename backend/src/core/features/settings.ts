@@ -4,6 +4,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { atomicWriteFile, updateJsonFile, refusedWriteMessage } from './atomic-json';
 import { normalizeSettingValue } from './path-settings';
+import { checkFontFilePath, FontFileError } from './fontFiles';
 import {
   DiffSurface,
   BrowserDiffPresentation,
@@ -54,6 +55,8 @@ const DEFAULT_SETTINGS: Record<string, unknown> = {
   nodePath: null,
   theme: 'system',
   fontSize: 13,
+  textFontFile: null,
+  codeFontFile: null,
   zoomLevel: 1,
   lineHeight: 1.6,
   autoScrollThreshold: 80,
@@ -132,6 +135,8 @@ const COMMENT_MAP: Record<string, string> = {
   nodePath: 'Node.js 실행 파일 경로 (null이면 자동 감지, 변경 시 재시작 필요)',
   theme: '테마: "system" | "light" | "dark" ("system"은 JetBrains 모드에서 IDE 테마의 색상까지 따라간다)',
   fontSize: '글꼴 크기 (8~32)',
+  textFontFile: '화면 글자에 쓸 글꼴 파일의 절대 경로(.ttf/.otf/.woff/.woff2, ~ 허용). null이면 기본 글꼴',
+  codeFontFile: '코드·diff·도구 입출력에 쓸 글꼴 파일의 절대 경로(.ttf/.otf/.woff/.woff2, ~ 허용). null이면 기본 글꼴',
   zoomLevel: 'UI 배율(0.5~3). Ctrl/Cmd +,- 와 Ctrl/Cmd + 휠로 조절. 글꼴 크기와 별개로 아이콘·여백까지 함께 확대',
   lineHeight: '채팅 메시지 줄 간격(line-height 배수, 0.5~10)',
   autoScrollThreshold: '자동 스크롤 임계점(px). 메시지 끝에서 이 거리 안에 있을 때만 스트림을 따라 내려간다',
@@ -497,6 +502,21 @@ function validateSetting(key: string, value: unknown): string | null {
         return `${key} must be null or a color written as #rrggbb`;
       }
       break;
+    case 'textFontFile':
+    case 'codeFontFile': {
+      if (value === null) break;
+      if (typeof value !== 'string' || value.trim() === '') {
+        return `${key} must be null or the path of a font file`;
+      }
+      const problem = checkFontFilePath(value);
+      if (problem === FontFileError.NOT_ABSOLUTE) {
+        return `${key} must be an absolute path (or start with ~)`;
+      }
+      if (problem === FontFileError.UNSUPPORTED) {
+        return `${key} must be a .ttf, .otf, .woff or .woff2 file`;
+      }
+      break;
+    }
     case 'diffTheme':
       if (!['follow', 'ide', 'light', 'soft-dark'].includes(value as string)) {
         return 'diffTheme must be one of "follow", "ide", "light", "soft-dark"';

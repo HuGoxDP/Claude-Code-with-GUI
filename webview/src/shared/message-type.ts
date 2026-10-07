@@ -196,6 +196,8 @@ export enum MessageType {
   GET_SETTINGS = 'GET_SETTINGS',
   /** Persist a single GUI setting at a given scope (global/project). */
   SAVE_SETTINGS = 'SAVE_SETTINGS',
+  /** Read the font file a font setting (textFontFile / codeFontFile) names, as {path}. The reply carries the bytes as base64 with their format, or a `code` saying why the file cannot be used (notAbsolute, unsupported, notFound, tooLarge, unreadable). inbound webview→backend */
+  GET_FONT_FILE = 'GET_FONT_FILE',
 
   // -- Claude Code settings (~/.claude/settings.json) --
   /** Read merged or scope-specific Claude Code settings. */

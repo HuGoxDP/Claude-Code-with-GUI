@@ -246,10 +246,33 @@
         "description": "界面的基础字体大小",
         "notSetPlaceholder": "未设置"
       },
+      "textFont": {
+        "label": "文字字体",
+        "description": "用于界面文字的自定义字体文件。"
+      },
+      "codeFont": {
+        "label": "代码字体",
+        "description": "用于代码、diff 和工具输出的自定义字体文件。"
+      },
       "lineSpacing": {
         "label": "行间距",
         "description": "聊天消息文本的行高",
         "notSetPlaceholder": "未设置"
+      }
+    },
+    "fontFile": {
+      "builtIn": "内置字体",
+      "choose": "选择…",
+      "loading": "正在加载字体…",
+      "using": "正在使用 {{name}}",
+      "errors": {
+        "notAbsolute": "请填写以 / 或 ~(或盘符)开头的完整路径。",
+        "unsupported": "请选择 .ttf、.otf、.woff 或 .woff2 文件。",
+        "notFound": "该路径下没有文件。正在使用内置字体。",
+        "tooLarge": "文件超过 32 MB。正在使用内置字体。",
+        "unreadable": "无法读取该文件。正在使用内置字体。",
+        "invalid": "该文件不是可用的字体。正在使用内置字体。",
+        "failed": "无法加载字体。正在使用内置字体。"
       }
     },
     "softWrap": {

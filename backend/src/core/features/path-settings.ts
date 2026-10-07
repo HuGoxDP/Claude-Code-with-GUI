@@ -14,7 +14,16 @@
 // unrelated auth failure, and the resulting ENOENT read as "the plugin cannot find a
 // CLI that is plainly there" (issue #446).
 //
-export const PATH_SETTING_KEYS = new Set(['cliPath', 'nodePath', 'terminalApp', 'openFilesWith']);
+// The font files (textFontFile, codeFontFile) are read rather than spawned, but a
+// pasted path trailing a space misses the file just the same.
+export const PATH_SETTING_KEYS = new Set([
+  'cliPath',
+  'nodePath',
+  'terminalApp',
+  'openFilesWith',
+  'textFontFile',
+  'codeFontFile',
+]);
 
 // The custom file opener holds its path inside an object, `{ path, arguments }`, so the
 // plain string rule above cannot reach it — but a path typed there is spawned the same

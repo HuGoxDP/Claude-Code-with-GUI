@@ -33,6 +33,11 @@ export enum SettingKey {
   // prefers-color-scheme, since no IDE colors are injected there.
   THEME = 'theme',
   FONT_SIZE = 'fontSize',
+  // Font files of your own (ported from CC GUI's custom UI and code font
+  // files): an absolute path to a .ttf, .otf, .woff or .woff2, or null for the
+  // built-in font. See utils/fontFiles.ts.
+  TEXT_FONT_FILE = 'textFontFile',
+  CODE_FONT_FILE = 'codeFontFile',
   // Whole-interface scale driven by CmdOrCtrl +/- and CmdOrCtrl + wheel.
   // Independent of FONT_SIZE: effective text size is fontSize × zoomLevel.
   ZOOM_LEVEL = 'zoomLevel',
@@ -435,6 +440,8 @@ export interface SettingsState {
   [SettingKey.NODE_PATH]: string | null;
   [SettingKey.THEME]: ThemeMode;
   [SettingKey.FONT_SIZE]: number;
+  [SettingKey.TEXT_FONT_FILE]: string | null;
+  [SettingKey.CODE_FONT_FILE]: string | null;
   [SettingKey.ZOOM_LEVEL]: number;
   [SettingKey.LINE_HEIGHT]: number;
   [SettingKey.AUTO_SCROLL_THRESHOLD]: number;
@@ -491,6 +498,8 @@ export const DEFAULT_SETTINGS: SettingsState = {
   [SettingKey.NODE_PATH]: null,
   [SettingKey.THEME]: ThemeMode.SYSTEM,
   [SettingKey.FONT_SIZE]: 13,
+  [SettingKey.TEXT_FONT_FILE]: null,
+  [SettingKey.CODE_FONT_FILE]: null,
   [SettingKey.ZOOM_LEVEL]: ZOOM_DEFAULT,
   [SettingKey.LINE_HEIGHT]: LINE_HEIGHT_DEFAULT,
   [SettingKey.AUTO_SCROLL_THRESHOLD]: AUTO_SCROLL_THRESHOLD_DEFAULT,

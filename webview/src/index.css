@@ -648,6 +648,29 @@ body {
 }
 
 /* ============================================
+   Font files (GUI settings `textFontFile` / `codeFontFile`, utils/fontFiles.ts;
+   ported from CC GUI)
+   ============================================
+   The webview registers the user's file as a FontFace under the family named
+   here and marks <html> only once it has loaded, so a missing or broken file
+   leaves the built-in fonts in place. The built-in stack stays behind it, for
+   any character the file does not have. */
+html[data-text-font] {
+  --ide-font-ui: 'Swttch Text Font', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html[data-code-font] {
+  --ide-font-code: 'Swttch Code Font', 'JetBrains Mono', Consolas, Monaco, monospace;
+}
+
+/* Tailwind's `font-mono`, and the browser's own monospace for code, kbd, samp
+   and pre, name a stack of their own rather than --ide-font-code; with a code
+   font of the user's they take it too. */
+html[data-code-font] :is(.font-mono, code, kbd, samp, pre) {
+  font-family: var(--ide-font-code);
+}
+
+/* ============================================
    Diff theme (GUI setting `diffTheme`, utils/diffTheme.ts; ported from CC GUI)
    ============================================
    Without `data-diff-theme` on <html> the diffs keep the chat theme's colours.

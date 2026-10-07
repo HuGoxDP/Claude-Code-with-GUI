@@ -246,10 +246,33 @@
         "description": "インターフェースの基本フォントサイズ",
         "notSetPlaceholder": "未設定"
       },
+      "textFont": {
+        "label": "テキストフォント",
+        "description": "インターフェースの文字に使う独自のフォントファイル。"
+      },
+      "codeFont": {
+        "label": "コードフォント",
+        "description": "コード・diff・ツール出力に使う独自のフォントファイル。"
+      },
       "lineSpacing": {
         "label": "行間",
         "description": "チャットメッセージ本文の行の高さ",
         "notSetPlaceholder": "未設定"
+      }
+    },
+    "fontFile": {
+      "builtIn": "組み込みフォント",
+      "choose": "選択…",
+      "loading": "フォントを読み込み中…",
+      "using": "{{name}} を使用中",
+      "errors": {
+        "notAbsolute": "/ または ~(またはドライブ文字)で始まるフルパスを入力してください。",
+        "unsupported": ".ttf、.otf、.woff、.woff2 のファイルを選んでください。",
+        "notFound": "そのパスにファイルがありません。組み込みフォントを使用しています。",
+        "tooLarge": "ファイルが 32 MB を超えています。組み込みフォントを使用しています。",
+        "unreadable": "ファイルを読み取れませんでした。組み込みフォントを使用しています。",
+        "invalid": "使用できるフォントファイルではありません。組み込みフォントを使用しています。",
+        "failed": "フォントを読み込めませんでした。組み込みフォントを使用しています。"
       }
     },
     "softWrap": {

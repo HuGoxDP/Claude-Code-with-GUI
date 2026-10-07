@@ -246,10 +246,33 @@
         "description": "介面的基礎字型大小",
         "notSetPlaceholder": "未設定"
       },
+      "textFont": {
+        "label": "文字字型",
+        "description": "用於介面文字的自訂字型檔。"
+      },
+      "codeFont": {
+        "label": "程式碼字型",
+        "description": "用於程式碼、diff 與工具輸出的自訂字型檔。"
+      },
       "lineSpacing": {
         "label": "行距",
         "description": "聊天訊息文字的行高",
         "notSetPlaceholder": "未設定"
+      }
+    },
+    "fontFile": {
+      "builtIn": "內建字型",
+      "choose": "選擇…",
+      "loading": "正在載入字型…",
+      "using": "正在使用 {{name}}",
+      "errors": {
+        "notAbsolute": "請填寫以 / 或 ~(或磁碟機代號)開頭的完整路徑。",
+        "unsupported": "請選擇 .ttf、.otf、.woff 或 .woff2 檔案。",
+        "notFound": "該路徑下沒有檔案。正在使用內建字型。",
+        "tooLarge": "檔案超過 32 MB。正在使用內建字型。",
+        "unreadable": "無法讀取該檔案。正在使用內建字型。",
+        "invalid": "該檔案不是可用的字型。正在使用內建字型。",
+        "failed": "無法載入字型。正在使用內建字型。"
       }
     },
     "softWrap": {

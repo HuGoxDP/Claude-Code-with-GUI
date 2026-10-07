@@ -25,12 +25,14 @@ describe('normalizeSettingValue', () => {
     }
   });
 
-  it('covers the four path settings a user types by hand', () => {
+  it('covers the six path settings a user types by hand', () => {
     expect([...PATH_SETTING_KEYS].sort()).toEqual([
       'cliPath',
+      'codeFontFile',
       'nodePath',
       'openFilesWith',
       'terminalApp',
+      'textFontFile',
     ]);
   });
 

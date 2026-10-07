@@ -246,10 +246,33 @@
         "description": "Base font size for the interface",
         "notSetPlaceholder": "Not set"
       },
+      "textFont": {
+        "label": "Text Font",
+        "description": "A font file of your own for the interface's text."
+      },
+      "codeFont": {
+        "label": "Code Font",
+        "description": "A font file of your own for code, diffs and tool output."
+      },
       "lineSpacing": {
         "label": "Line Spacing",
         "description": "Line height for chat message text",
         "notSetPlaceholder": "Not set"
+      }
+    },
+    "fontFile": {
+      "builtIn": "Built-in font",
+      "choose": "Choose…",
+      "loading": "Loading the font…",
+      "using": "Using {{name}}",
+      "errors": {
+        "notAbsolute": "Write the full path, starting with / or ~ (or a drive letter).",
+        "unsupported": "Choose a .ttf, .otf, .woff or .woff2 file.",
+        "notFound": "No file there. The built-in font is in use.",
+        "tooLarge": "The file is over 32 MB. The built-in font is in use.",
+        "unreadable": "The file could not be read. The built-in font is in use.",
+        "invalid": "This file is not a font that can be used. The built-in font is in use.",
+        "failed": "The font could not be loaded. The built-in font is in use."
       }
     },
     "softWrap": {

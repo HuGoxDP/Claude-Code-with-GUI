@@ -246,10 +246,33 @@
         "description": "Taille de police de base pour l'interface",
         "notSetPlaceholder": "Non défini"
       },
+      "textFont": {
+        "label": "Police du texte",
+        "description": "Un fichier de police à vous pour le texte de l'interface."
+      },
+      "codeFont": {
+        "label": "Police du code",
+        "description": "Un fichier de police à vous pour le code, les diffs et la sortie des outils."
+      },
       "lineSpacing": {
         "label": "Interligne",
         "description": "Hauteur de ligne du texte des messages",
         "notSetPlaceholder": "Non défini"
+      }
+    },
+    "fontFile": {
+      "builtIn": "Police intégrée",
+      "choose": "Choisir…",
+      "loading": "Chargement de la police…",
+      "using": "Utilise {{name}}",
+      "errors": {
+        "notAbsolute": "Indiquez le chemin complet, commençant par / ou ~ (ou une lettre de lecteur).",
+        "unsupported": "Choisissez un fichier .ttf, .otf, .woff ou .woff2.",
+        "notFound": "Aucun fichier à cet endroit. La police intégrée est utilisée.",
+        "tooLarge": "Le fichier dépasse 32 Mo. La police intégrée est utilisée.",
+        "unreadable": "Le fichier n'a pas pu être lu. La police intégrée est utilisée.",
+        "invalid": "Ce fichier n'est pas une police utilisable. La police intégrée est utilisée.",
+        "failed": "La police n'a pas pu être chargée. La police intégrée est utilisée."
       }
     },
     "softWrap": {
