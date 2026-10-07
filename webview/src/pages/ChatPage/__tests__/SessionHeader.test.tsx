@@ -118,6 +118,10 @@ vi.mock('../../../contexts/ScheduledMessagesContext', () => ({
   }),
 }));
 
+// The IDE status bar report reads the CLI config for the model's name; it has its
+// own tests (useReportChatStatus.test.ts) and nothing to show in a header test.
+vi.mock('@/hooks/useReportChatStatus', () => ({ useReportChatStatus: () => {} }));
+
 // Mock ChatStreamContext (TokenBatteryButton → useUsageData → useChatStreamContext)
 vi.mock('../../../contexts/ChatStreamContext', () => ({
   useChatStreamContext: () => ({

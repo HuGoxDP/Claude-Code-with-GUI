@@ -271,6 +271,12 @@ class NodeBackendService : Disposable {
                 any()?.setPrimarySelection(text) ?: warn("setPrimarySelection")
             }
 
+            override suspend fun setChatStatus(panelId: String, focused: Boolean, text: String?, tooltip: String?) {
+                // The panel that reported, so the status lands in the window it lives in.
+                (handlers[panelId] ?: any())?.setChatStatus(panelId, focused, text, tooltip)
+                    ?: warn("setChatStatus")
+            }
+
             override suspend fun openSettings(workingDir: String, path: String?) {
                 any()?.openSettings(workingDir, path) ?: warn("openSettings")
             }

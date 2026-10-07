@@ -157,6 +157,11 @@
         <statusBarWidgetFactory
             id="ClaudeCodeGui.BackendStatus"
             implementation="com.github.yhk1038.claudecodegui.statusbar.BackendStatusBarWidgetFactory"/>
+        <!-- The chat the user was last in: working/waiting and context used (B6). -->
+        <statusBarWidgetFactory
+            id="ClaudeCodeGui.ChatStatus"
+            order="before ClaudeCodeGui.BackendStatus"
+            implementation="com.github.yhk1038.claudecodegui.statusbar.ChatStatusBarWidgetFactory"/>
     </extensions>
 
     <!-- Prewarm version-scoped resource extraction at app frame creation (issue #149) -->

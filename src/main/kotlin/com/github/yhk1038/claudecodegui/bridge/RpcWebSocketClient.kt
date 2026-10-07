@@ -492,6 +492,12 @@ class RpcWebSocketClient(
                 parsePrimarySelectionText(params)?.let { rpcHandler.setPrimarySelection(it) }
                 buildJsonObject {}
             }
+            "SET_CHAT_STATUS" -> {
+                parseChatStatusParams(params)?.let {
+                    rpcHandler.setChatStatus(it.panelId, it.focused, it.text, it.tooltip)
+                }
+                buildJsonObject {}
+            }
             "OPEN_SETTINGS" -> {
                 val workingDir = params["workingDir"]?.jsonPrimitive?.content ?: ""
                 // Which settings page the tab should land on; absent → landing page.
@@ -623,6 +629,28 @@ class RpcWebSocketClient(
  */
 internal fun parsePrimarySelectionText(params: JsonObject): String? =
     (params["text"] as? JsonPrimitive)?.takeIf { it.isString }?.content?.takeIf { it.isNotEmpty() }
+
+/** A chat panel's status as SET_CHAT_STATUS carries it; [text] null clears it. */
+internal data class ChatStatusParams(
+    val panelId: String,
+    val focused: Boolean,
+    val text: String?,
+    val tooltip: String?,
+)
+
+/**
+ * Reads SET_CHAT_STATUS params, or null when there is no panel to file them
+ * under. A missing or empty text is a status with nothing in it, which clears
+ * the panel's; a missing tooltip is an empty one. Kept top-level and internal so
+ * it can be unit-tested without a live WebSocket (see ChatStatusParamsTest).
+ */
+internal fun parseChatStatusParams(params: JsonObject): ChatStatusParams? {
+    fun string(key: String) = (params[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
+    val panelId = string("panelId")?.takeIf { it.isNotEmpty() } ?: return null
+    val focused = (params["focused"] as? JsonPrimitive)?.takeIf { !it.isString }?.content == "true"
+    val text = string("text")?.takeIf { it.isNotBlank() }
+    return ChatStatusParams(panelId, focused, text, if (text == null) null else string("tooltip") ?: "")
+}
 
 /**
  * Extracts the "paths" string array from REFRESH_FILES params, skipping any

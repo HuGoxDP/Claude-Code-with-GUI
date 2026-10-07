@@ -313,6 +313,9 @@ const ACTIVITY_EXCLUDED_TYPES = new Set<string>([
   // Reported automatically with every change of what is selected, and keyboard
   // selection can change it on each keystroke, so it says nothing about activity.
   MessageType.SET_PRIMARY_SELECTION,
+  // Reported automatically whenever the chat's status or focus changes, so it
+  // says nothing about what the user did.
+  MessageType.SET_CHAT_STATUS,
   // 인프라 / 환경 / 버전 자동 조회 (마운트 시 버스트)
   MessageType.GET_TELEMETRY_CONSENT, // 동의 상태 자동 조회
   MessageType.GET_CLI_CONFIG,        // CLI 설정 자동 로드

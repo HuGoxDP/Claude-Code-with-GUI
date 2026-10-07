@@ -825,5 +825,17 @@
     "deleteTitle": "Удалить этот шаблон?",
     "deleteMessage": "Удалить шаблон «{{name}}»? Это нельзя отменить.",
     "deleteConfirm": "Удалить"
+  },
+  "chatStatus": {
+    "context": "контекст {{percent}}%",
+    "working": "работает",
+    "waiting": "ждёт ответа",
+    "newChat": "Новый чат",
+    "model": "Модель: {{model}}",
+    "mode": "Режим: {{mode}}",
+    "contextDetail": "Контекст: занято {{percent}}% ({{tokens}} токенов)",
+    "workingDetail": "Claude пишет ответ",
+    "waitingDetail": "Claude ждёт вашего ответа",
+    "click": "Нажмите, чтобы открыть этот чат"
   }
 }

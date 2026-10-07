@@ -821,5 +821,17 @@
     "deleteTitle": "Delete this template?",
     "deleteMessage": "Delete the template \"{{name}}\"? This cannot be undone.",
     "deleteConfirm": "Delete"
+  },
+  "chatStatus": {
+    "context": "{{percent}}% context",
+    "working": "working",
+    "waiting": "waiting for you",
+    "newChat": "New chat",
+    "model": "Model: {{model}}",
+    "mode": "Mode: {{mode}}",
+    "contextDetail": "Context: {{percent}}% used ({{tokens}} tokens)",
+    "workingDetail": "Claude is working on a reply",
+    "waitingDetail": "Claude is waiting for your answer",
+    "click": "Click to show this chat"
   }
 }

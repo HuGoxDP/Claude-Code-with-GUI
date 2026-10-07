@@ -1,36 +1,17 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Tag } from '@/pages/ChatPage/ChatInput/Tag';
 import { useChatStreamContext } from '@/contexts/ChatStreamContext';
-import { useCliConfig } from '@/contexts/CliConfigContext';
-import { useFableProbe } from '@/contexts/FableProbeContext';
 import { SWITCH_MODEL_EVENT } from '@/pages/ChatPage/ModelSwitchOverlay';
 import { modelChangeLabel } from '@/pages/ChatPage/modelChangeLabel';
-import { DEFAULT_MODEL_ALIAS, resolveModelInfo, resolveModelLabel, toDisplayLabel, toModelAlias, withFableFallback } from '@/types/models';
-import { useCurrentModel } from '@/hooks/useCurrentModel';
+import { resolveModelInfo, resolveModelLabel, toDisplayLabel } from '@/types/models';
+import { useCurrentModelLabel } from '@/hooks/useCurrentModelLabel';
 import { useModelSwitch } from '@/hooks/useModelSwitch';
-import { useVersionInfo } from '@/hooks/useVersionInfo';
 import { LoadedMessageType } from '@/types';
 import { ModelInfo } from '@/types/slashCommand';
 import { useTranslation } from '@/i18n';
 
 /** Fired by the ⌘/Ctrl+Shift+. shortcut to rotate to the next model. */
 export const ROTATE_MODEL_EVENT = 'rotate-model';
-
-/**
- * Last-resort label when `current` can't be matched to any list item — e.g.
- * the CLI reported a model family the selectable list doesn't carry. Humanize
- * the coarse alias ("opus" → "Opus") so the indicator stays meaningful instead
- * of vanishing; fall back to the raw value if even the family is unknown.
- *
- * Showing the raw value is deliberate: a model we can't identify must not be
- * dressed up as "Default", which would claim something we don't know to be
- * true (issue #217).
- */
-function fallbackModelLabel(current: string): string {
-  const alias = toModelAlias(current);
-  if (alias === DEFAULT_MODEL_ALIAS) return current;
-  return alias.charAt(0).toUpperCase() + alias.slice(1);
-}
 
 /**
  * What the chip names.
@@ -65,18 +46,9 @@ export function chipLabel(info: ModelInfo): string {
 export function ModelTag() {
   const { t } = useTranslation('chat');
   const { appendMessage } = useChatStreamContext();
-  const { controlResponse } = useCliConfig();
   const switchModel = useModelSwitch();
-  const currentModel = useCurrentModel();
-  const { cliVersion } = useVersionInfo();
-  const { probedAvailable, probedCanonicalModel } = useFableProbe();
-
-  // Memoized on the CLI response so the fallback-augmented array keeps a stable
-  // reference across renders (the rotate effect below depends on `models`).
-  const models: ModelInfo[] = useMemo(
-    () => withFableFallback(controlResponse?.response?.response?.models ?? [], cliVersion, probedAvailable, probedCanonicalModel),
-    [controlResponse, cliVersion, probedAvailable],
-  );
+  // The same name the IDE status bar's tooltip gives, from one place.
+  const { models, currentModel, info, label: resolvedLabel } = useCurrentModelLabel();
 
   useEffect(() => {
     const handleRotate = () => {
@@ -106,17 +78,15 @@ export function ModelTag() {
 
   // Models not loaded yet — nothing meaningful to show. The CLI config arrives
   // shortly and fills this in; this is the ONLY case where the tag is hidden.
-  if (models.length === 0) return null;
+  if (models.length === 0 || resolvedLabel === null) return null;
 
-  // No default fallback here: an unidentified model must show as itself, not
-  // masquerade as "Default" (issue #217). The tag still always renders —
-  // fallbackModelLabel covers the unmatched case.
-  const info = resolveModelInfo(models, currentModel, { allowDefaultFallback: false });
-  // The tooltip has room for the whole story, so it says what the model-change
-  // line says: on the `default` row, both the choice and the model behind it.
-  // That is also what keeps the default row distinguishable from a row the user
-  // picked by name, which the chip alone can no longer show.
-  const label = info ? modelChangeLabel(info) : fallbackModelLabel(currentModel);
+  // An unidentified model shows as itself, not as "Default" (issue #217): the
+  // tag still always renders, under fallbackModelLabel. The tooltip has room for
+  // the whole story, so it says what the model-change line says: on the
+  // `default` row, both the choice and the model behind it. That is also what
+  // keeps the default row distinguishable from a row the user picked by name,
+  // which the chip alone can no longer show.
+  const label = resolvedLabel;
   const chip = info ? chipLabel(info) : label;
 
   const handleClick = () => {

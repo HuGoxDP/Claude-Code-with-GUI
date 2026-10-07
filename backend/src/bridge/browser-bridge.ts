@@ -525,6 +525,19 @@ if ($dialog.ShowDialog() -eq 'OK') {
     // separates this no-op from a feature that was merely left out here.
   }
 
+  async setChatStatus(_params: {
+    panelId: string;
+    workingDir?: string;
+    focused: boolean;
+    status: { text: string; tooltip: string } | null;
+  }): Promise<void> {
+    // Nothing to show it in: a browser has no status bar. Nor is anything
+    // missing, since the page already shows every fact the IDE's bar repeats:
+    // the composer has the model, mode and context gauge, and the tab's icon
+    // turns while the chat works and badges when it waits (066). The IDE needs
+    // the bar because its chat is often out of sight behind the editor.
+  }
+
   async openTerminal(workingDir: string): Promise<void> {
     // The terminal is opened *in* this project, so its choice is resolved per
     // project too — global still applies when the project sets none (issue #7).

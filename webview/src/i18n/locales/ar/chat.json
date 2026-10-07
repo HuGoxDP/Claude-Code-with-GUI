@@ -833,5 +833,17 @@
     "deleteTitle": "حذف هذا القالب؟",
     "deleteMessage": "حذف القالب \"{{name}}\"؟ لا يمكن التراجع عن ذلك.",
     "deleteConfirm": "حذف"
+  },
+  "chatStatus": {
+    "context": "السياق {{percent}}%",
+    "working": "يعمل",
+    "waiting": "بانتظارك",
+    "newChat": "محادثة جديدة",
+    "model": "النموذج: {{model}}",
+    "mode": "الوضع: {{mode}}",
+    "contextDetail": "السياق: مستخدم {{percent}}% ({{tokens}} رمز)",
+    "workingDetail": "يكتب Claude ردًا",
+    "waitingDetail": "ينتظر Claude إجابتك",
+    "click": "انقر لعرض هذه المحادثة"
   }
 }

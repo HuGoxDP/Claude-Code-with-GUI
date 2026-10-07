@@ -817,5 +817,17 @@
     "deleteTitle": "이 템플릿을 삭제할까요?",
     "deleteMessage": "\"{{name}}\" 템플릿을 삭제할까요? 되돌릴 수 없습니다.",
     "deleteConfirm": "삭제"
+  },
+  "chatStatus": {
+    "context": "컨텍스트 {{percent}}%",
+    "working": "작업 중",
+    "waiting": "답변 대기",
+    "newChat": "새 채팅",
+    "model": "모델: {{model}}",
+    "mode": "모드: {{mode}}",
+    "contextDetail": "컨텍스트: {{percent}}% 사용 ({{tokens}} 토큰)",
+    "workingDetail": "Claude가 답변을 작성하는 중입니다",
+    "waitingDetail": "Claude가 답변을 기다리고 있습니다",
+    "click": "클릭하면 이 채팅을 엽니다"
   }
 }

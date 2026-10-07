@@ -255,4 +255,32 @@ export interface Bridge {
    * request, and a selection that was not placed costs the user one copy.
    */
   setPrimarySelection(params: { text: string; workingDir?: string }): Promise<void>;
+
+  /**
+   * Show what chat panel [panelId] says about itself where the host keeps such
+   * things: whether it is working or waiting for an answer, and how much of the
+   * context window it has used (ported from CC GUI's status bar widget).
+   *
+   *   JetBrains:  the IDE's status bar, which stays in view while the user works
+   *               in the editor and the chat is out of sight. The host shows the
+   *               chat the user was last in; [focused] is what tells it which.
+   *   Standalone: nothing to do, and honestly so. A browser has no status bar,
+   *               and the page itself already shows every fact this carries: the
+   *               composer has the model, mode and context gauge, and the tab's
+   *               icon turns while the chat works and badges when it waits (066).
+   *               A standalone user loses nothing without it.
+   *
+   * [status] null means the panel has nothing to say for now (it left the chat
+   * screen), so the host goes back to the chat the user was in before it.
+   * [workingDir] routes the request to the IDE host serving that project when
+   * several IDEs share one backend.
+   *
+   * Best-effort by contract: a status that did not land is replaced by the next.
+   */
+  setChatStatus(params: {
+    panelId: string;
+    workingDir?: string;
+    focused: boolean;
+    status: { text: string; tooltip: string } | null;
+  }): Promise<void>;
 }

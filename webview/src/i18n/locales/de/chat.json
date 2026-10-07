@@ -817,5 +817,17 @@
     "deleteTitle": "Diese Vorlage löschen?",
     "deleteMessage": "Die Vorlage „{{name}}“ löschen? Das lässt sich nicht rückgängig machen.",
     "deleteConfirm": "Löschen"
+  },
+  "chatStatus": {
+    "context": "{{percent}} % Kontext",
+    "working": "arbeitet",
+    "waiting": "wartet auf dich",
+    "newChat": "Neuer Chat",
+    "model": "Modell: {{model}}",
+    "mode": "Modus: {{mode}}",
+    "contextDetail": "Kontext: {{percent}} % belegt ({{tokens}} Tokens)",
+    "workingDetail": "Claude schreibt eine Antwort",
+    "waitingDetail": "Claude wartet auf deine Antwort",
+    "click": "Klicken, um diesen Chat anzuzeigen"
   }
 }

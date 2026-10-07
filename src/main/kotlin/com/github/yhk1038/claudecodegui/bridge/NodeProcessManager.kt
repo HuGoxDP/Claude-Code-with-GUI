@@ -304,6 +304,17 @@ class NodeProcessManager(
          * either way: an unplaced selection costs the user one copy.
          */
         suspend fun setPrimarySelection(text: String)
+
+        /**
+         * Show what chat panel [panelId] says about itself in the IDE's status bar
+         * (see [com.github.yhk1038.claudecodegui.statusbar.ChatStatusBoard]).
+         *
+         * [text] null means the panel has nothing to say for now, so the bar goes
+         * back to the chat the user was in before it. [focused] means the user is
+         * in that panel as it reports, which is what makes the bar speak for it.
+         * Nothing is answered: a status that did not land is replaced by the next.
+         */
+        suspend fun setChatStatus(panelId: String, focused: Boolean, text: String?, tooltip: String?)
         /** @param path settings page to land on (e.g. "/settings/sponsor"); null → landing page. */
         suspend fun openSettings(workingDir: String, path: String? = null)
         suspend fun openTerminal(workingDir: String)

@@ -817,5 +817,17 @@
     "deleteTitle": "¿Eliminar esta plantilla?",
     "deleteMessage": "¿Eliminar la plantilla «{{name}}»? No se puede deshacer.",
     "deleteConfirm": "Eliminar"
+  },
+  "chatStatus": {
+    "context": "{{percent}} % de contexto",
+    "working": "trabajando",
+    "waiting": "esperándote",
+    "newChat": "Chat nuevo",
+    "model": "Modelo: {{model}}",
+    "mode": "Modo: {{mode}}",
+    "contextDetail": "Contexto: {{percent}} % usado ({{tokens}} tokens)",
+    "workingDetail": "Claude está escribiendo una respuesta",
+    "waitingDetail": "Claude está esperando tu respuesta",
+    "click": "Haz clic para mostrar este chat"
   }
 }

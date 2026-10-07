@@ -817,5 +817,17 @@
     "deleteTitle": "刪除此範本？",
     "deleteMessage": "刪除範本「{{name}}」？此操作無法復原。",
     "deleteConfirm": "刪除"
+  },
+  "chatStatus": {
+    "context": "上下文 {{percent}}%",
+    "working": "工作中",
+    "waiting": "等待你的回答",
+    "newChat": "新聊天",
+    "model": "模型：{{model}}",
+    "mode": "模式：{{mode}}",
+    "contextDetail": "上下文：已使用 {{percent}}%（{{tokens}} 個 token）",
+    "workingDetail": "Claude 正在撰寫回覆",
+    "waitingDetail": "Claude 正在等待你的回答",
+    "click": "點擊顯示此聊天"
   }
 }

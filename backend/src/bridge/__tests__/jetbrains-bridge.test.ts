@@ -473,6 +473,62 @@ describe('JetBrainsBridge.setPrimarySelection', () => {
   });
 });
 
+describe('JetBrainsBridge.setChatStatus', () => {
+  it('sends a request with flat fields, since a notification would never reach the IDE dispatcher', () => {
+    const bridge = new JetBrainsBridge();
+    const ws = createMockWs();
+    bridge.addRpcClient(ws as never);
+
+    void bridge
+      .setChatStatus({
+        panelId: 'p1',
+        workingDir: '/proj',
+        focused: true,
+        status: { text: 'Claude: 34% context', tooltip: 'Fix the login' },
+      })
+      .catch(() => {});
+
+    const sent = sentMessage(ws);
+    expect(sent?.method).toBe(MessageType.SET_CHAT_STATUS);
+    expect(sent?.params).toEqual({
+      panelId: 'p1',
+      workingDir: '/proj',
+      focused: true,
+      text: 'Claude: 34% context',
+      tooltip: 'Fix the login',
+    });
+    expect(sent?.id).toBeTruthy();
+  });
+
+  it('sends null text and tooltip for a chat with nothing to say', () => {
+    const bridge = new JetBrainsBridge();
+    const ws = createMockWs();
+    bridge.addRpcClient(ws as never);
+
+    void bridge.setChatStatus({ panelId: 'p1', focused: false, status: null }).catch(() => {});
+
+    expect(sentMessage(ws)?.params).toMatchObject({ panelId: 'p1', focused: false, text: null, tooltip: null });
+  });
+
+  it('goes to the IDE that serves the project, so the right window shows it', () => {
+    const bridge = new JetBrainsBridge();
+    const wsA = createMockWs();
+    const wsB = createMockWs();
+    bridge.addRpcClient(wsA as never);
+    bridge.addRpcClient(wsB as never);
+    registerRoots(wsA, ['/projA']);
+    registerRoots(wsB, ['/projB']);
+
+    void bridge
+      .setChatStatus({ panelId: 'p1', workingDir: '/projB/src', focused: true, status: null })
+      .catch(() => {});
+
+    expect(wsB.send).toHaveBeenCalledTimes(1);
+    expect(wsA.send).not.toHaveBeenCalled();
+    expect(sentMethod(wsB)).toBe(MessageType.SET_CHAT_STATUS);
+  });
+});
+
 describe('JetBrainsBridge request deadlines', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());

@@ -539,6 +539,24 @@ export class JetBrainsBridge implements Bridge {
     // `workingDir` is what picks the IDE when several share this backend.
     await this.request(MessageType.SET_PRIMARY_SELECTION, params);
   }
+
+  async setChatStatus(params: {
+    panelId: string;
+    workingDir?: string;
+    focused: boolean;
+    status: { text: string; tooltip: string } | null;
+  }): Promise<void> {
+    // A request for the same reason as focusSession: a message with no `id` never
+    // reaches the IDE's RPC dispatcher. Flat on the wire, with `text` null for "nothing to
+    // say", so the Kotlin side reads plain fields.
+    await this.request(MessageType.SET_CHAT_STATUS, {
+      panelId: params.panelId,
+      workingDir: params.workingDir,
+      focused: params.focused,
+      text: params.status?.text ?? null,
+      tooltip: params.status?.tooltip ?? null,
+    });
+  }
 }
 
 /**

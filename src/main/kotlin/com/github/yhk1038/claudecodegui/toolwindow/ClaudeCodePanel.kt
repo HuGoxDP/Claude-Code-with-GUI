@@ -17,6 +17,8 @@ import com.github.yhk1038.claudecodegui.services.ReviewBaseReason
 import com.github.yhk1038.claudecodegui.services.DiffTabService
 import com.github.yhk1038.claudecodegui.services.EditorTabStateService
 import com.github.yhk1038.claudecodegui.services.NodeBackendService
+import com.github.yhk1038.claudecodegui.statusbar.ChatStatusBoard
+import com.github.yhk1038.claudecodegui.statusbar.ChatStatusService
 import com.github.yhk1038.claudecodegui.toolwindow.realization.CallbackStaging
 import com.github.yhk1038.claudecodegui.toolwindow.realization.LoadingPhase
 import com.github.yhk1038.claudecodegui.toolwindow.realization.PanelLoadingMessages
@@ -2250,6 +2252,12 @@ class ClaudeCodePanel(
                 }
             }
 
+            override suspend fun setChatStatus(panelId: String, focused: Boolean, text: String?, tooltip: String?) {
+                if (project.isDisposed) return
+                val status = text?.let { ChatStatusBoard.ChatStatus(it, tooltip ?: "") }
+                ChatStatusService.getInstance(project).report(panelId, focused, status)
+            }
+
             override suspend fun openSettings(workingDir: String, path: String?) {
                 ApplicationManager.getApplication().invokeLater {
                     val targetProject = findProjectByBasePath(workingDir) ?: project
@@ -2825,6 +2833,8 @@ class ClaudeCodePanel(
             browserService.releaseRef(tabId, acquiredHolder) {
                 ClaudeCodeVirtualFile.removeTab(project, tabId)
                 EditorTabStateService.getInstance(project).removeTab(tabId)
+                // A closed chat says nothing more, so the status bar stops speaking for it.
+                if (!project.isDisposed) ChatStatusService.getInstance(project).remove(tabId)
             }
         }
         // NOTE: Do NOT call Disposer.dispose(cursorQuery) or Disposer.dispose(browser).

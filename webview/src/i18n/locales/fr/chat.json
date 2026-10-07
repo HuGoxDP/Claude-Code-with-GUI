@@ -817,5 +817,17 @@
     "deleteTitle": "Supprimer ce modèle ?",
     "deleteMessage": "Supprimer le modèle « {{name}} » ? C'est définitif.",
     "deleteConfirm": "Supprimer"
+  },
+  "chatStatus": {
+    "context": "{{percent}} % du contexte",
+    "working": "au travail",
+    "waiting": "attend ta réponse",
+    "newChat": "Nouveau chat",
+    "model": "Modèle : {{model}}",
+    "mode": "Mode : {{mode}}",
+    "contextDetail": "Contexte : {{percent}} % utilisé ({{tokens}} tokens)",
+    "workingDetail": "Claude rédige une réponse",
+    "waitingDetail": "Claude attend ta réponse",
+    "click": "Clique pour afficher ce chat"
   }
 }

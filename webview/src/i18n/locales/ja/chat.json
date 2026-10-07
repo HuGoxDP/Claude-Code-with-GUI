@@ -817,5 +817,17 @@
     "deleteTitle": "このテンプレートを削除しますか?",
     "deleteMessage": "テンプレート「{{name}}」を削除しますか? 元に戻せません。",
     "deleteConfirm": "削除"
+  },
+  "chatStatus": {
+    "context": "コンテキスト {{percent}}%",
+    "working": "作業中",
+    "waiting": "回答待ち",
+    "newChat": "新しいチャット",
+    "model": "モデル: {{model}}",
+    "mode": "モード: {{mode}}",
+    "contextDetail": "コンテキスト: {{percent}}% 使用 ({{tokens}} トークン)",
+    "workingDetail": "Claude が返信を作成しています",
+    "waitingDetail": "Claude があなたの回答を待っています",
+    "click": "クリックしてこのチャットを表示"
   }
 }

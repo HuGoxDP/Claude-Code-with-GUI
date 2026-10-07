@@ -900,6 +900,19 @@ export enum MessageType {
    * webview→backend, then Node↔Kotlin
    */
   SET_PRIMARY_SELECTION = 'SET_PRIMARY_SELECTION',
+  /**
+   * The chat page reports what the IDE's status bar should say about it,
+   * carrying { panelId, workingDir, focused, text, tooltip }: whether it is
+   * working or waiting for an answer and how much of the context window it has
+   * used, with the model and mode in the tooltip (ported from CC GUI's status
+   * bar widget). `text` null means the panel has nothing to say for now;
+   * `focused` means the user is in the panel as it reports, which is what makes
+   * the bar speak for it. The browser bridge has nothing to do, as a browser has
+   * no status bar and the composer already shows the same facts.
+   * Fire-and-forget: nothing is answered. inbound webview→backend, then
+   * Node↔Kotlin
+   */
+  SET_CHAT_STATUS = 'SET_CHAT_STATUS',
   /** The project list payload in response to GET_PROJECTS. */
   PROJECTS_LIST = 'PROJECTS_LIST',
 

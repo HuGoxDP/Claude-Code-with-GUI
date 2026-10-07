@@ -817,5 +817,17 @@
     "deleteTitle": "این الگو حذف شود؟",
     "deleteMessage": "الگوی «{{name}}» حذف شود؟ این کار برگشت‌پذیر نیست.",
     "deleteConfirm": "حذف"
+  },
+  "chatStatus": {
+    "context": "زمینه {{percent}}%",
+    "working": "در حال کار",
+    "waiting": "منتظر شما",
+    "newChat": "گفتگوی جدید",
+    "model": "مدل: {{model}}",
+    "mode": "حالت: {{mode}}",
+    "contextDetail": "زمینه: {{percent}}% استفاده شده ({{tokens}} توکن)",
+    "workingDetail": "Claude در حال نوشتن پاسخ است",
+    "waitingDetail": "Claude منتظر پاسخ شماست",
+    "click": "برای نمایش این گفتگو کلیک کنید"
   }
 }

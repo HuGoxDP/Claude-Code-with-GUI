@@ -34,6 +34,7 @@ object NoopRpcHandler : NodeProcessManager.RpcHandler {
     override suspend fun openSession(sessionId: String, workingDir: String?) {}
     override suspend fun setTabName(panelId: String, name: String) {}
     override suspend fun setPrimarySelection(text: String) {}
+    override suspend fun setChatStatus(panelId: String, focused: Boolean, text: String?, tooltip: String?) {}
     override suspend fun openSettings(workingDir: String, path: String?) {}
     override suspend fun openTerminal(workingDir: String) {}
     override suspend fun reviewBaseChanged(

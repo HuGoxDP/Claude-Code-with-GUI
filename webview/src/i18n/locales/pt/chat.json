@@ -817,5 +817,17 @@
     "deleteTitle": "Excluir este modelo?",
     "deleteMessage": "Excluir o modelo \"{{name}}\"? Isso não pode ser desfeito.",
     "deleteConfirm": "Excluir"
+  },
+  "chatStatus": {
+    "context": "{{percent}}% do contexto",
+    "working": "trabalhando",
+    "waiting": "aguardando você",
+    "newChat": "Novo chat",
+    "model": "Modelo: {{model}}",
+    "mode": "Modo: {{mode}}",
+    "contextDetail": "Contexto: {{percent}}% usado ({{tokens}} tokens)",
+    "workingDetail": "O Claude está escrevendo uma resposta",
+    "waitingDetail": "O Claude está aguardando sua resposta",
+    "click": "Clique para mostrar este chat"
   }
 }
