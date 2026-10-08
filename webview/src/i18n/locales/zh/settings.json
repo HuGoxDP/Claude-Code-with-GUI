@@ -598,6 +598,40 @@
       "label": "Node 路径",
       "description": "运行后端所使用的 Node.js 可执行文件路径(留空以自动检测)。重启后生效。",
       "placeholder": "自动检测"
+    },
+    "providers": {
+      "title": "API 提供方",
+      "description": "通过其他端点访问 Claude。使用某个提供方时，会像手写一样把它的 ANTHROPIC_* 变量写入用户的 settings.json。",
+      "login": "Claude 登录",
+      "loginDetails": "你的 Claude 账号，与 claude 登录的方式相同。不设置任何提供方变量。",
+      "inUse": "使用中",
+      "use": "使用",
+      "edit": "编辑",
+      "delete": "删除",
+      "confirmDelete": "删除“{{name}}”及其保存的密钥吗？设置保持不变。",
+      "add": "添加提供方",
+      "defaultAddress": "Claude 自己的地址",
+      "keyIn": "密钥在 {{variable}}",
+      "noKey": "无密钥",
+      "other": "用户设置中的 ANTHROPIC_* 变量与这些都不匹配。使用其中一个会替换它们。",
+      "switched": "现在使用 {{name}}。新会话将使用它。",
+      "userOnly": "提供方保存在所有项目都会读取的 User Settings 中。",
+      "form": {
+        "name": "名称",
+        "baseUrl": "地址",
+        "key": "密钥",
+        "keyVar": "密钥所在变量",
+        "keyKept": "已保存；输入以替换",
+        "keyNew": "粘贴密钥",
+        "removeKey": "删除已保存的密钥",
+        "model": "模型",
+        "opusModel": "Opus 槽位",
+        "sonnetModel": "Sonnet 槽位",
+        "haikuModel": "Haiku 槽位",
+        "fableModel": "Fable 槽位",
+        "cancel": "取消",
+        "save": "保存"
+      }
     }
   },
   "releases": {

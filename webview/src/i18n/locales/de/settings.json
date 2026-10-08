@@ -602,6 +602,40 @@
       "label": "Node-Pfad",
       "description": "Pfad zur ausführbaren Node.js-Datei, die das Backend ausführt (leer lassen für automatische Erkennung). Wird erst nach einem Neustart wirksam.",
       "placeholder": "Automatisch erkennen"
+    },
+    "providers": {
+      "title": "API-Anbieter",
+      "description": "Claude über einen anderen Endpunkt erreichen. Verwenden schreibt seine ANTHROPIC_*-Variablen in deine settings.json, wie du es von Hand tun würdest.",
+      "login": "Claude-Anmeldung",
+      "loginDetails": "Dein Claude-Konto, so wie claude sich anmeldet. Keine Anbieter-Variable ist gesetzt.",
+      "inUse": "In Verwendung",
+      "use": "Verwenden",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "confirmDelete": "„{{name}}“ und seinen gespeicherten Schlüssel löschen? Deine Einstellungen bleiben, wie sie sind.",
+      "add": "Anbieter hinzufügen",
+      "defaultAddress": "Claudes eigene Adresse",
+      "keyIn": "Schlüssel in {{variable}}",
+      "noKey": "Kein Schlüssel",
+      "other": "Die ANTHROPIC_*-Variablen in deinen Benutzereinstellungen passen zu keinem davon. Einen zu verwenden ersetzt sie.",
+      "switched": "Jetzt mit {{name}}. Neue Sitzungen beginnen damit.",
+      "userOnly": "Anbieter liegen in den User Settings, die jedes Projekt liest.",
+      "form": {
+        "name": "Name",
+        "baseUrl": "Adresse",
+        "key": "Schlüssel",
+        "keyVar": "Variable für den Schlüssel",
+        "keyKept": "Gespeichert; zum Ersetzen eingeben",
+        "keyNew": "Schlüssel einfügen",
+        "removeKey": "Gespeicherten Schlüssel entfernen",
+        "model": "Modell",
+        "opusModel": "Opus-Platz",
+        "sonnetModel": "Sonnet-Platz",
+        "haikuModel": "Haiku-Platz",
+        "fableModel": "Fable-Platz",
+        "cancel": "Abbrechen",
+        "save": "Speichern"
+      }
     }
   },
   "releases": {

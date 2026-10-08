@@ -32,6 +32,8 @@ vi.mock('@/contexts/CliConfigContext', () => ({
 }));
 vi.mock('@/hooks/useVersionInfo', () => ({ useVersionInfo: () => ({ cliVersion: '2.1.170' }) }));
 vi.mock('@/contexts/WorkingDirContext', () => ({ useWorkingDir: () => ({ workingDirectory: '/tmp' }) }));
+// The providers section has its own tests; it needs a query client this page test does not set up.
+vi.mock('../Providers', () => ({ ProvidersSection: () => null }));
 vi.mock('@/contexts/FableProbeContext', () => ({
   useFableProbe: () => ({ probedAvailable: null, probeFableAvailability: vi.fn() }),
   shouldProbeFable: () => false,

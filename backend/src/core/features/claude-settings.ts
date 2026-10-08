@@ -277,17 +277,32 @@ function writeEnvBlock(filePath: string, env: Record<string, unknown>): Promise<
  * base file), and removing it removes it from both. Every other key of either
  * file, and every other variable, is left exactly as it was.
  */
-export async function saveClaudeEnvVar(
+export function saveClaudeEnvVar(
   name: string,
   value: string | null,
   scope: 'global' | 'project',
   projectPath?: string,
 ): Promise<{ status: 'ok' | 'error'; error?: string }> {
-  if (!ENV_NAME.test(name)) {
-    return { status: 'error', error: 'An environment variable name is letters, digits and _, not starting with a digit' };
-  }
-  if (value !== null && (typeof value !== 'string' || value.length > ENV_VALUE_MAX)) {
-    return { status: 'error', error: `An environment variable value is text of at most ${ENV_VALUE_MAX} characters` };
+  return saveClaudeEnvVars({ [name]: value }, scope, projectPath);
+}
+
+/**
+ * Several variables at once, each by the rule of [saveClaudeEnvVar] (null
+ * removes), with one write per file: applying an API provider changes a handful
+ * of variables together, and none of them is written unless all are valid.
+ */
+export async function saveClaudeEnvVars(
+  changes: Record<string, string | null>,
+  scope: 'global' | 'project',
+  projectPath?: string,
+): Promise<{ status: 'ok' | 'error'; error?: string }> {
+  for (const [name, value] of Object.entries(changes)) {
+    if (!ENV_NAME.test(name) || UNSAFE_MERGE_KEYS.has(name)) {
+      return { status: 'error', error: 'An environment variable name is letters, digits and _, not starting with a digit' };
+    }
+    if (value !== null && (typeof value !== 'string' || value.length > ENV_VALUE_MAX)) {
+      return { status: 'error', error: `An environment variable value is text of at most ${ENV_VALUE_MAX} characters` };
+    }
   }
   if (scope === 'project' && !projectPath) return { status: 'error', error: 'projectPath required for project scope' };
 
@@ -304,21 +319,37 @@ export async function saveClaudeEnvVar(
       return { status: 'error', error: `${baseFile} exists but could not be read (${base.reason})` };
     }
 
-    const results: JsonUpdateResult[] = [];
-    if (value === null) {
-      for (const [file, data] of [[baseFile, base.data], [localFile, local.data]] as const) {
-        const env = envBlock(data);
-        if (!(name in env)) continue;
-        const rest = { ...env };
-        delete rest[name];
-        results.push(await writeEnvBlock(file, rest));
+    const baseEnv = { ...envBlock(base.data) };
+    const localEnv = { ...envBlock(local.data) };
+    let baseChanged = false;
+    let localChanged = false;
+    for (const [name, value] of Object.entries(changes)) {
+      if (value === null) {
+        if (name in baseEnv) {
+          delete baseEnv[name];
+          baseChanged = true;
+        }
+        if (name in localEnv) {
+          delete localEnv[name];
+          localChanged = true;
+        }
+      } else if (name in localEnv) {
+        if (localEnv[name] !== value) {
+          localEnv[name] = value;
+          localChanged = true;
+        }
+      } else if (baseEnv[name] !== value) {
+        baseEnv[name] = value;
+        baseChanged = true;
       }
-    } else {
-      await mkdir(dir, { recursive: true });
-      const inLocal = name in envBlock(local.data);
-      const [file, data] = inLocal ? [localFile, local.data] : [baseFile, base.data];
-      results.push(await writeEnvBlock(file, { ...envBlock(data), [name]: value }));
     }
+
+    const results: JsonUpdateResult[] = [];
+    if (baseChanged) {
+      await mkdir(dir, { recursive: true });
+      results.push(await writeEnvBlock(baseFile, baseEnv));
+    }
+    if (localChanged) results.push(await writeEnvBlock(localFile, localEnv));
     const failed = results.find((r) => r.status === 'error');
     return failed ? { status: 'error', error: failed.error } : { status: 'ok' };
   } catch (err) {

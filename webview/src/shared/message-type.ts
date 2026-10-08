@@ -206,6 +206,14 @@ export enum MessageType {
   SAVE_CLAUDE_SETTINGS = 'SAVE_CLAUDE_SETTINGS',
   /** Set or remove one variable of Claude's settings.json `env` block, as {name, value (null removes it), scope, workingDir}, in the file (settings.json or settings.local.json) that already holds it. inbound webview→backend */
   SAVE_CLAUDE_ENV_VAR = 'SAVE_CLAUDE_ENV_VAR',
+  /** Read the API providers (names, addresses, models; whether each has a key, never the key) and which one the user settings use: Claude login, a provider, or something else. inbound webview→backend */
+  GET_API_PROVIDERS = 'GET_API_PROVIDERS',
+  /** Add an API provider, or change the one with `id`, as {id?, name, baseUrl, authVar, key? (absent keeps it, '' removes it), model, opusModel, sonnetModel, haikuModel, fableModel}. A provider in use is written to the settings again. inbound webview→backend */
+  SAVE_API_PROVIDER = 'SAVE_API_PROVIDER',
+  /** Delete an API provider and its key, as {id}; the settings are left as they are. inbound webview→backend */
+  DELETE_API_PROVIDER = 'DELETE_API_PROVIDER',
+  /** Use an API provider, as {id}, or Claude login for {id: null}: writes or removes the ANTHROPIC_* variables in the user settings.json `env` block. inbound webview→backend */
+  APPLY_API_PROVIDER = 'APPLY_API_PROVIDER',
   /** Read the effective CLAUDE_CONFIG_DIR: active value, per-scope plugin settings, and the value inherited from the environment at startup. inbound webview→backend */
   GET_CLAUDE_CONFIG_DIR = 'GET_CLAUDE_CONFIG_DIR',
   /** Persist CLAUDE_CONFIG_DIR into the plugin settings `env` map at a scope (global/project) and re-apply it. inbound webview→backend */

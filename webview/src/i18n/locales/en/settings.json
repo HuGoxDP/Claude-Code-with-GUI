@@ -602,6 +602,40 @@
       "label": "Node Path",
       "description": "Path to Node.js executable that runs the backend (leave empty for auto-detect). Takes effect after restart.",
       "placeholder": "Auto-detect"
+    },
+    "providers": {
+      "title": "API providers",
+      "description": "Reach Claude through another endpoint. Using one writes its ANTHROPIC_* variables into your user settings.json, as you would by hand.",
+      "login": "Claude login",
+      "loginDetails": "Your Claude account, the way claude signs in. None of the provider variables are set.",
+      "inUse": "In use",
+      "use": "Use",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Delete \"{{name}}\" and its saved key? Your settings stay as they are.",
+      "add": "Add provider",
+      "defaultAddress": "Claude's own address",
+      "keyIn": "Key in {{variable}}",
+      "noKey": "No key",
+      "other": "The ANTHROPIC_* variables in your user settings match none of these. Using one replaces them.",
+      "switched": "Now using {{name}}. New sessions start with it.",
+      "userOnly": "Providers live in User Settings, which every project reads.",
+      "form": {
+        "name": "Name",
+        "baseUrl": "Address",
+        "key": "Key",
+        "keyVar": "Variable the key goes in",
+        "keyKept": "Saved; type to replace it",
+        "keyNew": "Paste the key",
+        "removeKey": "Remove the saved key",
+        "model": "Model",
+        "opusModel": "Opus slot",
+        "sonnetModel": "Sonnet slot",
+        "haikuModel": "Haiku slot",
+        "fableModel": "Fable slot",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
     }
   },
   "releases": {

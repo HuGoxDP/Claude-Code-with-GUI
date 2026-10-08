@@ -138,6 +138,7 @@ import { updatePluginHandler } from './updatePlugin';
 import { getClaudeSettingsHandler } from './getClaudeSettings';
 import { saveClaudeSettingsHandler } from './saveClaudeSettings';
 import { saveClaudeEnvVarHandler } from './saveClaudeEnvVar';
+import { applyApiProviderHandler, deleteApiProviderHandler, getApiProvidersHandler, saveApiProviderHandler } from './apiProviders';
 import { setModelHandler } from './setModel';
 import { setPermissionModeHandler } from './setPermissionMode';
 import { probeFableAvailabilityHandler } from './probeFableAvailability';
@@ -642,6 +643,18 @@ export async function handleMessage(
       break;
     case MessageType.SAVE_CLAUDE_ENV_VAR:
       await saveClaudeEnvVarHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_API_PROVIDERS:
+      await getApiProvidersHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SAVE_API_PROVIDER:
+      await saveApiProviderHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.DELETE_API_PROVIDER:
+      await deleteApiProviderHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.APPLY_API_PROVIDER:
+      await applyApiProviderHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.SET_MODEL:
       setModelHandler(connectionId, message, connections, bridge);

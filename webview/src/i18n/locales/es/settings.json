@@ -602,6 +602,40 @@
       "label": "Ruta de Node",
       "description": "Ruta al ejecutable de Node.js que ejecuta el backend (déjalo vacío para detección automática). Surte efecto tras reiniciar.",
       "placeholder": "Detección automática"
+    },
+    "providers": {
+      "title": "Proveedores de API",
+      "description": "Llega a Claude a través de otro endpoint. Usarlo escribe sus variables ANTHROPIC_* en tu settings.json de usuario, como lo harías a mano.",
+      "login": "Inicio de sesión de Claude",
+      "loginDetails": "Tu cuenta de Claude, como inicia sesión claude. No se define ninguna variable de proveedor.",
+      "inUse": "En uso",
+      "use": "Usar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Eliminar \"{{name}}\" y su clave guardada? Tus ajustes quedan como están.",
+      "add": "Añadir proveedor",
+      "defaultAddress": "La dirección propia de Claude",
+      "keyIn": "Clave en {{variable}}",
+      "noKey": "Sin clave",
+      "other": "Las variables ANTHROPIC_* de tus ajustes de usuario no coinciden con ninguno. Usar uno las reemplaza.",
+      "switched": "Ahora con {{name}}. Las sesiones nuevas empiezan con él.",
+      "userOnly": "Los proveedores están en User Settings, que lee cada proyecto.",
+      "form": {
+        "name": "Nombre",
+        "baseUrl": "Dirección",
+        "key": "Clave",
+        "keyVar": "Variable de la clave",
+        "keyKept": "Guardada; escribe para reemplazarla",
+        "keyNew": "Pega la clave",
+        "removeKey": "Quitar la clave guardada",
+        "model": "Modelo",
+        "opusModel": "Ranura Opus",
+        "sonnetModel": "Ranura Sonnet",
+        "haikuModel": "Ranura Haiku",
+        "fableModel": "Ranura Fable",
+        "cancel": "Cancelar",
+        "save": "Guardar"
+      }
     }
   },
   "releases": {

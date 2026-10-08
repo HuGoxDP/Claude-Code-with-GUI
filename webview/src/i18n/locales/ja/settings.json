@@ -598,6 +598,40 @@
       "label": "Nodeパス",
       "description": "バックエンドを実行するNode.js実行ファイルへのパス(自動検出する場合は空欄のまま)。再起動後に反映されます。",
       "placeholder": "自動検出"
+    },
+    "providers": {
+      "title": "API プロバイダー",
+      "description": "別のエンドポイント経由で Claude に接続します。使うと、その ANTHROPIC_* 変数を手で書くのと同じようにユーザーの settings.json に書き込みます。",
+      "login": "Claude ログイン",
+      "loginDetails": "claude がサインインするのと同じ Claude アカウント。プロバイダーの変数は設定されません。",
+      "inUse": "使用中",
+      "use": "使う",
+      "edit": "編集",
+      "delete": "削除",
+      "confirmDelete": "「{{name}}」と保存されたキーを削除しますか？設定はそのままです。",
+      "add": "プロバイダーを追加",
+      "defaultAddress": "Claude 本来のアドレス",
+      "keyIn": "キー: {{variable}}",
+      "noKey": "キーなし",
+      "other": "ユーザー設定の ANTHROPIC_* 変数はどのプロバイダーとも一致しません。どれかを使うと置き換わります。",
+      "switched": "{{name}} を使用中です。新しいセッションから使われます。",
+      "userOnly": "プロバイダーはすべてのプロジェクトが読む User Settings にあります。",
+      "form": {
+        "name": "名前",
+        "baseUrl": "アドレス",
+        "key": "キー",
+        "keyVar": "キーを入れる変数",
+        "keyKept": "保存済み。変えるには入力",
+        "keyNew": "キーを貼り付け",
+        "removeKey": "保存されたキーを削除",
+        "model": "モデル",
+        "opusModel": "Opus スロット",
+        "sonnetModel": "Sonnet スロット",
+        "haikuModel": "Haiku スロット",
+        "fableModel": "Fable スロット",
+        "cancel": "キャンセル",
+        "save": "保存"
+      }
     }
   },
   "releases": {

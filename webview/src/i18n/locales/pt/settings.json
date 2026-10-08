@@ -602,6 +602,40 @@
       "label": "Caminho do Node",
       "description": "Caminho para o executável do Node.js que executa o backend (deixe vazio para detecção automática). Entra em vigor após reiniciar.",
       "placeholder": "Detecção automática"
+    },
+    "providers": {
+      "title": "Provedores de API",
+      "description": "Acesse o Claude por outro endpoint. Usar um grava as variáveis ANTHROPIC_* dele no seu settings.json de usuário, como você faria à mão.",
+      "login": "Login do Claude",
+      "loginDetails": "Sua conta do Claude, do jeito que o claude faz login. Nenhuma variável de provedor é definida.",
+      "inUse": "Em uso",
+      "use": "Usar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "confirmDelete": "Excluir \"{{name}}\" e a chave salva? Suas configurações ficam como estão.",
+      "add": "Adicionar provedor",
+      "defaultAddress": "O endereço do próprio Claude",
+      "keyIn": "Chave em {{variable}}",
+      "noKey": "Sem chave",
+      "other": "As variáveis ANTHROPIC_* das suas configurações de usuário não batem com nenhum. Usar um as substitui.",
+      "switched": "Agora usando {{name}}. Novas sessões começam com ele.",
+      "userOnly": "Os provedores ficam em User Settings, que todo projeto lê.",
+      "form": {
+        "name": "Nome",
+        "baseUrl": "Endereço",
+        "key": "Chave",
+        "keyVar": "Variável da chave",
+        "keyKept": "Salva; digite para substituir",
+        "keyNew": "Cole a chave",
+        "removeKey": "Remover a chave salva",
+        "model": "Modelo",
+        "opusModel": "Posição Opus",
+        "sonnetModel": "Posição Sonnet",
+        "haikuModel": "Posição Haiku",
+        "fableModel": "Posição Fable",
+        "cancel": "Cancelar",
+        "save": "Salvar"
+      }
     }
   },
   "releases": {

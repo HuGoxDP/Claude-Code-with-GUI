@@ -598,6 +598,40 @@
       "label": "Node 路徑",
       "description": "執行後端所用 Node.js 執行檔的路徑(留空以自動偵測)。重新啟動後才會生效。",
       "placeholder": "自動偵測"
+    },
+    "providers": {
+      "title": "API 供應商",
+      "description": "透過其他端點連線 Claude。使用某個供應商時，會像手寫一樣把它的 ANTHROPIC_* 變數寫入使用者的 settings.json。",
+      "login": "Claude 登入",
+      "loginDetails": "你的 Claude 帳號，與 claude 登入的方式相同。不設定任何供應商變數。",
+      "inUse": "使用中",
+      "use": "使用",
+      "edit": "編輯",
+      "delete": "刪除",
+      "confirmDelete": "刪除「{{name}}」及其儲存的金鑰嗎？設定保持不變。",
+      "add": "新增供應商",
+      "defaultAddress": "Claude 自己的位址",
+      "keyIn": "金鑰在 {{variable}}",
+      "noKey": "沒有金鑰",
+      "other": "使用者設定中的 ANTHROPIC_* 變數與這些都不相符。使用其中一個會取代它們。",
+      "switched": "現在使用 {{name}}。新的工作階段會使用它。",
+      "userOnly": "供應商儲存在所有專案都會讀取的 User Settings 中。",
+      "form": {
+        "name": "名稱",
+        "baseUrl": "位址",
+        "key": "金鑰",
+        "keyVar": "金鑰所在變數",
+        "keyKept": "已儲存；輸入以取代",
+        "keyNew": "貼上金鑰",
+        "removeKey": "刪除已儲存的金鑰",
+        "model": "模型",
+        "opusModel": "Opus 位置",
+        "sonnetModel": "Sonnet 位置",
+        "haikuModel": "Haiku 位置",
+        "fableModel": "Fable 位置",
+        "cancel": "取消",
+        "save": "儲存"
+      }
     }
   },
   "releases": {

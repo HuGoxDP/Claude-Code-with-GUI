@@ -602,6 +602,40 @@
       "label": "Chemin Node",
       "description": "Chemin vers l'exécutable Node.js qui exécute le backend (laisser vide pour la détection automatique). Prend effet après redémarrage.",
       "placeholder": "Détection automatique"
+    },
+    "providers": {
+      "title": "Fournisseurs d'API",
+      "description": "Joindre Claude par un autre point d'accès. L'utiliser écrit ses variables ANTHROPIC_* dans votre settings.json utilisateur, comme à la main.",
+      "login": "Connexion Claude",
+      "loginDetails": "Votre compte Claude, comme claude se connecte. Aucune variable de fournisseur n'est définie.",
+      "inUse": "Utilisé",
+      "use": "Utiliser",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "confirmDelete": "Supprimer « {{name}} » et sa clé enregistrée ? Vos réglages restent tels quels.",
+      "add": "Ajouter un fournisseur",
+      "defaultAddress": "L'adresse de Claude",
+      "keyIn": "Clé dans {{variable}}",
+      "noKey": "Pas de clé",
+      "other": "Les variables ANTHROPIC_* de vos réglages utilisateur ne correspondent à aucun. En utiliser un les remplace.",
+      "switched": "{{name}} est utilisé. Les nouvelles sessions démarrent avec.",
+      "userOnly": "Les fournisseurs sont dans User Settings, que chaque projet lit.",
+      "form": {
+        "name": "Nom",
+        "baseUrl": "Adresse",
+        "key": "Clé",
+        "keyVar": "Variable de la clé",
+        "keyKept": "Enregistrée ; tapez pour la remplacer",
+        "keyNew": "Collez la clé",
+        "removeKey": "Supprimer la clé enregistrée",
+        "model": "Modèle",
+        "opusModel": "Emplacement Opus",
+        "sonnetModel": "Emplacement Sonnet",
+        "haikuModel": "Emplacement Haiku",
+        "fableModel": "Emplacement Fable",
+        "cancel": "Annuler",
+        "save": "Enregistrer"
+      }
     }
   },
   "releases": {

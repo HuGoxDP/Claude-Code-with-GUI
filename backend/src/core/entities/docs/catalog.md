@@ -1,7 +1,7 @@
 # Catalog
 
 Status: Implemented
-Last verified: 2026-10-07 on branch `claude/gracious-brahmagupta-j0aanw` (`session_templates` added)
+Last verified: 2026-10-08 on branch `claude/gracious-brahmagupta-j0aanw` (`api_providers` added)
 
 The tables of the entity system. Each row of this index points at the code that owns the table. What a table's columns mean is in its entity class; how a feature uses it is in that feature's documentation.
 
@@ -17,5 +17,6 @@ The tables of the entity system. Each row of this index points at the code that 
 | `session_favorites` | `session` | Sessions the user starred, with the project each one runs in | `session/SessionFavorite.entity.ts`; `features/session-favorites-store.ts`; `docs/features/081-session_favorites/` |
 | `session_ai_titles` | `session` | Titles this app generated for sessions, by session id | `session/SessionAiTitle.entity.ts`; `features/sessionAiTitles.ts`; `docs/features/086-ai_session_titles/` |
 | `session_templates` | `session` | Named sets of the model, permission mode and effort a new conversation starts with, shared by every project | `session/SessionTemplate.entity.ts`; `features/session-templates-store.ts`; `docs/features/104-session_templates/` |
+| `api_providers` | `provider` | API providers the user can switch Claude Code to (address, key variable, model slots); their keys are not here but in `api-provider-keys.json` (mode 600), since this table is append-only | `provider/ApiProvider.entity.ts`; `features/api-providers.ts`; `docs/features/110-api_providers/` |
 
 When you add a table, add a row here.

@@ -598,6 +598,40 @@
       "label": "Node 경로",
       "description": "백엔드를 실행할 Node.js 실행 파일 경로 (자동 감지하려면 비워두세요). 재시작 후 적용됩니다.",
       "placeholder": "자동 감지"
+    },
+    "providers": {
+      "title": "API 제공자",
+      "description": "다른 엔드포인트를 거쳐 Claude에 접속합니다. 사용하면 그 ANTHROPIC_* 변수를 사용자 settings.json에 직접 적듯이 씁니다.",
+      "login": "Claude 로그인",
+      "loginDetails": "claude가 로그인하는 방식 그대로의 Claude 계정. 제공자 변수는 하나도 설정되지 않습니다.",
+      "inUse": "사용 중",
+      "use": "사용",
+      "edit": "편집",
+      "delete": "삭제",
+      "confirmDelete": "\"{{name}}\"와 저장된 키를 삭제할까요? 설정은 그대로 둡니다.",
+      "add": "제공자 추가",
+      "defaultAddress": "Claude 기본 주소",
+      "keyIn": "키: {{variable}}",
+      "noKey": "키 없음",
+      "other": "사용자 설정의 ANTHROPIC_* 변수가 어느 제공자와도 맞지 않습니다. 하나를 사용하면 바뀝니다.",
+      "switched": "이제 {{name}}을(를) 사용합니다. 새 세션부터 적용됩니다.",
+      "userOnly": "제공자는 모든 프로젝트가 읽는 User Settings에 있습니다.",
+      "form": {
+        "name": "이름",
+        "baseUrl": "주소",
+        "key": "키",
+        "keyVar": "키를 넣을 변수",
+        "keyKept": "저장됨. 바꾸려면 입력",
+        "keyNew": "키 붙여넣기",
+        "removeKey": "저장된 키 삭제",
+        "model": "모델",
+        "opusModel": "Opus 슬롯",
+        "sonnetModel": "Sonnet 슬롯",
+        "haikuModel": "Haiku 슬롯",
+        "fableModel": "Fable 슬롯",
+        "cancel": "취소",
+        "save": "저장"
+      }
     }
   },
   "releases": {
