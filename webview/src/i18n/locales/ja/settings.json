@@ -707,6 +707,40 @@
       "routedThrough": "この要求は {{url}}（{{variable}}）を経由して送信されます。",
       "setIn": "{{variable}} が設定されている場所:",
       "notFound": "読み取れる起動ファイルと設定ファイルのどこにも {{variable}} がありません。IDE を起動したコマンドラインで指定したか、IDE を起動した親プロセスから引き継いだ可能性があります。"
+    },
+    "history": {
+      "title": "履歴",
+      "description": "このマシン上の会話から読んだトークンと、Claude Code が記録したコストです。",
+      "days7": "7日",
+      "days30": "30日",
+      "days90": "90日",
+      "loading": "会話を読み込み中…",
+      "empty": "この期間に Claude の返答はありません。",
+      "tokens": "トークン",
+      "output": "出力",
+      "cost": "コスト",
+      "sessions": "セッション",
+      "tokensHint": "入力 {{input}} · キャッシュ書き込み {{cacheWrite}} · キャッシュ読み込み {{cacheRead}}",
+      "repliesCount": "返答: {{n}}",
+      "costHint": "Claude Code の記録どおり",
+      "projectsCount": "プロジェクト: {{n}}",
+      "metric": {
+        "tokens": "全トークン",
+        "output": "出力",
+        "cost": "コスト"
+      },
+      "legendInput": "入力とキャッシュ書き込み",
+      "legendCacheRead": "キャッシュ読み込み",
+      "dayTip": "{{date}}: トークン {{tokens}}、出力 {{output}}、{{cost}}",
+      "byProject": "プロジェクト別",
+      "byModel": "モデル別",
+      "project": "プロジェクト",
+      "model": "モデル",
+      "showAll": "すべて表示 ({{n}})",
+      "showFewer": "閉じる",
+      "costNote": "Claude Code はセッションのプロセスが終了したときにコストを記録します。開いているセッションはトークンが今、コストは後から計上されます。",
+      "noCost": "コストの記録がないセッション（古い Claude Code）: {{n}}",
+      "unknownCost": "Claude Code が一部のモデルの価格を把握していないため、表示されるコストは実際より少なくなります。"
     }
   },
   "sponsor": {

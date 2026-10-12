@@ -687,6 +687,10 @@ export enum MessageType {
   /** Put files back to how they were before Claude changed them in the session, as {workingDir, sessionId, filePaths, since?, force?}. Only files the session changed; one changed again since Claude's last edit is left alone unless `force`. inbound webview→backend */
   REVERT_SESSION_FILE_CHANGES = 'REVERT_SESSION_FILE_CHANGES',
 
+  // -- Usage history --
+  /** Ask for token use and Claude Code's own cost over time, as {since} (epoch ms). Read from every transcript (replies' `usage`, counted once per message and request, and `cost-state` running totals); answered in 15-minute slots for the viewer to group by its own days. inbound webview→backend */
+  GET_USAGE_HISTORY = 'GET_USAGE_HISTORY',
+
   // -- Session tasks --
   /** Ask for Claude's task list for one session, as {workingDir, sessionId}. Read from Claude Code's task list folder (`<CLAUDE_CONFIG_DIR>/tasks/<list id>/`), or the session's last TodoWrite when there is no folder; tasks go out as the CLI wrote them. inbound webview→backend */
   GET_SESSION_TASKS = 'GET_SESSION_TASKS',

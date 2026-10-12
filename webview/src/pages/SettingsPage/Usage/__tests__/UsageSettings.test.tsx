@@ -16,6 +16,9 @@ vi.mock('@/hooks/queries/useCcbInstallHint', () => ({
   useCcbInstallHint: () => ({ command: 'npm install -g @swttch/extend-kit', shells: [] }),
 }));
 
+// The history section reads transcripts through the bridge; it has its own tests.
+vi.mock('../History', () => ({ UsageHistorySection: () => null }));
+
 vi.mock('@/router/routes', () => ({
   ROUTE_META: { SETTINGS_USAGE: { label: 'Usage' } },
   Route: { SETTINGS_USAGE: 'SETTINGS_USAGE' },

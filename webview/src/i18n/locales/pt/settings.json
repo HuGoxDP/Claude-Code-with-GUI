@@ -711,6 +711,40 @@
       "routedThrough": "Esta solicitação sai através de {{url}} ({{variable}}).",
       "setIn": "Onde {{variable}} está definida:",
       "notFound": "{{variable}} não está definida em nenhum arquivo de inicialização ou configuração legível, então pode ter sido definida na linha de comando que abriu o IDE ou herdada do processo que o iniciou."
+    },
+    "history": {
+      "title": "Histórico",
+      "description": "Tokens das conversas desta máquina e o custo como o Claude Code registrou.",
+      "days7": "7 dias",
+      "days30": "30 dias",
+      "days90": "90 dias",
+      "loading": "Lendo conversas…",
+      "empty": "Claude não respondeu neste período.",
+      "tokens": "Tokens",
+      "output": "Saída",
+      "cost": "Custo",
+      "sessions": "Sessões",
+      "tokensHint": "{{input}} entrada · {{cacheWrite}} escrita em cache · {{cacheRead}} leitura de cache",
+      "repliesCount": "Respostas: {{n}}",
+      "costHint": "Como o Claude Code registrou",
+      "projectsCount": "Projetos: {{n}}",
+      "metric": {
+        "tokens": "Todos os tokens",
+        "output": "Saída",
+        "cost": "Custo"
+      },
+      "legendInput": "Entrada e escrita em cache",
+      "legendCacheRead": "Leitura de cache",
+      "dayTip": "{{date}}: {{tokens}} tokens, {{output}} de saída, {{cost}}",
+      "byProject": "Por projeto",
+      "byModel": "Por modelo",
+      "project": "Projeto",
+      "model": "Modelo",
+      "showAll": "Mostrar tudo ({{n}})",
+      "showFewer": "Mostrar menos",
+      "costNote": "O Claude Code registra o custo de uma sessão quando o processo dela termina, então uma sessão aberta conta os tokens agora e o custo depois.",
+      "noCost": "Sessões sem custo registrado (Claude Code antigo): {{n}}",
+      "unknownCost": "O Claude Code não conseguiu precificar alguns dos modelos usados, então o custo mostrado está abaixo do real."
     }
   },
   "sponsor": {

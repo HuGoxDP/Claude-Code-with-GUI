@@ -2,6 +2,7 @@ import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAllUsage } from '@/hooks/queries/useAllUsage';
 import { AccountUsageSection } from './AccountUsageSection';
 import { CcbNotInstalledNotice } from './CcbNotInstalledNotice';
+import { UsageHistorySection } from './History';
 import { useTranslation } from '@/i18n';
 import type { TFunction } from 'i18next';
 
@@ -96,6 +97,8 @@ export function UsageSettings() {
           <ArrowPathIcon className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
+
+      <UsageHistorySection />
     </div>
   );
 }

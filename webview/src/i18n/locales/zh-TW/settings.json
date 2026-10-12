@@ -707,6 +707,40 @@
       "routedThrough": "此請求透過 {{url}}（{{variable}}）送出。",
       "setIn": "{{variable}} 的設定位置：",
       "notFound": "在可讀取的啟動檔案和設定檔案中都沒有找到 {{variable}}，它可能是在啟動 IDE 的命令列中指定的，或從啟動 IDE 的父程序繼承的。"
+    },
+    "history": {
+      "title": "歷史",
+      "description": "來自本機對話的權杖數，以及 Claude Code 記錄的費用。",
+      "days7": "7 天",
+      "days30": "30 天",
+      "days90": "90 天",
+      "loading": "正在讀取對話…",
+      "empty": "此期間 Claude 沒有回覆。",
+      "tokens": "權杖",
+      "output": "輸出",
+      "cost": "費用",
+      "sessions": "工作階段",
+      "tokensHint": "輸入 {{input}} · 快取寫入 {{cacheWrite}} · 快取讀取 {{cacheRead}}",
+      "repliesCount": "回覆：{{n}}",
+      "costHint": "以 Claude Code 的記錄為準",
+      "projectsCount": "專案：{{n}}",
+      "metric": {
+        "tokens": "全部權杖",
+        "output": "輸出",
+        "cost": "費用"
+      },
+      "legendInput": "輸入與快取寫入",
+      "legendCacheRead": "快取讀取",
+      "dayTip": "{{date}}：權杖 {{tokens}}，輸出 {{output}}，{{cost}}",
+      "byProject": "依專案",
+      "byModel": "依模型",
+      "project": "專案",
+      "model": "模型",
+      "showAll": "全部顯示（{{n}}）",
+      "showFewer": "收合",
+      "costNote": "Claude Code 在工作階段的程序結束時記錄費用，因此仍開啟的工作階段現在計入權杖，稍後計入費用。",
+      "noCost": "沒有費用記錄的工作階段（舊版 Claude Code）：{{n}}",
+      "unknownCost": "Claude Code 無法為部分模型定價，因此顯示的費用偏低。"
     }
   },
   "sponsor": {

@@ -707,6 +707,40 @@
       "routedThrough": "此请求通过 {{url}}（{{variable}}）发出。",
       "setIn": "{{variable}} 的设置位置：",
       "notFound": "在可读取的启动文件和配置文件中都没有找到 {{variable}}，它可能是在启动 IDE 的命令行中指定的，或从启动 IDE 的父进程继承的。"
+    },
+    "history": {
+      "title": "历史",
+      "description": "来自本机对话的令牌数，以及 Claude Code 记录的费用。",
+      "days7": "7 天",
+      "days30": "30 天",
+      "days90": "90 天",
+      "loading": "正在读取对话…",
+      "empty": "此期间 Claude 没有回复。",
+      "tokens": "令牌",
+      "output": "输出",
+      "cost": "费用",
+      "sessions": "会话",
+      "tokensHint": "输入 {{input}} · 缓存写入 {{cacheWrite}} · 缓存读取 {{cacheRead}}",
+      "repliesCount": "回复：{{n}}",
+      "costHint": "以 Claude Code 的记录为准",
+      "projectsCount": "项目：{{n}}",
+      "metric": {
+        "tokens": "全部令牌",
+        "output": "输出",
+        "cost": "费用"
+      },
+      "legendInput": "输入与缓存写入",
+      "legendCacheRead": "缓存读取",
+      "dayTip": "{{date}}：令牌 {{tokens}}，输出 {{output}}，{{cost}}",
+      "byProject": "按项目",
+      "byModel": "按模型",
+      "project": "项目",
+      "model": "模型",
+      "showAll": "全部显示（{{n}}）",
+      "showFewer": "收起",
+      "costNote": "Claude Code 在会话进程结束时记录费用，因此仍打开的会话现在计入令牌，稍后计入费用。",
+      "noCost": "没有费用记录的会话（旧版 Claude Code）：{{n}}",
+      "unknownCost": "Claude Code 无法为部分模型定价，因此显示的费用偏低。"
     }
   },
   "sponsor": {

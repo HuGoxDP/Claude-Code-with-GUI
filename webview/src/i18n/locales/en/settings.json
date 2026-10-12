@@ -711,6 +711,40 @@
       "routedThrough": "This request goes out through {{url}} ({{variable}}).",
       "setIn": "Where {{variable}} is set:",
       "notFound": "{{variable}} is not assigned in any startup or settings file we can read, so it may have been set on the command line that launched the IDE or inherited from the process that started it."
+    },
+    "history": {
+      "title": "History",
+      "description": "Tokens from the conversations on this machine, and cost as Claude Code recorded it.",
+      "days7": "7 days",
+      "days30": "30 days",
+      "days90": "90 days",
+      "loading": "Reading conversations…",
+      "empty": "Claude did not reply in this period.",
+      "tokens": "Tokens",
+      "output": "Output",
+      "cost": "Cost",
+      "sessions": "Sessions",
+      "tokensHint": "{{input}} input · {{cacheWrite}} cache write · {{cacheRead}} cache read",
+      "repliesCount": "Replies: {{n}}",
+      "costHint": "As Claude Code recorded it",
+      "projectsCount": "Projects: {{n}}",
+      "metric": {
+        "tokens": "All tokens",
+        "output": "Output",
+        "cost": "Cost"
+      },
+      "legendInput": "Input and cache write",
+      "legendCacheRead": "Cache read",
+      "dayTip": "{{date}}: {{tokens}} tokens, {{output}} output, {{cost}}",
+      "byProject": "By project",
+      "byModel": "By model",
+      "project": "Project",
+      "model": "Model",
+      "showAll": "Show all ({{n}})",
+      "showFewer": "Show fewer",
+      "costNote": "Claude Code records a session's cost when its process ends, so an open session counts its tokens now and its cost later.",
+      "noCost": "Sessions with no cost recorded (older Claude Code): {{n}}",
+      "unknownCost": "Claude Code could not price some of the models used, so the cost shown is too low."
     }
   },
   "sponsor": {

@@ -707,6 +707,40 @@
       "routedThrough": "이 요청은 {{url}}({{variable}})을 거쳐 나갑니다.",
       "setIn": "{{variable}}가 설정된 위치:",
       "notFound": "읽을 수 있는 시작 파일과 설정 파일 어디에도 {{variable}}가 없습니다. IDE를 실행한 명령줄에서 지정했거나 IDE를 실행한 상위 프로세스에서 물려받았을 수 있습니다."
+    },
+    "history": {
+      "title": "기록",
+      "description": "이 컴퓨터의 대화에서 읽은 토큰과, Claude Code가 기록한 비용입니다.",
+      "days7": "7일",
+      "days30": "30일",
+      "days90": "90일",
+      "loading": "대화를 읽는 중…",
+      "empty": "이 기간에 Claude의 답변이 없습니다.",
+      "tokens": "토큰",
+      "output": "출력",
+      "cost": "비용",
+      "sessions": "세션",
+      "tokensHint": "입력 {{input}} · 캐시 쓰기 {{cacheWrite}} · 캐시 읽기 {{cacheRead}}",
+      "repliesCount": "답변: {{n}}",
+      "costHint": "Claude Code가 기록한 그대로",
+      "projectsCount": "프로젝트: {{n}}",
+      "metric": {
+        "tokens": "전체 토큰",
+        "output": "출력",
+        "cost": "비용"
+      },
+      "legendInput": "입력과 캐시 쓰기",
+      "legendCacheRead": "캐시 읽기",
+      "dayTip": "{{date}}: 토큰 {{tokens}}, 출력 {{output}}, {{cost}}",
+      "byProject": "프로젝트별",
+      "byModel": "모델별",
+      "project": "프로젝트",
+      "model": "모델",
+      "showAll": "모두 보기 ({{n}})",
+      "showFewer": "접기",
+      "costNote": "Claude Code는 세션의 프로세스가 끝날 때 비용을 기록합니다. 그래서 열려 있는 세션은 토큰은 지금, 비용은 나중에 잡힙니다.",
+      "noCost": "비용 기록이 없는 세션(옛 Claude Code): {{n}}",
+      "unknownCost": "Claude Code가 일부 모델의 가격을 몰라, 보이는 비용이 실제보다 적습니다."
     }
   },
   "sponsor": {
