@@ -31,7 +31,7 @@ The arrow on the left of a row shows the diff: the file before Claude changed it
 
 ## Revert
 
-**Revert** asks first, then puts the file back to how it was before Claude's first change in this session. A file Claude created is deleted, and the question says so. Open editors reload the file.
+**Revert** asks first, then puts the file back to how it was before Claude's first change in this session. A file Claude created is deleted, and the question says so. Open editors reload the file. **Escape** closes the panel without stopping a running reply.
 
 ![The Changed files panel with clamp.ts and total.ts; under total.ts a yellow line says "Changed after Claude's last edit".](./assets/changed-since.png)
 

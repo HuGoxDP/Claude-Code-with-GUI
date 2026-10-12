@@ -161,4 +161,23 @@ describe('ChangedFilesModal', () => {
     fireEvent.click(await screen.findByText('config.toml'));
     expect(openFile).toHaveBeenCalledWith(config.filePath);
   });
+
+  it('closes on Escape without the key reaching the composer, so a running turn is not stopped', async () => {
+    const composer = vi.fn();
+    const listener = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) composer();
+    };
+    window.addEventListener('keydown', listener);
+    const onClose = vi.fn();
+    render(
+      <QueryClientProvider client={createTestQueryClient()}>
+        <ChangedFilesModal onClose={onClose} />
+      </QueryClientProvider>,
+    );
+    await screen.findByText('notes.md');
+    fireEvent.keyDown(window, { key: 'Escape' });
+    window.removeEventListener('keydown', listener);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(composer).not.toHaveBeenCalled();
+  });
 });

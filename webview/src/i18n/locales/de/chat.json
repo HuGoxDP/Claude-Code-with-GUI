@@ -869,5 +869,23 @@
       "too-large": "sie ist zu groß",
       "failed": "das Schreiben ist fehlgeschlagen"
     }
+  },
+  "sessionTasks": {
+    "title": "Aufgabenliste",
+    "progress": "{{done}}/{{total}} erledigt",
+    "pinToDock": "An Dock anheften",
+    "unpinFromDock": "Vom Dock lösen",
+    "close": "Schließen",
+    "loading": "Wird geladen…",
+    "empty": "Claude hat in dieser Sitzung keine Aufgabenliste.",
+    "emptyHint": "Claude legt eine an, wenn eine Anfrage mehrere Schritte braucht, und aktualisiert sie bei der Arbeit.",
+    "sourceTaskList": "Die Aufgabenliste von Claude Code für diese Sitzung, wie Claude sie zuletzt aktualisiert hat.",
+    "sourceTodoWrite": "Claudes letzte To-do-Liste in dieser Unterhaltung (TodoWrite).",
+    "waitingOn": "Wartet auf {{ids}}",
+    "status": {
+      "pending": "Nicht begonnen",
+      "in_progress": "In Arbeit",
+      "completed": "Erledigt"
+    }
   }
 }

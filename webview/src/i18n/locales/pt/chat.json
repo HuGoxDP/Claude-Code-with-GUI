@@ -869,5 +869,23 @@
       "too-large": "é grande demais",
       "failed": "a gravação falhou"
     }
+  },
+  "sessionTasks": {
+    "title": "Lista de tarefas",
+    "progress": "{{done}}/{{total}} concluídas",
+    "pinToDock": "Fixar na dock",
+    "unpinFromDock": "Desafixar da dock",
+    "close": "Fechar",
+    "loading": "Carregando…",
+    "empty": "Claude não tem lista de tarefas nesta sessão.",
+    "emptyHint": "Claude cria uma quando um pedido exige várias etapas e a atualiza enquanto trabalha.",
+    "sourceTaskList": "A lista de tarefas do Claude Code para esta sessão, como Claude a atualizou por último.",
+    "sourceTodoWrite": "A última lista de pendências de Claude nesta conversa (TodoWrite).",
+    "waitingOn": "Aguardando {{ids}}",
+    "status": {
+      "pending": "Não iniciada",
+      "in_progress": "Em andamento",
+      "completed": "Concluída"
+    }
   }
 }

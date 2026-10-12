@@ -885,5 +885,23 @@
       "too-large": "حجمه كبير جدًا",
       "failed": "فشلت الكتابة"
     }
+  },
+  "sessionTasks": {
+    "title": "قائمة المهام",
+    "progress": "{{done}}/{{total}} منجزة",
+    "pinToDock": "تثبيت في الشريط",
+    "unpinFromDock": "إلغاء التثبيت من الشريط",
+    "close": "إغلاق",
+    "loading": "جارٍ التحميل…",
+    "empty": "ليس لدى Claude قائمة مهام في هذه الجلسة.",
+    "emptyHint": "ينشئ Claude قائمة عندما يتطلب الطلب عدة خطوات، ويحدّثها أثناء العمل.",
+    "sourceTaskList": "قائمة مهام Claude Code لهذه الجلسة، كما حدّثها Claude آخر مرة.",
+    "sourceTodoWrite": "آخر قائمة مهام كتبها Claude في هذه المحادثة (TodoWrite).",
+    "waitingOn": "بانتظار {{ids}}",
+    "status": {
+      "pending": "لم تبدأ",
+      "in_progress": "قيد التنفيذ",
+      "completed": "منجزة"
+    }
   }
 }

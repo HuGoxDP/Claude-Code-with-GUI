@@ -869,5 +869,23 @@
       "too-large": "文件太大",
       "failed": "写入失败"
     }
+  },
+  "sessionTasks": {
+    "title": "任务列表",
+    "progress": "已完成 {{done}}/{{total}}",
+    "pinToDock": "固定到停靠栏",
+    "unpinFromDock": "从停靠栏取消固定",
+    "close": "关闭",
+    "loading": "加载中…",
+    "empty": "此会话中 Claude 没有任务列表。",
+    "emptyHint": "当请求需要多个步骤时，Claude 会创建任务列表，并在工作过程中更新。",
+    "sourceTaskList": "此会话的 Claude Code 任务列表，为 Claude 最后一次更新时的状态。",
+    "sourceTodoWrite": "Claude 在此对话中最后写下的待办列表（TodoWrite）。",
+    "waitingOn": "等待 {{ids}}",
+    "status": {
+      "pending": "未开始",
+      "in_progress": "进行中",
+      "completed": "已完成"
+    }
   }
 }

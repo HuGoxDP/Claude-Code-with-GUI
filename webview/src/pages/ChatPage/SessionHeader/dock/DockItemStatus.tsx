@@ -6,6 +6,7 @@ import { useWorkflowState } from '@/contexts/WorkflowStateContext';
 import { useTunnelStatus } from '@/hooks';
 import { DockItemId } from '@/types/settings';
 import { useSessionFileChanges } from '@/hooks/useSessionFileChanges';
+import { useSessionTasks } from '@/hooks/useSessionTasks';
 import { BatteryVisual } from '../BatteryVisual';
 
 interface IconProps {
@@ -47,6 +48,8 @@ export function DockItemStatus(props: { id: DockItemId } & RowProps) {
     }
     case DockItemId.CHANGED_FILES:
       return <PanelCountRow icon={icon} labelKey={labelKey} count={useSessionFileChanges().files.length} active={false} />;
+    case DockItemId.SESSION_TASKS:
+      return <TasksRow icon={icon} labelKey={labelKey} />;
     case DockItemId.TUNNEL:
       return <TunnelRow icon={icon} labelKey={labelKey} />;
     default:
@@ -130,6 +133,21 @@ function TunnelRow(props: RowProps) {
       <span className="flex-1 min-w-0 truncate text-[0.8461rem] text-text-primary">{t(props.labelKey)}</span>
       {tunnelEnabled && (
         <span className="text-[0.7692rem] font-medium text-state-success-fg">{t('sessionHeader.dock.active')}</span>
+      )}
+    </>
+  );
+}
+
+/** Claude's task list: how many of its tasks are done, as the dock icon shows it. */
+function TasksRow(props: RowProps) {
+  const { t } = useTranslation('chat');
+  const { done, total, running } = useSessionTasks();
+  return (
+    <>
+      <Icon icon={props.icon} className={running ? 'text-text-link' : undefined} />
+      <span className="flex-1 min-w-0 truncate text-[0.8461rem] text-text-primary">{t(props.labelKey)}</span>
+      {total > 0 && (
+        <span className="text-[0.7692rem] text-text-tertiary tabular-nums">{t('sessionTasks.progress', { done, total })}</span>
       )}
     </>
   );

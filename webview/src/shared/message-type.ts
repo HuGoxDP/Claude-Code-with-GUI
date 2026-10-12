@@ -687,6 +687,10 @@ export enum MessageType {
   /** Put files back to how they were before Claude changed them in the session, as {workingDir, sessionId, filePaths, since?, force?}. Only files the session changed; one changed again since Claude's last edit is left alone unless `force`. inbound webview→backend */
   REVERT_SESSION_FILE_CHANGES = 'REVERT_SESSION_FILE_CHANGES',
 
+  // -- Session tasks --
+  /** Ask for Claude's task list for one session, as {workingDir, sessionId}. Read from Claude Code's task list folder (`<CLAUDE_CONFIG_DIR>/tasks/<list id>/`), or the session's last TodoWrite when there is no folder; tasks go out as the CLI wrote them. inbound webview→backend */
+  GET_SESSION_TASKS = 'GET_SESSION_TASKS',
+
   // -- Session sends --
   /** Ask for the index of every send the USER typed in one session, as {workingDir, sessionId}. The reply carries one row per send — uuid, timestamp and a truncated preview — so the send index can draw a tick for the whole session while the transcript itself is still paged. Never carries the entries: a prompt drags whatever was pasted into it, up to 21MB of base64 in the worst session measured here. inbound webview→backend */
   GET_SESSION_SENDS = 'GET_SESSION_SENDS',

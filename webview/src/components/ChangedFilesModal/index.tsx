@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { Portal } from '@/components/Portal';
 import { useConfirmDialog } from '@/components/ConfirmDialog/useConfirmDialog';
 import { useTranslation } from '@/i18n';
+import { useEscapeLayer } from '@/hooks/useEscapeLayer';
 import { useSessionFileChanges, type SessionFileChange } from '@/hooks/useSessionFileChanges';
 import { useDockLayout } from '@/pages/ChatPage/SessionHeader/dock/useDockLayout';
 import { toggleDockVisible } from '@/pages/ChatPage/SessionHeader/dock/toggleDockVisible';
@@ -28,16 +29,12 @@ export function ChangedFilesModal({ onClose }: Props) {
   const { confirmDialog, confirm } = useConfirmDialog();
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !confirmDialog) {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose, confirmDialog]);
+  // Escape closes the panel and goes no further: it must not also stop a running turn.
+  // An open confirmation is a layer above this one and takes the key first.
+  useEscapeLayer(() => {
+    onClose();
+    return true;
+  });
 
   const { layout, save } = useDockLayout();
   const pinned = layout.visible.includes(DockItemId.CHANGED_FILES);

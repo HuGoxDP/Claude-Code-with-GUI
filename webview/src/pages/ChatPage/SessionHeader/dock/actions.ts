@@ -45,3 +45,11 @@ export const OPEN_CHANGED_FILES_EVENT = 'open-changed-files-modal';
 export function openChangedFilesModal(): void {
   window.dispatchEvent(new Event(OPEN_CHANGED_FILES_EVENT));
 }
+
+/** Ask the app shell to open Claude's task list. */
+export const OPEN_SESSION_TASKS_EVENT = 'open-session-tasks-modal';
+
+/** Raise {@link OPEN_SESSION_TASKS_EVENT}: the dock icon and the ⋮ menu row dispatch the same thing. */
+export function openSessionTasksModal(): void {
+  window.dispatchEvent(new Event(OPEN_SESSION_TASKS_EVENT));
+}

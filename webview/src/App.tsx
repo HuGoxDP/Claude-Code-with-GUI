@@ -9,6 +9,7 @@ import { useUsageStreamRefresh } from './hooks/useUsageStreamRefresh';
 import { TunnelModal } from './components/TunnelModal';
 import { AssetsModal } from './components/AssetsModal';
 import { ChangedFilesModal } from './components/ChangedFilesModal';
+import { TasksModal } from './components/TasksModal';
 import { RenameTabDialog } from './components/RenameTabDialog';
 import { useTabRenamePrompt } from './hooks/useTabRenamePrompt';
 import { ForbiddenNotice } from './components/ForbiddenNotice';
@@ -27,7 +28,7 @@ import { usePrimarySelectionReporter } from './hooks/usePrimarySelectionReporter
 import { useSettingsOverlayNavigation } from './hooks/useSettingsOverlayNavigation';
 import { useNotificationSoundMigration } from './hooks/useNotificationSound';
 import { OPEN_ACCOUNT_USAGE_EVENT } from './commandPalette/sections/model/AccountUsageItem';
-import { OPEN_TUNNEL_EVENT, OPEN_ASSETS_EVENT, OPEN_CHANGED_FILES_EVENT } from './pages/ChatPage/SessionHeader/dock/actions';
+import { OPEN_TUNNEL_EVENT, OPEN_ASSETS_EVENT, OPEN_CHANGED_FILES_EVENT, OPEN_SESSION_TASKS_EVENT } from './pages/ChatPage/SessionHeader/dock/actions';
 import { isDev } from './config/environment';
 import 'katex/dist/katex.min.css';
 
@@ -65,6 +66,7 @@ function AppContent() {
   const [isTunnelOpen, setIsTunnelOpen] = useState(false);
   const [isAssetsOpen, setIsAssetsOpen] = useState(false);
   const [isChangedFilesOpen, setIsChangedFilesOpen] = useState(false);
+  const [isTasksOpen, setIsTasksOpen] = useState(false);
   const location = useLocation();
   const backgroundLocation = location.state?.backgroundLocation;
 
@@ -90,6 +92,12 @@ function AppContent() {
     const handler = () => setIsChangedFilesOpen(true);
     window.addEventListener(OPEN_CHANGED_FILES_EVENT, handler);
     return () => window.removeEventListener(OPEN_CHANGED_FILES_EVENT, handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsTasksOpen(true);
+    window.addEventListener(OPEN_SESSION_TASKS_EVENT, handler);
+    return () => window.removeEventListener(OPEN_SESSION_TASKS_EVENT, handler);
   }, []);
 
   return (
@@ -127,6 +135,7 @@ function AppContent() {
       {isTunnelOpen && <TunnelModal onClose={() => setIsTunnelOpen(false)} />}
       {isAssetsOpen && <AssetsModal onClose={() => setIsAssetsOpen(false)} />}
       {isChangedFilesOpen && <ChangedFilesModal onClose={() => setIsChangedFilesOpen(false)} />}
+      {isTasksOpen && <TasksModal onClose={() => setIsTasksOpen(false)} />}
       {tabRename.initialName !== null && (
         <RenameTabDialog
           initialName={tabRename.initialName}

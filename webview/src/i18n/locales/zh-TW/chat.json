@@ -869,5 +869,23 @@
       "too-large": "檔案太大",
       "failed": "寫入失敗"
     }
+  },
+  "sessionTasks": {
+    "title": "任務清單",
+    "progress": "已完成 {{done}}/{{total}}",
+    "pinToDock": "固定到停駐列",
+    "unpinFromDock": "從停駐列取消固定",
+    "close": "關閉",
+    "loading": "載入中…",
+    "empty": "此工作階段中 Claude 沒有任務清單。",
+    "emptyHint": "當請求需要多個步驟時，Claude 會建立任務清單，並在工作時更新。",
+    "sourceTaskList": "此工作階段的 Claude Code 任務清單，為 Claude 最後一次更新時的狀態。",
+    "sourceTodoWrite": "Claude 在此對話中最後寫下的待辦清單（TodoWrite）。",
+    "waitingOn": "等待 {{ids}}",
+    "status": {
+      "pending": "未開始",
+      "in_progress": "進行中",
+      "completed": "已完成"
+    }
   }
 }

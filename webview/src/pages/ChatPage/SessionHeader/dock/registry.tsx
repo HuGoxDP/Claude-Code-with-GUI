@@ -8,6 +8,7 @@ import {
   Battery50Icon,
   PhotoIcon,
   DocumentTextIcon,
+  ClipboardDocumentCheckIcon,
 } from '@heroicons/react/24/outline';
 import { DockItemId } from '@/types/settings';
 import { TokenBatteryButton } from '../TokenBatteryButton';
@@ -18,6 +19,7 @@ import { SettingsButton } from '../SettingsButton';
 import { NewTabButton } from '../NewTabButton';
 import { AssetsButton } from '../AssetsButton';
 import { ChangedFilesButton } from '../ChangedFilesButton';
+import { SessionTasksButton } from '../SessionTasksButton';
 
 /**
  * One entry per item that can live in the header dock or the ⋮ overflow menu.
@@ -96,6 +98,12 @@ export const DOCK_ITEMS: readonly DockItemDef[] = [
     labelKey: 'changedFiles.title',
     icon: DocumentTextIcon,
     DockView: ChangedFilesButton,
+  },
+  {
+    id: DockItemId.SESSION_TASKS,
+    labelKey: 'sessionTasks.title',
+    icon: ClipboardDocumentCheckIcon,
+    DockView: SessionTasksButton,
   },
 ];
 

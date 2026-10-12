@@ -877,5 +877,23 @@
       "too-large": "он слишком большой",
       "failed": "запись не удалась"
     }
+  },
+  "sessionTasks": {
+    "title": "Список задач",
+    "progress": "Готово {{done}} из {{total}}",
+    "pinToDock": "Закрепить в доке",
+    "unpinFromDock": "Открепить от дока",
+    "close": "Закрыть",
+    "loading": "Загрузка…",
+    "empty": "В этой сессии у Claude нет списка задач.",
+    "emptyHint": "Claude составляет его, когда запрос требует нескольких шагов, и обновляет по ходу работы.",
+    "sourceTaskList": "Список задач Claude Code для этой сессии — в том виде, в каком Claude обновил его последним.",
+    "sourceTodoWrite": "Последний список дел Claude в этом разговоре (TodoWrite).",
+    "waitingOn": "Ждёт {{ids}}",
+    "status": {
+      "pending": "Не начата",
+      "in_progress": "В работе",
+      "completed": "Готово"
+    }
   }
 }

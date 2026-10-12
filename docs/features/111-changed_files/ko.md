@@ -31,7 +31,7 @@
 
 ## 되돌리기
 
-**Revert**는 먼저 묻고, 파일을 이 세션에서 Claude가 처음 바꾸기 전으로 되돌립니다. Claude가 만든 파일은 지워지며, 질문에도 그렇게 적힙니다. 열려 있는 에디터는 파일을 다시 읽습니다.
+**Revert**는 먼저 묻고, 파일을 이 세션에서 Claude가 처음 바꾸기 전으로 되돌립니다. Claude가 만든 파일은 지워지며, 질문에도 그렇게 적힙니다. 열려 있는 에디터는 파일을 다시 읽습니다. **Escape**는 패널을 닫기만 하고 진행 중인 답변을 멈추지 않습니다.
 
 ![clamp.ts와 total.ts가 있는 Changed files 패널. total.ts 아래에 노란 글씨로 "Changed after Claude's last edit".](./assets/changed-since.png)
 

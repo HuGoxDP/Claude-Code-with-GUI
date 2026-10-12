@@ -873,5 +873,23 @@
       "too-large": "it is too large",
       "failed": "the write failed"
     }
+  },
+  "sessionTasks": {
+    "title": "Task list",
+    "progress": "{{done}}/{{total}} done",
+    "pinToDock": "Pin to dock",
+    "unpinFromDock": "Unpin from dock",
+    "close": "Close",
+    "loading": "Loading…",
+    "empty": "Claude has no task list in this session.",
+    "emptyHint": "Claude makes one when a request takes several steps, and updates it as it works.",
+    "sourceTaskList": "Claude Code's task list for this session, as Claude last updated it.",
+    "sourceTodoWrite": "Claude's last to-do list in this conversation (TodoWrite).",
+    "waitingOn": "Waiting on {{ids}}",
+    "status": {
+      "pending": "Not started",
+      "in_progress": "In progress",
+      "completed": "Done"
+    }
   }
 }

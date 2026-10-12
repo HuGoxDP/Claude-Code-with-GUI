@@ -869,5 +869,23 @@
       "too-large": "ファイルが大きすぎます",
       "failed": "書き込みに失敗しました"
     }
+  },
+  "sessionTasks": {
+    "title": "タスクリスト",
+    "progress": "{{done}}/{{total}} 完了",
+    "pinToDock": "ドックに固定",
+    "unpinFromDock": "ドックから外す",
+    "close": "閉じる",
+    "loading": "読み込み中…",
+    "empty": "このセッションには Claude のタスクリストがありません。",
+    "emptyHint": "複数の手順が必要な依頼では Claude がリストを作り、作業しながら更新します。",
+    "sourceTaskList": "このセッションの Claude Code のタスクリストです(Claude が最後に更新した状態)。",
+    "sourceTodoWrite": "この会話で Claude が最後に書いた ToDo リスト(TodoWrite)です。",
+    "waitingOn": "{{ids}} を待機中",
+    "status": {
+      "pending": "未着手",
+      "in_progress": "進行中",
+      "completed": "完了"
+    }
   }
 }

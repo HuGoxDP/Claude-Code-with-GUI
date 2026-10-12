@@ -869,5 +869,23 @@
       "too-large": "بیش از حد بزرگ است",
       "failed": "نوشتن ناموفق بود"
     }
+  },
+  "sessionTasks": {
+    "title": "فهرست کارها",
+    "progress": "{{done}}/{{total}} انجام‌شده",
+    "pinToDock": "سنجاق به داک",
+    "unpinFromDock": "برداشتن از داک",
+    "close": "بستن",
+    "loading": "در حال بارگذاری…",
+    "empty": "Claude در این نشست فهرست کار ندارد.",
+    "emptyHint": "وقتی درخواستی چند مرحله دارد، Claude فهرستی می‌سازد و هنگام کار به‌روزش می‌کند.",
+    "sourceTaskList": "فهرست کارهای Claude Code برای این نشست، همان‌طور که Claude آخرین بار به‌روزش کرد.",
+    "sourceTodoWrite": "آخرین فهرست کارهای Claude در این گفتگو (TodoWrite).",
+    "waitingOn": "در انتظار {{ids}}",
+    "status": {
+      "pending": "شروع‌نشده",
+      "in_progress": "در حال انجام",
+      "completed": "انجام‌شده"
+    }
   }
 }
