@@ -636,6 +636,37 @@
         "cancel": "Abbrechen",
         "save": "Speichern"
       }
+    },
+    "customModels": {
+      "title": "Eigene Modelle",
+      "description": "Modelle, die du im Chat neben denen von Claude Code wählen kannst, etwa ein Modell bei einem anderen Anbieter. Für alle Projekte gemeinsam.",
+      "add": "Modell hinzufügen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "confirmDelete": "{{model}} aus der Modellauswahl entfernen? Ein Chat, der es schon nutzt, bleibt dabei.",
+      "pricesLine": "Pro Million Tokens: {{prices}}",
+      "noPrices": "Keine Preise",
+      "price": {
+        "input": "{{price}} Eingabe",
+        "output": "{{price}} Ausgabe",
+        "cacheWrite": "{{price}} Cache-Schreiben",
+        "cacheRead": "{{price}} Cache-Lesen"
+      },
+      "form": {
+        "model": "Modellname",
+        "modelHint": "wie bei claude --model <Name>",
+        "label": "Anzeigename",
+        "description": "Beschreibung",
+        "optional": "optional",
+        "prices": "Preise in US-Dollar pro Million Tokens",
+        "pricesHint": "Nur für den Nutzungsverlauf, bei Modellen, die Claude Code nicht bepreisen kann. Ein leerer Preis zählt als null.",
+        "inputPrice": "Eingabe",
+        "outputPrice": "Ausgabe",
+        "cacheWritePrice": "Cache-Schreiben",
+        "cacheReadPrice": "Cache-Lesen",
+        "save": "Speichern",
+        "cancel": "Abbrechen"
+      }
     }
   },
   "releases": {
@@ -744,7 +775,8 @@
       "showFewer": "Weniger anzeigen",
       "costNote": "Claude Code erfasst die Kosten einer Sitzung, wenn ihr Prozess endet. Eine offene Sitzung zählt ihre Tokens also jetzt und ihre Kosten später.",
       "noCost": "Sitzungen ohne erfasste Kosten (ältere Claude-Code-Version): {{n}}",
-      "unknownCost": "Claude Code konnte einige der verwendeten Modelle nicht bepreisen, daher sind die angezeigten Kosten zu niedrig."
+      "unknownCost": "Claude Code konnte einige der verwendeten Modelle nicht bepreisen, daher sind die angezeigten Kosten zu niedrig.",
+      "pricedByUser": "Enthält Preise, die du in Einstellungen → Model für eigene Modelle festgelegt hast."
     }
   },
   "sponsor": {

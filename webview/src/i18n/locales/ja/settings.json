@@ -632,6 +632,37 @@
         "cancel": "キャンセル",
         "save": "保存"
       }
+    },
+    "customModels": {
+      "title": "カスタムモデル",
+      "description": "Claude Code が一覧に出すもの以外にチャットで選べるモデルです（別のプロバイダーのモデルなど）。すべてのプロジェクトで共通です。",
+      "add": "モデルを追加",
+      "edit": "編集",
+      "delete": "削除",
+      "confirmDelete": "{{model}} をモデル選択から外しますか？すでにそのモデルで進行中のチャットはそのままです。",
+      "pricesLine": "100 万トークンあたり: {{prices}}",
+      "noPrices": "価格なし",
+      "price": {
+        "input": "入力 {{price}}",
+        "output": "出力 {{price}}",
+        "cacheWrite": "キャッシュ書き込み {{price}}",
+        "cacheRead": "キャッシュ読み込み {{price}}"
+      },
+      "form": {
+        "model": "モデル名",
+        "modelHint": "claude --model <名前> と同じ",
+        "label": "表示名",
+        "description": "説明",
+        "optional": "任意",
+        "prices": "価格（100 万トークンあたりの米ドル）",
+        "pricesHint": "Claude Code が価格を知らないモデルについて、使用量の履歴でのみ使います。空欄の価格は 0 として数えます。",
+        "inputPrice": "入力",
+        "outputPrice": "出力",
+        "cacheWritePrice": "キャッシュ書き込み",
+        "cacheReadPrice": "キャッシュ読み込み",
+        "save": "保存",
+        "cancel": "キャンセル"
+      }
     }
   },
   "releases": {
@@ -740,7 +771,8 @@
       "showFewer": "閉じる",
       "costNote": "Claude Code はセッションのプロセスが終了したときにコストを記録します。開いているセッションはトークンが今、コストは後から計上されます。",
       "noCost": "コストの記録がないセッション（古い Claude Code）: {{n}}",
-      "unknownCost": "Claude Code が一部のモデルの価格を把握していないため、表示されるコストは実際より少なくなります。"
+      "unknownCost": "Claude Code が一部のモデルの価格を把握していないため、表示されるコストは実際より少なくなります。",
+      "pricedByUser": "設定 → Model でカスタムモデルに設定した価格を含みます。"
     }
   },
   "sponsor": {

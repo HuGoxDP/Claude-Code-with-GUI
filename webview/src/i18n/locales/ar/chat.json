@@ -343,7 +343,8 @@
   "modelSwitch": {
     "selectModel": "اختر نموذجًا",
     "loadingModels": "جارٍ تحميل النماذج…",
-    "setModelTo": "تعيين النموذج إلى {{model}}"
+    "setModelTo": "تعيين النموذج إلى {{model}}",
+    "custom": "مخصّص"
   },
   "permissionBanner": {
     "textareaPlaceholder": "أخبر Claude بما يجب فعله بدلًا من ذلك",

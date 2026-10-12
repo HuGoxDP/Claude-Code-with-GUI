@@ -15,6 +15,7 @@ import {
   resolveModelRowText,
   withFableFallback,
 } from '@/types/models';
+import { useCustomModelInfos, withCustomModels } from '@/hooks/queries/useCustomModels';
 import { ModelInfo } from '@/types/slashCommand';
 import { useTranslation } from '@/i18n';
 
@@ -55,7 +56,12 @@ export function ModelSwitchOverlay({ onClose, autoSelectQuery }: ModelSwitchOver
   const panelRef = useRef<HTMLDivElement>(null);
 
   const rawModels: ModelInfo[] = controlResponse?.response?.response?.models ?? [];
-  const models: ModelInfo[] = withFableFallback(rawModels, cliVersion, probedAvailable, probedCanonicalModel);
+  // The user's own models come first; choosing one is `/model <name>` as in the terminal.
+  const customModels = useCustomModelInfos();
+  const models: ModelInfo[] = withCustomModels(
+    withFableFallback(rawModels, cliVersion, probedAvailable, probedCanonicalModel),
+    customModels,
+  );
 
   // No default fallback: if we can't identify the running model, no row is
   // ticked — better than ticking "Default" and claiming a selection the user
@@ -224,6 +230,11 @@ export function ModelSwitchOverlay({ onClose, autoSelectQuery }: ModelSwitchOver
                   <span className="leading-tight text-[1rem] truncate text-text-primary">
                     {title}
                   </span>
+                  {m.isCustom && (
+                    <span className="shrink-0 rounded border border-border-default px-1 text-[0.6923rem] leading-4 text-text-tertiary">
+                      {t('modelSwitch.custom')}
+                    </span>
+                  )}
                 </span>
                 <span className="leading-normal text-[0.8461rem] truncate text-text-secondary/80">
                   {blurb}

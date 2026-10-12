@@ -3,6 +3,7 @@ import type { Bridge } from '../../bridge/bridge-interface';
 import type { IPCMessage } from '../types';
 import { MessageType } from '../../shared';
 import { getUsageHistory } from '../features/usage-history';
+import { customModelPrices } from '../features/custom-models';
 
 /** Longest period asked for: a year, so one request cannot ask to read all time. */
 const MAX_PERIOD_MS = 366 * 24 * 60 * 60 * 1000;
@@ -21,7 +22,7 @@ export async function getUsageHistoryHandler(
     return reply({ status: 'error', error: 'since (epoch ms) is required' });
   }
   try {
-    const history = await getUsageHistory(Math.max(since, Date.now() - MAX_PERIOD_MS));
+    const history = await getUsageHistory(Math.max(since, Date.now() - MAX_PERIOD_MS), await customModelPrices());
     reply({ status: 'ok', ...history });
   } catch (err) {
     reply({ status: 'error', error: err instanceof Error ? err.message : String(err) });

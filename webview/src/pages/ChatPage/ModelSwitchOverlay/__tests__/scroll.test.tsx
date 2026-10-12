@@ -46,6 +46,12 @@ vi.mock('@/hooks/useBridge', () => ({
   useBridge: () => ({ send: () => ({ then: () => ({ catch: () => undefined }) }) }),
 }));
 
+// The user's custom models come from the backend; these tests are about the CLI catalog.
+vi.mock('@/hooks/queries/useCustomModels', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/queries/useCustomModels')>()),
+  useCustomModelInfos: () => [],
+}));
+
 import { ModelSwitchOverlay } from '../index';
 
 /** A proxy catalog of the size that triggered the report. */

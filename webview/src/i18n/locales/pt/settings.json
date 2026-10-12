@@ -636,6 +636,37 @@
         "cancel": "Cancelar",
         "save": "Salvar"
       }
+    },
+    "customModels": {
+      "title": "Modelos próprios",
+      "description": "Modelos que você pode escolher no chat além dos que o Claude Code lista, como um modelo de outro provedor. Compartilhados por todos os seus projetos.",
+      "add": "Adicionar modelo",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "confirmDelete": "Tirar {{model}} do seletor de modelos? Um chat que já o usa continua com ele.",
+      "pricesLine": "Por milhão de tokens: {{prices}}",
+      "noPrices": "Sem preços",
+      "price": {
+        "input": "{{price}} entrada",
+        "output": "{{price}} saída",
+        "cacheWrite": "{{price}} escrita em cache",
+        "cacheRead": "{{price}} leitura de cache"
+      },
+      "form": {
+        "model": "Nome do modelo",
+        "modelHint": "como em claude --model <nome>",
+        "label": "Nome exibido",
+        "description": "Descrição",
+        "optional": "opcional",
+        "prices": "Preços, dólares americanos por milhão de tokens",
+        "pricesHint": "Usados só pelo histórico de uso, para modelos que o Claude Code não sabe precificar. Um preço vazio conta como zero.",
+        "inputPrice": "Entrada",
+        "outputPrice": "Saída",
+        "cacheWritePrice": "Escrita em cache",
+        "cacheReadPrice": "Leitura de cache",
+        "save": "Salvar",
+        "cancel": "Cancelar"
+      }
     }
   },
   "releases": {
@@ -744,7 +775,8 @@
       "showFewer": "Mostrar menos",
       "costNote": "O Claude Code registra o custo de uma sessão quando o processo dela termina, então uma sessão aberta conta os tokens agora e o custo depois.",
       "noCost": "Sessões sem custo registrado (Claude Code antigo): {{n}}",
-      "unknownCost": "O Claude Code não conseguiu precificar alguns dos modelos usados, então o custo mostrado está abaixo do real."
+      "unknownCost": "O Claude Code não conseguiu precificar alguns dos modelos usados, então o custo mostrado está abaixo do real.",
+      "pricedByUser": "Inclui preços que você definiu para modelos próprios em Configurações → Model."
     }
   },
   "sponsor": {

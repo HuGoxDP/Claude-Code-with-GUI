@@ -339,7 +339,8 @@
   "modelSwitch": {
     "selectModel": "Select a model",
     "loadingModels": "Loading models…",
-    "setModelTo": "Set model to {{model}}"
+    "setModelTo": "Set model to {{model}}",
+    "custom": "Custom"
   },
   "permissionBanner": {
     "textareaPlaceholder": "Tell Claude what to do instead",

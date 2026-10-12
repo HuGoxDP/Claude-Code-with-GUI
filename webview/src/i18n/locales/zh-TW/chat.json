@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "選擇模型",
     "loadingModels": "正在載入模型…",
-    "setModelTo": "已將模型設為 {{model}}"
+    "setModelTo": "已將模型設為 {{model}}",
+    "custom": "自訂"
   },
   "permissionBanner": {
     "textareaPlaceholder": "告訴 Claude 該做些什麼",

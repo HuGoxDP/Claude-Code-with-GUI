@@ -687,6 +687,16 @@ export enum MessageType {
   /** Put files back to how they were before Claude changed them in the session, as {workingDir, sessionId, filePaths, since?, force?}. Only files the session changed; one changed again since Claude's last edit is left alone unless `force`. inbound webview→backend */
   REVERT_SESSION_FILE_CHANGES = 'REVERT_SESSION_FILE_CHANGES',
 
+  // -- Custom models --
+  /** Ask for the models the user added to the model picker (`custom_models`). Answers {ok, error?, models}. inbound webview→backend */
+  GET_CUSTOM_MODELS = 'GET_CUSTOM_MODELS',
+  /** Add a custom model, or change the one with `id`: {id?, model, label?, description?, inputPrice?, outputPrice?, cacheWritePrice?, cacheReadPrice?} (prices in USD per million tokens). Answers like GET_CUSTOM_MODELS. inbound webview→backend */
+  SAVE_CUSTOM_MODEL = 'SAVE_CUSTOM_MODEL',
+  /** Take the custom model with `id` out of the list. Answers like GET_CUSTOM_MODELS. inbound webview→backend */
+  DELETE_CUSTOM_MODEL = 'DELETE_CUSTOM_MODEL',
+  /** The custom models changed (in any window), as {models}, so every picker shows the new list. outbound backend→webview (broadcast) */
+  CUSTOM_MODELS_CHANGED = 'CUSTOM_MODELS_CHANGED',
+
   // -- Usage history --
   /** Ask for token use and Claude Code's own cost over time, as {since} (epoch ms). Read from every transcript (replies' `usage`, counted once per message and request, and `cost-state` running totals); answered in 15-minute slots for the viewer to group by its own days. inbound webview→backend */
   GET_USAGE_HISTORY = 'GET_USAGE_HISTORY',

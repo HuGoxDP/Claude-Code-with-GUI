@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtemp, mkdir, rm, writeFile, utimes } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { USAGE_SLOT_MS, clearUsageHistoryCache, getUsageHistory } from '../usage-history';
+import { USAGE_SLOT_MS, clearUsageHistoryCache, getUsageHistory, pricedTotal } from '../usage-history';
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = Date.now();
@@ -27,8 +27,8 @@ function user(at: number, session = 's1') {
   return { type: 'user', timestamp: new Date(at).toISOString(), sessionId: session, cwd: '/work/app', message: { content: 'hi' } };
 }
 
-function costState(total: number, session = 's1', unknown = false) {
-  return { type: 'cost-state', sessionId: session, totalCostUSD: total, hasUnknownModelCost: unknown, modelUsage: {} };
+function costState(total: number, session = 's1', unknown = false, modelUsage: Record<string, unknown> = {}) {
+  return { type: 'cost-state', sessionId: session, totalCostUSD: total, hasUnknownModelCost: unknown, modelUsage };
 }
 
 describe('getUsageHistory', () => {
@@ -150,5 +150,42 @@ describe('getUsageHistory', () => {
 
   it('answers with nothing when there are no transcripts', async () => {
     expect(await getUsageHistory(NOW - DAY)).toMatchObject({ buckets: [], costBuckets: [], sessions: 0 });
+  });
+
+  it('prices a model Claude Code could not price with the price the user gave it', async () => {
+    const gateway = (output: number) => ({ 'gw-large': { inputTokens: 1_000_000, outputTokens: output, cacheReadInputTokens: 0, cacheCreationInputTokens: 0, costUSD: 0 } });
+    await transcript('-work-app/s1.jsonl', [
+      ...reply(NOW - 3000, { model: 'gw-large' }),
+      costState(0, 's1', true, gateway(1_000_000)),
+      ...reply(NOW - 2000, { model: 'gw-large' }),
+      costState(0, 's1', true, gateway(3_000_000)),
+    ]);
+    const unpriced = await getUsageHistory(NOW - DAY);
+    expect(unpriced.costBuckets).toEqual([]);
+    expect(unpriced.unknownModelCost).toBe(true);
+    expect(unpriced.pricedByUser).toBe(false);
+
+    const priced = await getUsageHistory(NOW - DAY, new Map([['gw-large', { input: 2, output: 10, cacheWrite: null, cacheRead: null }]]));
+    // 1M input × $2 + 3M output × $10, per million.
+    expect(priced.costBuckets.reduce((a, b) => a + b.cost, 0)).toBeCloseTo(32);
+    expect(priced.unknownModelCost).toBe(false);
+    expect(priced.pricedByUser).toBe(true);
+  });
+});
+
+describe('pricedTotal', () => {
+  const prices = new Map([['gw', { input: 1, output: null, cacheWrite: null, cacheRead: null }]]);
+  const m = (model: string, cost: number, input = 1_000_000) => ({ model, input, output: 0, cacheWrite: 0, cacheRead: 0, cost });
+
+  it('leaves models Claude Code priced alone, even when the user gave a price', () => {
+    expect(pricedTotal({ total: 5, unknownModelCost: false, models: [m('gw', 5)] }, prices)).toEqual({ total: 5, byUser: false, unknown: false });
+  });
+
+  it('still says unknown for an unpriced model the user gave no price', () => {
+    expect(pricedTotal({ total: 0, unknownModelCost: true, models: [m('gw', 0), m('other', 0)] }, prices)).toEqual({ total: 1, byUser: true, unknown: true });
+  });
+
+  it('keeps Claude Code’s word when its breakdown does not show the unpriced model', () => {
+    expect(pricedTotal({ total: 2, unknownModelCost: true, models: [] }, prices).unknown).toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import { readdir, stat } from 'fs/promises';
 import { createInterface } from 'readline';
 import { join } from 'path';
 import { getClaudeConfigDir } from './claudeConfigDir';
+import type { ModelPrices } from './custom-models';
 
 /**
  * How much Claude was used over time (the usage history, ported from CC GUI's
@@ -19,6 +20,9 @@ import { getClaudeConfigDir } from './claudeConfigDir';
  * total for the session, carried on when the session is resumed. The cost in a
  * period is how far that total moved in it; nothing here prices tokens itself. A
  * `cost-state` has no time of its own, so it takes the time of the entry before it.
+ * Its per-model breakdown shows which models Claude Code could not price (tokens,
+ * no cost); for those, and only those, the prices the user gave a custom model
+ * are added.
  *
  * Results go out in 15-minute slots (UTC epoch ms) so each viewer can group them
  * into days in its own time zone — 15 minutes being the finest offset a time zone
@@ -58,8 +62,10 @@ export interface UsageHistory {
   sessions: number;
   /** Of those, sessions whose transcript records no cost (older Claude Code). */
   sessionsWithoutCost: number;
-  /** Claude Code could not price some model used in the period. */
+  /** Claude Code could not price some model used in the period, and the user gave no price for it. */
   unknownModelCost: boolean;
+  /** Some of the cost comes from prices the user gave custom models. */
+  pricedByUser: boolean;
 }
 
 interface Reply {
@@ -74,12 +80,23 @@ interface Reply {
   cacheRead: number;
 }
 
+/** One model's running totals in a cost-state. */
+interface ModelTotals {
+  model: string;
+  input: number;
+  output: number;
+  cacheWrite: number;
+  cacheRead: number;
+  cost: number;
+}
+
 interface CostPoint {
   sessionId: string;
   /** The time of the entry before it; -Infinity when there is none. */
   at: number;
   total: number;
   unknownModelCost: boolean;
+  models: ModelTotals[];
 }
 
 interface FileDigest {
@@ -152,11 +169,25 @@ export async function digestTranscript(filePath: string): Promise<Omit<FileDiges
 
       if (isCost) {
         if (entry.type !== 'cost-state' || typeof entry.sessionId !== 'string') continue;
+        const models: ModelTotals[] = [];
+        for (const [model, usage] of Object.entries(asRecord(entry.modelUsage) ?? {})) {
+          const u = asRecord(usage);
+          if (!u) continue;
+          models.push({
+            model: intern(model),
+            input: num(u.inputTokens),
+            output: num(u.outputTokens),
+            cacheWrite: num(u.cacheCreationInputTokens),
+            cacheRead: num(u.cacheReadInputTokens),
+            cost: num(u.costUSD),
+          });
+        }
         costs.push({
           sessionId: intern(entry.sessionId),
           at: lastAt,
           total: num(entry.totalCostUSD),
           unknownModelCost: entry.hasUnknownModelCost === true,
+          models,
         });
         continue;
       }
@@ -247,8 +278,32 @@ async function digestOf(filePath: string, mtimeMs: number, size: number): Promis
 
 const slotOf = (at: number) => Math.floor(at / USAGE_SLOT_MS) * USAGE_SLOT_MS;
 
-/** Usage from [since] (epoch ms) until now. */
-export async function getUsageHistory(since: number): Promise<UsageHistory> {
+/**
+ * A cost-state's total with the user's prices added for the models Claude Code
+ * could not price, and whether any model is still unpriced.
+ */
+export function pricedTotal(point: Pick<CostPoint, 'total' | 'unknownModelCost' | 'models'>, prices: Map<string, ModelPrices>) {
+  let total = point.total;
+  let byUser = false;
+  let unpriced = false;
+  for (const m of point.models) {
+    const tokens = m.input + m.output + m.cacheWrite + m.cacheRead;
+    if (m.cost > 0 || tokens === 0) continue;
+    const p = prices.get(m.model);
+    if (!p) {
+      unpriced = true;
+      continue;
+    }
+    total += (m.input * (p.input ?? 0) + m.output * (p.output ?? 0) + m.cacheWrite * (p.cacheWrite ?? 0) + m.cacheRead * (p.cacheRead ?? 0)) / 1_000_000;
+    byUser = true;
+  }
+  // Claude Code said a model was unpriced but the breakdown does not show which: keep its word.
+  const unknown = unpriced || (point.unknownModelCost && !byUser);
+  return { total, byUser, unknown };
+}
+
+/** Usage from [since] (epoch ms) until now; [prices] fill in models Claude Code could not price. */
+export async function getUsageHistory(since: number, prices: Map<string, ModelPrices> = new Map()): Promise<UsageHistory> {
   const files = await listTranscripts();
   const read: FileDigest[] = [];
   for (const file of files) {
@@ -300,16 +355,18 @@ export async function getUsageHistory(since: number): Promise<UsageHistory> {
   }
 
   // Cost: how far each session's running total moved within the period.
-  const points = new Map<string, { at: number; total: number; unknown: boolean; project: string | null }[]>();
+  const points = new Map<string, { at: number; total: number; unknown: boolean; byUser: boolean; project: string | null }[]>();
   for (const digest of read) {
     for (const point of digest.costs) {
       let list = points.get(point.sessionId);
       if (!list) points.set(point.sessionId, (list = []));
-      list.push({ at: point.at, total: point.total, unknown: point.unknownModelCost, project: digest.project });
+      const priced = pricedTotal(point, prices);
+      list.push({ at: point.at, total: priced.total, unknown: priced.unknown, byUser: priced.byUser, project: digest.project });
     }
   }
   const costBuckets = new Map<string, CostBucket>();
   let unknownModelCost = false;
+  let pricedByUser = false;
   for (const [sessionId, list] of points) {
     list.sort((a, b) => a.at - b.at);
     const project = sessionProject.get(sessionId) ?? list.find((p) => p.project)?.project ?? '';
@@ -321,6 +378,7 @@ export async function getUsageHistory(since: number): Promise<UsageHistory> {
       previous = point.total;
       if (point.at < since) continue;
       if (point.unknown) unknownModelCost = true;
+      if (point.byUser && delta > 0) pricedByUser = true;
       if (delta <= 0) continue;
       const slot = slotOf(point.at);
       const id = `${slot}\u0000${project}`;
@@ -340,6 +398,7 @@ export async function getUsageHistory(since: number): Promise<UsageHistory> {
     sessions: sessions.size,
     sessionsWithoutCost,
     unknownModelCost,
+    pricedByUser,
   };
 }
 

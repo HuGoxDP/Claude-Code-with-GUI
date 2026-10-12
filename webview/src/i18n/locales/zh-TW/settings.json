@@ -632,6 +632,37 @@
         "cancel": "取消",
         "save": "儲存"
       }
+    },
+    "customModels": {
+      "title": "自訂模型",
+      "description": "除了 Claude Code 列出的模型之外，可在聊天中選擇的模型（例如其他供應商的模型）。所有專案共用。",
+      "add": "新增模型",
+      "edit": "編輯",
+      "delete": "刪除",
+      "confirmDelete": "要把 {{model}} 從模型選擇中移除嗎？已經在使用它的聊天保持不變。",
+      "pricesLine": "每百萬權杖：{{prices}}",
+      "noPrices": "未設價格",
+      "price": {
+        "input": "輸入 {{price}}",
+        "output": "輸出 {{price}}",
+        "cacheWrite": "快取寫入 {{price}}",
+        "cacheRead": "快取讀取 {{price}}"
+      },
+      "form": {
+        "model": "模型名稱",
+        "modelHint": "與 claude --model <名稱> 相同",
+        "label": "顯示名稱",
+        "description": "描述",
+        "optional": "選填",
+        "prices": "價格（每百萬權杖，美元）",
+        "pricesHint": "僅用於使用歷史，針對 Claude Code 無法定價的模型。留空的價格以 0 計算。",
+        "inputPrice": "輸入",
+        "outputPrice": "輸出",
+        "cacheWritePrice": "快取寫入",
+        "cacheReadPrice": "快取讀取",
+        "save": "儲存",
+        "cancel": "取消"
+      }
     }
   },
   "releases": {
@@ -740,7 +771,8 @@
       "showFewer": "收合",
       "costNote": "Claude Code 在工作階段的程序結束時記錄費用，因此仍開啟的工作階段現在計入權杖，稍後計入費用。",
       "noCost": "沒有費用記錄的工作階段（舊版 Claude Code）：{{n}}",
-      "unknownCost": "Claude Code 無法為部分模型定價，因此顯示的費用偏低。"
+      "unknownCost": "Claude Code 無法為部分模型定價，因此顯示的費用偏低。",
+      "pricedByUser": "包含你在 設定 → Model 中為自訂模型設定的價格。"
     }
   },
   "sponsor": {

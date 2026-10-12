@@ -34,6 +34,12 @@ vi.mock('@/hooks/useVersionInfo', () => ({ useVersionInfo: () => ({ cliVersion: 
 vi.mock('@/contexts/WorkingDirContext', () => ({ useWorkingDir: () => ({ workingDirectory: '/tmp' }) }));
 // The providers section has its own tests; it needs a query client this page test does not set up.
 vi.mock('../Providers', () => ({ ProvidersSection: () => null }));
+vi.mock('../CustomModels', () => ({ CustomModelsSection: () => null }));
+// The user's custom models come from the backend; these tests are about the CLI catalog.
+vi.mock('@/hooks/queries/useCustomModels', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/queries/useCustomModels')>()),
+  useCustomModelInfos: () => [],
+}));
 vi.mock('@/contexts/FableProbeContext', () => ({
   useFableProbe: () => ({ probedAvailable: null, probeFableAvailability: vi.fn() }),
   shouldProbeFable: () => false,

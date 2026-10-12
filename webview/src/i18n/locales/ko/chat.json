@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "모델 선택",
     "loadingModels": "모델 불러오는 중…",
-    "setModelTo": "모델을 {{model}}(으)로 설정"
+    "setModelTo": "모델을 {{model}}(으)로 설정",
+    "custom": "사용자"
   },
   "permissionBanner": {
     "textareaPlaceholder": "대신 Claude가 무엇을 할지 알려주세요",

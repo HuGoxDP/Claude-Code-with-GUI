@@ -636,6 +636,37 @@
         "cancel": "Cancel",
         "save": "Save"
       }
+    },
+    "customModels": {
+      "title": "Custom models",
+      "description": "Models you can pick in the chat besides the ones Claude Code lists, such as a model behind another provider. Shared by all your projects.",
+      "add": "Add model",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Take {{model}} out of the model picker? A chat already on it stays on it.",
+      "pricesLine": "Per million tokens: {{prices}}",
+      "noPrices": "No prices",
+      "price": {
+        "input": "{{price}} input",
+        "output": "{{price}} output",
+        "cacheWrite": "{{price}} cache write",
+        "cacheRead": "{{price}} cache read"
+      },
+      "form": {
+        "model": "Model name",
+        "modelHint": "as in claude --model <name>",
+        "label": "Display name",
+        "description": "Description",
+        "optional": "optional",
+        "prices": "Prices, US dollars per million tokens",
+        "pricesHint": "Only used by the usage history, for models Claude Code cannot price. An empty price counts as zero.",
+        "inputPrice": "Input",
+        "outputPrice": "Output",
+        "cacheWritePrice": "Cache write",
+        "cacheReadPrice": "Cache read",
+        "save": "Save",
+        "cancel": "Cancel"
+      }
     }
   },
   "releases": {
@@ -744,7 +775,8 @@
       "showFewer": "Show fewer",
       "costNote": "Claude Code records a session's cost when its process ends, so an open session counts its tokens now and its cost later.",
       "noCost": "Sessions with no cost recorded (older Claude Code): {{n}}",
-      "unknownCost": "Claude Code could not price some of the models used, so the cost shown is too low."
+      "unknownCost": "Claude Code could not price some of the models used, so the cost shown is too low.",
+      "pricedByUser": "Includes prices you set for custom models in Settings → Model."
     }
   },
   "sponsor": {

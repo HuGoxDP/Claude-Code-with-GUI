@@ -28,6 +28,8 @@ export interface UsageHistoryResponse {
   sessions: number;
   sessionsWithoutCost: number;
   unknownModelCost: boolean;
+  /** Some of the cost comes from prices the user gave custom models. */
+  pricedByUser?: boolean;
 }
 
 export interface TokenCounts {
@@ -59,6 +61,7 @@ export interface UsageHistory {
   sessions: number;
   sessionsWithoutCost: number;
   unknownModelCost: boolean;
+  pricedByUser: boolean;
 }
 
 export const USAGE_PERIODS = [7, 30, 90] as const;
@@ -137,6 +140,7 @@ export function summarize(res: UsageHistoryResponse, days: number, now = new Dat
     sessions: res.sessions,
     sessionsWithoutCost: res.sessionsWithoutCost,
     unknownModelCost: res.unknownModelCost,
+    pricedByUser: res.pricedByUser === true,
   };
 }
 

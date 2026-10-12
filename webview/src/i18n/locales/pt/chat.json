@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "Selecione um modelo",
     "loadingModels": "Carregando modelos…",
-    "setModelTo": "Definir modelo como {{model}}"
+    "setModelTo": "Definir modelo como {{model}}",
+    "custom": "Próprio"
   },
   "permissionBanner": {
     "textareaPlaceholder": "Diga ao Claude o que fazer em vez disso",

@@ -7,13 +7,18 @@ import { useFableProbe } from '@/contexts/FableProbeContext';
 import { useCurrentModel } from '@/hooks/useCurrentModel';
 import { useVersionInfo } from '@/hooks/useVersionInfo';
 import { resolveModelInfo, resolveModelRowText, withFableFallback } from '@/types/models';
+import { useCustomModelInfos, withCustomModels } from '@/hooks/queries/useCustomModels';
 
 const SwitchModelValue = () => {
   const { controlResponse } = useCliConfig();
   const currentModel = useCurrentModel();
   const { cliVersion } = useVersionInfo();
   const { probedAvailable, probedCanonicalModel } = useFableProbe();
-  const models = withFableFallback(controlResponse?.response?.response?.models ?? [], cliVersion, probedAvailable, probedCanonicalModel);
+  const customModels = useCustomModelInfos();
+  const models = withCustomModels(
+    withFableFallback(controlResponse?.response?.response?.models ?? [], cliVersion, probedAvailable, probedCanonicalModel),
+    customModels,
+  );
   // Unidentified models show their raw value rather than "Default" (issue #217).
   const info = resolveModelInfo(models, currentModel, { allowDefaultFallback: false });
   // This item opens the model picker, so it names the current model the way

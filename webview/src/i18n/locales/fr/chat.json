@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "Sélectionner un modèle",
     "loadingModels": "Chargement des modèles…",
-    "setModelTo": "Modèle défini sur {{model}}"
+    "setModelTo": "Modèle défini sur {{model}}",
+    "custom": "Perso"
   },
   "permissionBanner": {
     "textareaPlaceholder": "Dites à Claude quoi faire à la place",

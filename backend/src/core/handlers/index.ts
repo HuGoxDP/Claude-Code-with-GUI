@@ -192,6 +192,7 @@ import {
 } from './sessionFileChanges';
 import { getSessionTasksHandler } from './getSessionTasks';
 import { getUsageHistoryHandler } from './getUsageHistory';
+import { deleteCustomModelHandler, getCustomModelsHandler, saveCustomModelHandler } from './customModels';
 import { getSessionSendsHandler } from './getSessionSends';
 import { getSessionAssetDataHandler } from './getSessionAssetData';
 import { assetActivityHandler } from './assetActivity';
@@ -806,6 +807,15 @@ export async function handleMessage(
       break;
     case MessageType.GET_USAGE_HISTORY:
       await getUsageHistoryHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_CUSTOM_MODELS:
+      await getCustomModelsHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.SAVE_CUSTOM_MODEL:
+      await saveCustomModelHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.DELETE_CUSTOM_MODEL:
+      await deleteCustomModelHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SESSION_SENDS:
       await getSessionSendsHandler(connectionId, message, connections, bridge);

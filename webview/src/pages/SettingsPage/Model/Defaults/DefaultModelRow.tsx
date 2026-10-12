@@ -10,6 +10,7 @@ import { useFableProbe, shouldProbeFable } from '@/contexts/FableProbeContext';
 import { DEFAULT_MODEL_ALIAS, resolveModelRowText, withFableFallback } from '@/types/models';
 import { useTranslation } from '@/i18n';
 import { useIsOverriddenByProject } from '@/utils/settingsScope';
+import { useCustomModelInfos, withCustomModels } from '@/hooks/queries/useCustomModels';
 
 /** Which model a new session starts on. */
 export function DefaultModelRow() {
@@ -24,11 +25,10 @@ export function DefaultModelRow() {
   const rawModels = controlResponse?.response?.response?.models ?? [];
   // Same Fable fallback the model picker uses, gated on the per-account probe —
   // so an account that cannot actually select Fable never sees it here either.
-  const availableModels = withFableFallback(
-    rawModels,
-    cliVersion,
-    probedAvailable,
-    probedCanonicalModel,
+  const customModels = useCustomModelInfos();
+  const availableModels = withCustomModels(
+    withFableFallback(rawModels, cliVersion, probedAvailable, probedCanonicalModel),
+    customModels,
   );
 
   // Settings may be the first place the user looks for the default model, so run

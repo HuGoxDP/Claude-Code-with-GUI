@@ -636,6 +636,37 @@
         "cancel": "Cancelar",
         "save": "Guardar"
       }
+    },
+    "customModels": {
+      "title": "Modelos propios",
+      "description": "Modelos que puedes elegir en el chat además de los que lista Claude Code, como un modelo de otro proveedor. Compartidos por todos tus proyectos.",
+      "add": "Añadir modelo",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Quitar {{model}} del selector de modelos? Un chat que ya lo usa sigue con él.",
+      "pricesLine": "Por millón de tokens: {{prices}}",
+      "noPrices": "Sin precios",
+      "price": {
+        "input": "{{price}} entrada",
+        "output": "{{price}} salida",
+        "cacheWrite": "{{price}} escritura en caché",
+        "cacheRead": "{{price}} lectura de caché"
+      },
+      "form": {
+        "model": "Nombre del modelo",
+        "modelHint": "como en claude --model <nombre>",
+        "label": "Nombre visible",
+        "description": "Descripción",
+        "optional": "opcional",
+        "prices": "Precios, dólares estadounidenses por millón de tokens",
+        "pricesHint": "Solo los usa el historial de uso, para modelos que Claude Code no sabe tarificar. Un precio vacío cuenta como cero.",
+        "inputPrice": "Entrada",
+        "outputPrice": "Salida",
+        "cacheWritePrice": "Escritura en caché",
+        "cacheReadPrice": "Lectura de caché",
+        "save": "Guardar",
+        "cancel": "Cancelar"
+      }
     }
   },
   "releases": {
@@ -744,7 +775,8 @@
       "showFewer": "Ver menos",
       "costNote": "Claude Code registra el coste de una sesión cuando termina su proceso, así que una sesión abierta cuenta sus tokens ahora y su coste más tarde.",
       "noCost": "Sesiones sin coste registrado (Claude Code antiguo): {{n}}",
-      "unknownCost": "Claude Code no pudo poner precio a algunos de los modelos usados, así que el coste mostrado es menor de lo real."
+      "unknownCost": "Claude Code no pudo poner precio a algunos de los modelos usados, así que el coste mostrado es menor de lo real.",
+      "pricedByUser": "Incluye precios que pusiste a modelos propios en Ajustes → Model."
     }
   },
   "sponsor": {

@@ -1,9 +1,9 @@
 /**
- * What a column can hold. Row files are plain JSON, so these five are all there
- * is: a whole number, any finite number (timestamps), a string, and a string or a
- * whole number that may be absent.
+ * What a column can hold. Row files are plain JSON, so these six are all there
+ * is: a whole number, any finite number (timestamps), a string, and a string, a
+ * whole number or any finite number that may be absent.
  */
-export type ColumnType = 'int' | 'nullable-int' | 'number' | 'string' | 'nullable-string';
+export type ColumnType = 'int' | 'nullable-int' | 'number' | 'nullable-number' | 'string' | 'nullable-string';
 
 /** One column of a table: its name and what it may hold. */
 export class Column {
@@ -20,6 +20,8 @@ export class Column {
         return value === null || (typeof value === 'number' && Number.isInteger(value));
       case 'number':
         return typeof value === 'number' && Number.isFinite(value);
+      case 'nullable-number':
+        return value === null || (typeof value === 'number' && Number.isFinite(value));
       case 'string':
         return typeof value === 'string';
       case 'nullable-string':
@@ -88,6 +90,10 @@ export class RawRow {
   }
 
   nullableInt(name: string): number | null {
+    return this.values.get(name) as number | null;
+  }
+
+  nullableNumber(name: string): number | null {
     return this.values.get(name) as number | null;
   }
 }

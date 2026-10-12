@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "モデルを選択",
     "loadingModels": "モデルを読み込み中…",
-    "setModelTo": "モデルを {{model}} に設定"
+    "setModelTo": "モデルを {{model}} に設定",
+    "custom": "カスタム"
   },
   "permissionBanner": {
     "textareaPlaceholder": "代わりにClaudeにしてほしいことを伝える",

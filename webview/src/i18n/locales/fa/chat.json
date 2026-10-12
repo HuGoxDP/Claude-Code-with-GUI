@@ -335,7 +335,8 @@
   "modelSwitch": {
     "selectModel": "یک مدل انتخاب کنید",
     "loadingModels": "در حال بارگذاری مدل‌ها…",
-    "setModelTo": "مدل روی {{model}} تنظیم شد"
+    "setModelTo": "مدل روی {{model}} تنظیم شد",
+    "custom": "سفارشی"
   },
   "permissionBanner": {
     "textareaPlaceholder": "به Claude بگویید به‌جای آن چه کاری انجام دهد",

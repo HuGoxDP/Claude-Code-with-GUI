@@ -339,7 +339,8 @@
   "modelSwitch": {
     "selectModel": "Выберите модель",
     "loadingModels": "Загрузка моделей…",
-    "setModelTo": "Модель изменена на {{model}}"
+    "setModelTo": "Модель изменена на {{model}}",
+    "custom": "Своя"
   },
   "permissionBanner": {
     "textareaPlaceholder": "Скажите Claude, что делать вместо этого",

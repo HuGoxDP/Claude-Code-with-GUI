@@ -1,5 +1,6 @@
 import { DefaultsSection } from './Defaults';
 import { ProvidersSection } from './Providers';
+import { CustomModelsSection } from './CustomModels';
 import { useTranslation } from '@/i18n';
 
 /** The Model page: a heading and the sections under it. */
@@ -12,6 +13,7 @@ export function ModelSettings() {
 
       <DefaultsSection />
       <ProvidersSection />
+      <CustomModelsSection />
     </div>
   );
 }

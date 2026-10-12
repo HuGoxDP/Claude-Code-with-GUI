@@ -62,6 +62,7 @@ export function UsageHistorySection() {
             <p>{t('usage.history.costNote')}</p>
             {history.sessionsWithoutCost > 0 && <p>{t('usage.history.noCost', { n: history.sessionsWithoutCost })}</p>}
             {history.unknownModelCost && <p className="text-state-warning-fg">{t('usage.history.unknownCost')}</p>}
+            {history.pricedByUser && <p>{t('usage.history.pricedByUser')}</p>}
           </div>
         </div>
       )}

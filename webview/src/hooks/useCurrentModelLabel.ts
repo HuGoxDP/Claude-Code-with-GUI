@@ -6,6 +6,7 @@ import { DEFAULT_MODEL_ALIAS, resolveModelInfo, toModelAlias, withFableFallback 
 import type { ModelInfo } from '@/types/slashCommand';
 import { useCurrentModel } from '@/hooks/useCurrentModel';
 import { useVersionInfo } from '@/hooks/useVersionInfo';
+import { useCustomModelInfos, withCustomModels } from '@/hooks/queries/useCustomModels';
 
 /**
  * Last-resort label when `current` can't be matched to any list item — e.g.
@@ -45,9 +46,14 @@ export function useCurrentModelLabel(): {
 
   // Memoized on the CLI response so the fallback-augmented array keeps a stable
   // reference across renders (the chip's rotate effect depends on `models`).
+  const customModels = useCustomModelInfos();
   const models: ModelInfo[] = useMemo(
-    () => withFableFallback(controlResponse?.response?.response?.models ?? [], cliVersion, probedAvailable, probedCanonicalModel),
-    [controlResponse, cliVersion, probedAvailable],
+    () =>
+      withCustomModels(
+        withFableFallback(controlResponse?.response?.response?.models ?? [], cliVersion, probedAvailable, probedCanonicalModel),
+        customModels,
+      ),
+    [controlResponse, cliVersion, probedAvailable, customModels],
   );
 
   if (models.length === 0) return { models, currentModel, info: null, label: null };

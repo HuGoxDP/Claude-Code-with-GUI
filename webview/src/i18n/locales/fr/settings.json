@@ -636,6 +636,37 @@
         "cancel": "Annuler",
         "save": "Enregistrer"
       }
+    },
+    "customModels": {
+      "title": "Modèles personnalisés",
+      "description": "Des modèles que vous pouvez choisir dans le chat en plus de ceux que liste Claude Code, comme un modèle chez un autre fournisseur. Communs à tous vos projets.",
+      "add": "Ajouter un modèle",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "confirmDelete": "Retirer {{model}} du sélecteur de modèles ? Un chat qui l’utilise déjà le garde.",
+      "pricesLine": "Par million de tokens : {{prices}}",
+      "noPrices": "Pas de prix",
+      "price": {
+        "input": "{{price}} entrée",
+        "output": "{{price}} sortie",
+        "cacheWrite": "{{price}} écriture en cache",
+        "cacheRead": "{{price}} lecture du cache"
+      },
+      "form": {
+        "model": "Nom du modèle",
+        "modelHint": "comme dans claude --model <nom>",
+        "label": "Nom affiché",
+        "description": "Description",
+        "optional": "facultatif",
+        "prices": "Prix, dollars US par million de tokens",
+        "pricesHint": "Utilisés seulement par l’historique d’utilisation, pour les modèles que Claude Code ne sait pas tarifer. Un prix vide compte pour zéro.",
+        "inputPrice": "Entrée",
+        "outputPrice": "Sortie",
+        "cacheWritePrice": "Écriture en cache",
+        "cacheReadPrice": "Lecture du cache",
+        "save": "Enregistrer",
+        "cancel": "Annuler"
+      }
     }
   },
   "releases": {
@@ -744,7 +775,8 @@
       "showFewer": "Afficher moins",
       "costNote": "Claude Code enregistre le coût d’une session quand son processus se termine : une session ouverte compte ses tokens maintenant et son coût plus tard.",
       "noCost": "Sessions sans coût enregistré (ancien Claude Code) : {{n}}",
-      "unknownCost": "Claude Code n’a pas pu tarifer certains des modèles utilisés : le coût affiché est donc trop bas."
+      "unknownCost": "Claude Code n’a pas pu tarifer certains des modèles utilisés : le coût affiché est donc trop bas.",
+      "pricedByUser": "Inclut des prix que vous avez fixés pour des modèles personnalisés dans Réglages → Model."
     }
   },
   "sponsor": {

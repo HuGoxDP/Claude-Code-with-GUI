@@ -632,6 +632,37 @@
         "cancel": "취소",
         "save": "저장"
       }
+    },
+    "customModels": {
+      "title": "사용자 모델",
+      "description": "Claude Code가 보여 주는 모델 말고도 채팅에서 고를 수 있는 모델입니다(다른 프로바이더 뒤의 모델 등). 모든 프로젝트에서 함께 씁니다.",
+      "add": "모델 추가",
+      "edit": "편집",
+      "delete": "삭제",
+      "confirmDelete": "{{model}}을(를) 모델 선택에서 뺄까요? 이미 그 모델로 진행 중인 채팅은 그대로입니다.",
+      "pricesLine": "100만 토큰당: {{prices}}",
+      "noPrices": "가격 없음",
+      "price": {
+        "input": "입력 {{price}}",
+        "output": "출력 {{price}}",
+        "cacheWrite": "캐시 쓰기 {{price}}",
+        "cacheRead": "캐시 읽기 {{price}}"
+      },
+      "form": {
+        "model": "모델 이름",
+        "modelHint": "claude --model <이름>과 같이",
+        "label": "표시 이름",
+        "description": "설명",
+        "optional": "선택",
+        "prices": "가격, 100만 토큰당 미국 달러",
+        "pricesHint": "Claude Code가 가격을 모르는 모델에 대해 사용량 기록에서만 씁니다. 비워 둔 가격은 0으로 셉니다.",
+        "inputPrice": "입력",
+        "outputPrice": "출력",
+        "cacheWritePrice": "캐시 쓰기",
+        "cacheReadPrice": "캐시 읽기",
+        "save": "저장",
+        "cancel": "취소"
+      }
     }
   },
   "releases": {
@@ -740,7 +771,8 @@
       "showFewer": "접기",
       "costNote": "Claude Code는 세션의 프로세스가 끝날 때 비용을 기록합니다. 그래서 열려 있는 세션은 토큰은 지금, 비용은 나중에 잡힙니다.",
       "noCost": "비용 기록이 없는 세션(옛 Claude Code): {{n}}",
-      "unknownCost": "Claude Code가 일부 모델의 가격을 몰라, 보이는 비용이 실제보다 적습니다."
+      "unknownCost": "Claude Code가 일부 모델의 가격을 몰라, 보이는 비용이 실제보다 적습니다.",
+      "pricedByUser": "설정 → Model에서 사용자 모델에 정한 가격이 포함되어 있습니다."
     }
   },
   "sponsor": {

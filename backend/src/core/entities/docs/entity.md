@@ -1,7 +1,7 @@
 # Entity
 
 Status: Implemented
-Last verified: 2026-10-04 on branch `feat/prompt-library-reorder` (PR #519, not yet merged)
+Last verified: 2026-10-12 on branch `claude/gracious-brahmagupta-j0aanw` (`nullable-number` column added)
 
 An entity is one row of one table, as a class that extends `AbstractEntity`. This document covers what an entity is made of, how a row points at a project, and how to add or change one.
 
@@ -15,7 +15,7 @@ An entity is one row of one table, as a class that extends `AbstractEntity`. Thi
 
 ### Five column types
 
-- **Rule.** A column is `int`, `nullable-int`, `number`, `string` or `nullable-string` (`Column.ts`). Timestamps are `number` in epoch milliseconds. There is no boolean: use a number (`favoritedAt`, `hiddenAt`: 0 means "not").
+- **Rule.** A column is `int`, `nullable-int`, `number`, `nullable-number`, `string` or `nullable-string` (`Column.ts`). Timestamps are `number` in epoch milliseconds. There is no boolean: use a number (`favoritedAt`, `hiddenAt`: 0 means "not").
 - **Why.** Rows are plain JSON, and these are what a check can verify.
 - **Check.** `RawRow.parse` rejects a value that a column does not accept; the row is then kept aside, not loaded.
 

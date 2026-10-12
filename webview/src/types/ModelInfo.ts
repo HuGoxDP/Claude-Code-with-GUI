@@ -194,6 +194,15 @@ export class ModelInfo {
   }
 
   /**
+   * Whether the user added this row to the picker themselves (a custom model,
+   * see `useCustomModels`) rather than the CLI listing it. Only our own rows
+   * carry the flag; nothing the CLI sends has it.
+   */
+  get isCustom(): boolean {
+    return this.raw.custom === true;
+  }
+
+  /**
    * This row's own name.
    *
    * It answers "what is this row called", which is what the model picker's rows
@@ -224,6 +233,8 @@ export class ModelInfo {
    */
   get label(): string {
     if (this.isDefaultRow) return this.displayName;
+    // A custom model goes by the name the user gave it, or else the name they typed.
+    if (this.isCustom) return this.displayName || this.value;
     return toDisplayLabel(this.resolvedModel ?? this.value);
   }
 
@@ -235,7 +246,25 @@ export class ModelInfo {
    * moment we start rewriting it we are back to guessing at a shape.
    */
   get rowText(): ModelRowText {
+    // A custom model the user named shows the name it is picked by, when it has no other line.
+    if (this.isCustom && !this.description && this.displayName && this.displayName !== this.value) {
+      return { title: this.label, blurb: this.value };
+    }
     return { title: this.label, blurb: this.description || undefined };
+  }
+
+  /**
+   * A copy of this catalog row under the user's own name for it (a custom model
+   * the catalog also lists): what the CLI says about the model is kept, and the
+   * name, the line under it and the custom mark are the user's.
+   */
+  asCustom(custom: ModelInfo): ModelInfo {
+    return new ModelInfo({
+      ...this.raw,
+      displayName: custom.displayName,
+      description: custom.description || this.description,
+      custom: true,
+    });
   }
 
   /** A copy of this row carrying `resolvedModel`, leaving the original untouched. */

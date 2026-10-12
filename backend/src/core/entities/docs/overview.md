@@ -1,7 +1,7 @@
 # Overview
 
 Status: Implemented
-Last verified: 2026-10-04 on branch `feat/prompt-library-reorder` (PR #519, not yet merged)
+Last verified: 2026-10-12 on branch `claude/gracious-brahmagupta-j0aanw` (`nullable-number` column added)
 
 ## What the entity system is
 
@@ -13,7 +13,7 @@ The parts, from the disk upward:
 |---|---|---|
 | File | `storage/JsonlFile.ts` | Lines of JSON: read, append, rewrite. Knows nothing about rows |
 | Collection | `AbstractEntityCollection.ts` | Which line is a row, ids, version guard, paging, the gate |
-| Entity | `AbstractEntity.ts`, `Column.ts` | One row as a class; the five column types; the shared `id` and `projectId` |
+| Entity | `AbstractEntity.ts`, `Column.ts` | One row as a class; the six column types; the shared `id` and `projectId` |
 | Table metadata | `system/TableMetadata.*` | Last id, counts and layout version of every table |
 | Projects | `project/Project.*` | The one place a directory becomes a number |
 | Migrations | `migration/`, `../migrations/` | Moving the data of an older version into this system |
