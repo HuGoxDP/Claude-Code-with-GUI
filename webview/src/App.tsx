@@ -8,6 +8,7 @@ import { AccountUsageModal } from './components/AccountUsageModal';
 import { useUsageStreamRefresh } from './hooks/useUsageStreamRefresh';
 import { TunnelModal } from './components/TunnelModal';
 import { AssetsModal } from './components/AssetsModal';
+import { ChangedFilesModal } from './components/ChangedFilesModal';
 import { RenameTabDialog } from './components/RenameTabDialog';
 import { useTabRenamePrompt } from './hooks/useTabRenamePrompt';
 import { ForbiddenNotice } from './components/ForbiddenNotice';
@@ -26,7 +27,7 @@ import { usePrimarySelectionReporter } from './hooks/usePrimarySelectionReporter
 import { useSettingsOverlayNavigation } from './hooks/useSettingsOverlayNavigation';
 import { useNotificationSoundMigration } from './hooks/useNotificationSound';
 import { OPEN_ACCOUNT_USAGE_EVENT } from './commandPalette/sections/model/AccountUsageItem';
-import { OPEN_TUNNEL_EVENT, OPEN_ASSETS_EVENT } from './pages/ChatPage/SessionHeader/dock/actions';
+import { OPEN_TUNNEL_EVENT, OPEN_ASSETS_EVENT, OPEN_CHANGED_FILES_EVENT } from './pages/ChatPage/SessionHeader/dock/actions';
 import { isDev } from './config/environment';
 import 'katex/dist/katex.min.css';
 
@@ -63,6 +64,7 @@ function AppContent() {
   // the ⋮ overflow menu, and that row unmounts the moment the menu closes.
   const [isTunnelOpen, setIsTunnelOpen] = useState(false);
   const [isAssetsOpen, setIsAssetsOpen] = useState(false);
+  const [isChangedFilesOpen, setIsChangedFilesOpen] = useState(false);
   const location = useLocation();
   const backgroundLocation = location.state?.backgroundLocation;
 
@@ -82,6 +84,12 @@ function AppContent() {
     const handler = () => setIsAssetsOpen(true);
     window.addEventListener(OPEN_ASSETS_EVENT, handler);
     return () => window.removeEventListener(OPEN_ASSETS_EVENT, handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setIsChangedFilesOpen(true);
+    window.addEventListener(OPEN_CHANGED_FILES_EVENT, handler);
+    return () => window.removeEventListener(OPEN_CHANGED_FILES_EVENT, handler);
   }, []);
 
   return (
@@ -118,6 +126,7 @@ function AppContent() {
 
       {isTunnelOpen && <TunnelModal onClose={() => setIsTunnelOpen(false)} />}
       {isAssetsOpen && <AssetsModal onClose={() => setIsAssetsOpen(false)} />}
+      {isChangedFilesOpen && <ChangedFilesModal onClose={() => setIsChangedFilesOpen(false)} />}
       {tabRename.initialName !== null && (
         <RenameTabDialog
           initialName={tabRename.initialName}

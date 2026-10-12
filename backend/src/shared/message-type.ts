@@ -679,6 +679,14 @@ export enum MessageType {
   /** Ask for one attached image's bytes by its coordinate, as {workingDir, sessionId, entryUuid, blockIndex}. The reply is the block's own `source` object, passed through unedited. inbound webview→backend */
   GET_SESSION_ASSET_DATA = 'GET_SESSION_ASSET_DATA',
 
+  // -- Session file changes --
+  /** Ask for the files Claude changed in one session and that still differ from how they were, as {workingDir, sessionId, since?}. Read from the transcript's edit results and the disk; `since` (an ISO timestamp) counts only edits after it. inbound webview→backend */
+  GET_SESSION_FILE_CHANGES = 'GET_SESSION_FILE_CHANGES',
+  /** Ask for one changed file before Claude and now, as {workingDir, sessionId, filePath, since?}, for the diff. inbound webview→backend */
+  GET_SESSION_FILE_DIFF = 'GET_SESSION_FILE_DIFF',
+  /** Put files back to how they were before Claude changed them in the session, as {workingDir, sessionId, filePaths, since?, force?}. Only files the session changed; one changed again since Claude's last edit is left alone unless `force`. inbound webview→backend */
+  REVERT_SESSION_FILE_CHANGES = 'REVERT_SESSION_FILE_CHANGES',
+
   // -- Session sends --
   /** Ask for the index of every send the USER typed in one session, as {workingDir, sessionId}. The reply carries one row per send — uuid, timestamp and a truncated preview — so the send index can draw a tick for the whole session while the transcript itself is still paged. Never carries the entries: a prompt drags whatever was pasted into it, up to 21MB of base64 in the worst session measured here. inbound webview→backend */
   GET_SESSION_SENDS = 'GET_SESSION_SENDS',

@@ -5,6 +5,7 @@ import { useScheduledMessages } from '@/contexts/ScheduledMessagesContext';
 import { useWorkflowState } from '@/contexts/WorkflowStateContext';
 import { useTunnelStatus } from '@/hooks';
 import { DockItemId } from '@/types/settings';
+import { useSessionFileChanges } from '@/hooks/useSessionFileChanges';
 import { BatteryVisual } from '../BatteryVisual';
 
 interface IconProps {
@@ -44,6 +45,8 @@ export function DockItemStatus(props: { id: DockItemId } & RowProps) {
       const running = useWorkflowState().runningTasks.length;
       return <PanelCountRow icon={icon} labelKey={labelKey} count={running} active={running > 0} />;
     }
+    case DockItemId.CHANGED_FILES:
+      return <PanelCountRow icon={icon} labelKey={labelKey} count={useSessionFileChanges().files.length} active={false} />;
     case DockItemId.TUNNEL:
       return <TunnelRow icon={icon} labelKey={labelKey} />;
     default:

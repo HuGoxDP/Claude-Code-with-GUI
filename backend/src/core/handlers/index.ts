@@ -185,6 +185,11 @@ import {
   reorderPromptCategoriesHandler,
 } from './prompts';
 import { getSessionAssetsHandler } from './getSessionAssets';
+import {
+  getSessionFileChangesHandler,
+  getSessionFileDiffHandler,
+  revertSessionFileChangesHandler,
+} from './sessionFileChanges';
 import { getSessionSendsHandler } from './getSessionSends';
 import { getSessionAssetDataHandler } from './getSessionAssetData';
 import { assetActivityHandler } from './assetActivity';
@@ -784,6 +789,15 @@ export async function handleMessage(
       break;
     case MessageType.GET_SESSION_ASSET_DATA:
       await getSessionAssetDataHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_SESSION_FILE_CHANGES:
+      await getSessionFileChangesHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.GET_SESSION_FILE_DIFF:
+      await getSessionFileDiffHandler(connectionId, message, connections, bridge);
+      break;
+    case MessageType.REVERT_SESSION_FILE_CHANGES:
+      await revertSessionFileChangesHandler(connectionId, message, connections, bridge);
       break;
     case MessageType.GET_SESSION_SENDS:
       await getSessionSendsHandler(connectionId, message, connections, bridge);

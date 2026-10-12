@@ -37,3 +37,11 @@ export function openAssetsModal(from: AssetScreenSource): void {
   reportAssetActivity(AssetActivityKind.ScreenOpened, { from });
   window.dispatchEvent(new Event(OPEN_ASSETS_EVENT));
 }
+
+/** Ask the app shell to open the changed-files panel. */
+export const OPEN_CHANGED_FILES_EVENT = 'open-changed-files-modal';
+
+/** Raise {@link OPEN_CHANGED_FILES_EVENT}: the dock icon and the ⋮ menu row dispatch the same thing. */
+export function openChangedFilesModal(): void {
+  window.dispatchEvent(new Event(OPEN_CHANGED_FILES_EVENT));
+}

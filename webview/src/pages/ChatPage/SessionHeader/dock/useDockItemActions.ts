@@ -7,7 +7,7 @@ import { useScheduledMessages } from '@/contexts/ScheduledMessagesContext';
 import { OPEN_ACCOUNT_USAGE_EVENT } from '@/commandPalette/sections/model/AccountUsageItem';
 import { DockItemId } from '@/types/settings';
 import { useTunnelAction } from '../useTunnelAction';
-import { openAssetsModal } from './actions';
+import { openAssetsModal, openChangedFilesModal } from './actions';
 import { AssetScreenSource } from '@/shared';
 
 /**
@@ -63,6 +63,7 @@ export function useDockItemActions(): DockItemActions {
       [DockItemId.SETTINGS]: openSettings,
       [DockItemId.ASSETS]: openAssetsFromMenu,
       [DockItemId.NEW_TAB]: openNewTab,
+      [DockItemId.CHANGED_FILES]: openChangedFilesModal,
     }),
     [openUsage, toggleScheduled, toggleWorkflows, tunnel.activate, openSettings, openNewTab, openAssetsFromMenu],
   );
