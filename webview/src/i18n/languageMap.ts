@@ -9,7 +9,7 @@
 // ('chinese-traditional' → 'zh-TW'), matching how Chinese locales are
 // conventionally separated.
 
-export const SUPPORTED_LOCALES = ['en', 'ko', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de', 'pt', 'ru', 'fa', 'ar'] as const;
+export const SUPPORTED_LOCALES = ['en', 'ko', 'ja', 'zh', 'zh-TW', 'es', 'fr', 'de', 'pt', 'ru', 'fa', 'ar', 'hi'] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = 'en';
@@ -27,6 +27,7 @@ export const LANGUAGE_TO_LOCALE: Record<string, Locale> = {
   russian: 'ru',
   persian: 'fa',
   arabic: 'ar',
+  hindi: 'hi',
 };
 
 /** Resolve a stored language setting value to a UI locale. Falls back to English. */

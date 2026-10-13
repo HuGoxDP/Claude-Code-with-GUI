@@ -1,0 +1,21 @@
+{
+  "sessionComplete": {
+    "body": "जवाब पूरा हुआ"
+  },
+  "streamError": {
+    "body": "जवाब विफल रहा"
+  },
+  "awaitingPermission": {
+    "body": "अनुमति माँगी गई"
+  },
+  "awaitingPlanApproval": {
+    "body": "योजना समीक्षा के लिए तैयार"
+  },
+  "awaitingUserInput": {
+    "body": "आपके उत्तर की प्रतीक्षा में"
+  },
+  "autoResumeCountdown": {
+    "body": "शेड्यूल किया गया कार्य 30 सेकंड में फिर शुरू होगा।"
+  },
+  "openSession": "सत्र खोलें"
+}

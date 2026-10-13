@@ -1,0 +1,46 @@
+{
+  "loading": "प्रोजेक्ट लोड हो रहे हैं...",
+  "searchPlaceholder": "प्रोजेक्ट खोजें",
+  "empty": "कोई प्रोजेक्ट उपलब्ध नहीं",
+  "noMatches": "कोई मेल खाता प्रोजेक्ट नहीं",
+  "addProject": "प्रोजेक्ट जोड़ें",
+  "addFavorite": "ऊपर पिन करें",
+  "removeFavorite": "अनपिन करें",
+  "descriptionIconLabel": "विवरण दिखाएँ",
+  "sortOrder": {
+    "label": "क्रम",
+    "recent": "हाल के",
+    "created": "बनाए जाने का समय"
+  },
+  "menu": {
+    "label": "और कार्रवाइयाँ",
+    "editProject": "प्रोजेक्ट संपादित करें",
+    "copyPath": "पाथ कॉपी करें",
+    "delete": "हटाएँ"
+  },
+  "editDialog": {
+    "title": "प्रोजेक्ट संपादित करें",
+    "nameLabel": "प्रदर्शन नाम",
+    "nameHint": "असली फ़ोल्डर नाम उपयोग करने के लिए खाली छोड़ें।",
+    "descriptionLabel": "विवरण",
+    "descriptionPlaceholder": "इस प्रोजेक्ट के बारे में एक नोट जोड़ें (वैकल्पिक)",
+    "cancel": "रद्द करें",
+    "save": "सहेजें"
+  },
+  "editDone": "प्रोजेक्ट अपडेट हुआ",
+  "editFailed": "प्रोजेक्ट अपडेट नहीं हो सका",
+  "deleteConfirm": {
+    "title": "प्रोजेक्ट हटाएँ",
+    "message": "यह ~/.claude/projects में \"{{name}}\" के सत्र रिकॉर्ड हटा देता है। इसे पूर्ववत नहीं किया जा सकता।",
+    "confirmLabel": "हटाएँ"
+  },
+  "deleteDone": "प्रोजेक्ट हटाया गया",
+  "deleteFailed": "प्रोजेक्ट हटाया नहीं जा सका",
+  "retry": "पुनः प्रयास करें",
+  "sessionCount": "{{count}} सत्र",
+  "sessionCount_one": "{{count}} सत्र",
+  "sessionCount_other": "{{count}} सत्र",
+  "errors": {
+    "loadFailed": "प्रोजेक्ट लोड नहीं हो सके"
+  }
+}

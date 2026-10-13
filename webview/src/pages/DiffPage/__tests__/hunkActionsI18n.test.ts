@@ -30,7 +30,7 @@ const BUTTONS = ['accept', 'deny', 'reset', 'back'] as const;
 const PROSE = ['resetHint', 'backHint'] as const;
 
 /** Latin-script locales share words with English, so they prove nothing. */
-const NON_LATIN = ['ko', 'ja', 'zh', 'zh-TW', 'ru', 'ar', 'fa'];
+const NON_LATIN = ['ko', 'ja', 'zh', 'zh-TW', 'ru', 'ar', 'fa', 'hi'];
 
 function hunkStrings(locale: string): Record<string, string> {
   const chat = resources[locale].chat as Record<string, any>;

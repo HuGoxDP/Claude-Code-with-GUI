@@ -1,0 +1,442 @@
+{
+  "confirmDialog": {
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें"
+  },
+  "renameTabDialog": {
+    "title": "टैब का नाम बदलें",
+    "placeholder": "इस टैब को नाम दें",
+    "hint": "बातचीत के शीर्षक पर लौटने के लिए इसे खाली छोड़ दें।"
+  },
+  "zoomIndicator": {
+    "label": "ज़ूम स्तर",
+    "zoomOut": "ज़ूम आउट",
+    "zoomIn": "ज़ूम इन",
+    "reset": "रीसेट"
+  },
+  "pairing": {
+    "title": "पेयरिंग समाप्त",
+    "expiredDetail": "यह एक-बार का लिंक समाप्त हो गया है या पहले ही उपयोग हो चुका है। इस डिवाइस को फिर से जोड़ने के लिए होस्ट से QR कोड फिर से स्कैन करें।",
+    "lockedDetail": "बहुत अधिक प्रयास। थोड़ा रुकें, फिर होस्ट से नया QR कोड स्कैन करें।",
+    "networkDetail": "पेयरिंग पूरी करने के लिए होस्ट तक नहीं पहुँच सके। अपना कनेक्शन जाँचें, फिर होस्ट से QR कोड फिर से स्कैन करें।"
+  },
+  "forbidden": {
+    "title": "403 · वर्जित",
+    "detail": "यह डिवाइस पेयर नहीं है। कनेक्ट करने के लिए होस्ट पर Remote Control पैनल खोलें और उसका QR कोड स्कैन करें।"
+  },
+  "contextChip": {
+    "removeContext": "संदर्भ हटाएँ"
+  },
+  "announcementCard": {
+    "close": "बंद करें"
+  },
+  "errorBoundary": {
+    "somethingWentWrong": "कुछ गलत हो गया।",
+    "retry": "पुनः प्रयास करें"
+  },
+  "effortSlider": {
+    "tooltip": "प्रयास स्तर सेट करने के लिए क्लिक करें या खींचें",
+    "tooltipUltracode": "प्रयास स्तर सेट करने के लिए क्लिक करें या खींचें (सबसे ऊपरी चरण = ultracode)"
+  },
+  "accountUsage": {
+    "title": "खाता और उपयोग",
+    "accountSection": "खाता",
+    "authMethod": "प्रमाणीकरण विधि",
+    "email": "ईमेल",
+    "plan": "योजना",
+    "credentialSource": "स्रोत"
+  },
+  "usageSection": {
+    "title": "उपयोग",
+    "updated": "{{time}} पर अपडेट",
+    "refresh": "रिफ्रेश",
+    "session5hr": "सत्र (5 घंटे)",
+    "weekly7day": "साप्ताहिक (7 दिन)",
+    "weeklySonnet": "साप्ताहिक Sonnet",
+    "weeklyOpus": "साप्ताहिक Opus",
+    "weeklyModel": "साप्ताहिक {{model}}",
+    "notApplicableForApiKey": "{{source}} मोड में दर सीमाएँ लागू नहीं होतीं।"
+  },
+  "usageReport": {
+    "title": "उपयोग में योगदान",
+    "refresh": "रिफ्रेश",
+    "empty": "कोई उपयोग विवरण उपलब्ध नहीं।",
+    "requests": "{{value}} अनुरोध",
+    "sessions": "{{value}} सत्र",
+    "request": "{{value}} अनुरोध",
+    "session": "{{value}} सत्र",
+    "percentOfUsage": "उपयोग का %"
+  },
+  "mcpModal": {
+    "title": "MCP सर्वर",
+    "refreshServers": "MCP सर्वर ताज़ा करें",
+    "browseRegistry": "MCP रजिस्ट्री ब्राउज़ करें",
+    "addServer": "MCP सर्वर जोड़ें",
+    "checkingHealth": "MCP सर्वर की स्थिति जाँची जा रही है…",
+    "serverNotFound": "सर्वर नहीं मिला।",
+    "learnMore": "MCP के बारे में और जानें",
+    "editReplaceSingle": "संपादन एक ही सर्वर को बदलता है — ठीक एक सर्वर कॉन्फ़िगरेशन पेस्ट करें।",
+    "saved": "{{name}} सहेजा गया",
+    "added": "{{name}} जोड़ा गया",
+    "addFailed": "{{failed}}/{{total}} सर्वर जोड़े नहीं जा सके:",
+    "form": {
+      "editTitle": "MCP सर्वर संपादित करें",
+      "addTitle": "MCP सर्वर जोड़ें",
+      "back": "वापस",
+      "nameLabel": "नाम",
+      "nameHint": "वैकल्पिक — केवल तब उपयोग होता है जब आपके JSON में “mcpServers” रैपर न हो",
+      "namePlaceholder": "my-server",
+      "scopeLabel": "दायरा",
+      "scopeUser": "उपयोगकर्ता (सभी प्रोजेक्ट)",
+      "scopeProject": "प्रोजेक्ट (.mcp.json)",
+      "scopeLocal": "लोकल (केवल यह प्रोजेक्ट)",
+      "configLabel": "कॉन्फ़िगरेशन (JSON)",
+      "configHint": "mcpServers कॉन्फ़िगरेशन, GitHub Copilot या VS Code का mcp.json (servers), या एक सर्वर कॉन्फ़िगरेशन पेस्ट करें",
+      "cancel": "रद्द करें",
+      "saving": "सहेजा जा रहा है",
+      "adding": "जोड़ा जा रहा है",
+      "save": "सहेजें",
+      "addButton": "सर्वर जोड़ें"
+    },
+    "marketplace": {
+      "back": "वापस",
+      "searchPlaceholder": "MCP रजिस्ट्री में खोजें…",
+      "searchAnyPlaceholder": "MCP सर्वर खोजें…",
+      "searchPrompt": "सर्वर ढूँढने और इंस्टॉल करने के लिए आधिकारिक MCP रजिस्ट्री में खोजें।",
+      "searchPromptGithub": "सर्वर ढूँढने और इंस्टॉल करने के लिए GitHub की MCP रजिस्ट्री में खोजें।",
+      "searchPromptAll": "सर्वर ढूँढने और इंस्टॉल करने के लिए हर कैटलॉग में खोजें।",
+      "searching": "खोज रहे हैं...",
+      "noServers": "कोई सर्वर नहीं मिला।",
+      "openRepo": "{{url}} खोलें",
+      "needsInputs": "{{count}} इनपुट चाहिए: {{inputs}}",
+      "needsInputs_one": "{{count}} इनपुट चाहिए: {{inputs}}",
+      "needsInputs_other": "{{count}} इनपुट चाहिए: {{inputs}}",
+      "configureAdd": "कॉन्फ़िगर करें और जोड़ें",
+      "noInstallInfo": "कोई इंस्टॉल जानकारी उपलब्ध नहीं",
+      "add": "जोड़ें",
+      "source": {
+        "label": "कैटलॉग",
+        "official": "आधिकारिक MCP रजिस्ट्री",
+        "github": "GitHub MCP रजिस्ट्री",
+        "builtIn": "अंतर्निहित",
+        "all": "सभी स्रोत"
+      },
+      "unavailable": "अभी पहुँच योग्य नहीं: {{sources}}। बाकी दिखाए जा रहे हैं।"
+    },
+    "list": {
+      "noServersConfigured": "कोई MCP सर्वर कॉन्फ़िगर नहीं है।",
+      "addOne": "एक जोड़ें",
+      "scope": {
+        "project": "प्रोजेक्ट",
+        "local": "स्थानीय",
+        "user": "उपयोगकर्ता",
+        "claudeai": "claude.ai",
+        "managed": "प्रबंधित",
+        "enterprise": "एंटरप्राइज़"
+      }
+    },
+    "detail": {
+      "backToList": "सूची पर वापस",
+      "edit": "संपादित करें",
+      "type": "प्रकार: {{value}}",
+      "authenticate": "प्रमाणित करें",
+      "reconnect": "फिर से कनेक्ट करें",
+      "reconnecting": "फिर से कनेक्ट हो रहा है",
+      "clearAuth": "प्रमाणीकरण साफ़ करें",
+      "enable": "सक्षम करें",
+      "disable": "अक्षम करें",
+      "loadingTools": "टूल लोड हो रहे हैं…",
+      "loadToolsError": "टूल लोड नहीं हो सके",
+      "missingVars": "गायब एनवायरनमेंट वेरिएबल: {{vars}}",
+      "viewTools": "टूल देखें ({{count}})",
+      "readOnly": "केवल-पढ़ें",
+      "destructive": "विनाशकारी",
+      "removeConfirm": "\"{{name}}\" हटाएँ?",
+      "remove": "हटाएँ",
+      "cancel": "रद्द करें",
+      "removeServer": "सर्वर हटाएँ"
+    },
+    "status": {
+      "connected": "कनेक्टेड",
+      "failed": "विफल",
+      "needsAuth": "प्रमाणीकरण चाहिए",
+      "connecting": "कनेक्ट हो रहा है…",
+      "disabled": "अक्षम"
+    }
+  },
+  "tunnelModal": {
+    "title": "रिमोट टनल",
+    "remoteTunnelUnofficial": "रिमोट टनल (अनौपचारिक)",
+    "exposeVia": "cloudflared से उपलब्ध कराएँ",
+    "installingCloudflared": "cloudflared इंस्टॉल हो रहा है…",
+    "connecting": "कनेक्ट हो रहा है…",
+    "typicalTime": "आम तौर पर ~1 मिनट (इंस्टॉल: ~3 मिनट)",
+    "preventSleep": "स्लीप रोकें",
+    "keepAwake": "इस कंप्यूटर को अपने-आप स्लीप में जाने से रोकता है",
+    "sleepGuardHint1Lead": "केवल तब तक जब तक Swttch चल रहा है।",
+    "sleepGuardHint1Rest": "",
+    "sleepGuardHint2Lead": "जब Swttch बंद होता है,",
+    "sleepGuardHint2Rest": "स्लीप रोकना भी समाप्त हो जाता है।",
+    "sleepGuardHint3Lead": "Swttch फिर से शुरू करें",
+    "sleepGuardHint3Rest": "और यह अपने-आप फिर चालू हो जाता है।",
+    "sleepGuardHint4Lead": "ढक्कन बंद करने से यह स्लीप में नहीं जाता,",
+    "sleepGuardHint4Rest": "और इसके लिए बदली गई कोई भी सिस्टम सेटिंग इसे बंद करने या Swttch से बाहर निकलने पर पहले जैसी हो जाती है।",
+    "sleepGuardChangedSetting": "किसी दूसरे ऐप ने ढक्कन सेटिंग बदली। Swttch वह मान रखता है और इसे बंद करने पर वापस लगा देता है।",
+    "sleepGuardChangedScheme": "आपने पावर प्लान बदला, इसलिए नए प्लान में यह सेटिंग नहीं है। Swttch ने जो प्लान बदला था वह इसे बंद करने पर सामान्य हो जाता है।",
+    "pairingHint": "किसी डिवाइस को जोड़ने के लिए स्कैन करें। QR में एक-बार का कोड है जो जल्द समाप्त होता है — काम करना बंद करे तो इसे फिर से बनाएँ।",
+    "regeneratePairing": "कोड फिर से बनाएँ"
+  },
+  "tunnelStatusNotice": {
+    "tryAgain": "फिर से कोशिश करें",
+    "installGuide": "इंस्टॉल गाइड",
+    "copyCommand": "कमांड कॉपी करें",
+    "installConsent": "cloudflared इंस्टॉल नहीं है। इसे अभी इंस्टॉल करके टनल चालू करें? इससे cloudflared डाउनलोड होगा (पहली बार लगभग 3 मिनट)।",
+    "installAndEnable": "इंस्टॉल करें और चालू करें",
+    "cancel": "रद्द करें",
+    "notInstalledWarning": "cloudflared अभी इंस्टॉल नहीं है। टनल चालू करने पर इसे डाउनलोड करने के लिए पूछा जाएगा (पहली बार लगभग 3 मिनट)।",
+    "errors": {
+      "cloudflaredMissing": {
+        "title": "cloudflared इंस्टॉल नहीं हो सका",
+        "detail": "टनल को cloudflared चाहिए, और यह अपने-आप इंस्टॉल नहीं हो सका। इसे मैन्युअल रूप से इंस्टॉल करें, फिर फिर से कोशिश करें।"
+      },
+      "timeout": {
+        "title": "टनल कनेक्शन का समय समाप्त",
+        "detail": "Cloudflare टनल सर्वर तक समय पर नहीं पहुँच सके। अपना नेटवर्क या फ़ायरवॉल जाँचें — कुछ क्षेत्रों में Cloudflare तक पहुँच सीमित है।"
+      },
+      "exited": {
+        "title": "cloudflared अप्रत्याशित रूप से रुक गया",
+        "detail": "टनल प्रोसेस तैयार होने से पहले बंद हो गई। कृपया फिर से कोशिश करें।"
+      },
+      "unknown": {
+        "title": "टनल शुरू नहीं हो सका",
+        "detail": "एक अप्रत्याशित त्रुटि हुई। कृपया फिर से कोशिश करें।"
+      }
+    }
+  },
+  "sessionList": {
+    "searchPlaceholder": "सत्र खोजें...",
+    "loadingSessions": "सत्र लोड हो रहे हैं...",
+    "refreshSessions": "सत्र ताज़ा करें",
+    "renameSession": "सत्र का नाम बदलें",
+    "deleteSession": "सत्र हटाएँ",
+    "exportSession": "सत्र निर्यात करें",
+    "exportMarkdown": "Markdown",
+    "exportMarkdownHint": "बातचीत का पढ़ने योग्य ट्रांसक्रिप्ट",
+    "exportJsonl": "JSONL",
+    "exportJsonlHint": "सत्र फ़ाइल ठीक वैसी जैसी CLI ने लिखी",
+    "addFavorite": "पसंदीदा में जोड़ें",
+    "removeFavorite": "पसंदीदा से हटाएँ",
+    "groups": {
+      "favorites": "पसंदीदा",
+      "today": "आज",
+      "yesterday": "कल",
+      "pastWeek": "पिछला सप्ताह",
+      "pastMonth": "पिछला महीना",
+      "pastYear": "पिछला वर्ष"
+    },
+    "relativeTime": {
+      "now": "अभी",
+      "years": "{{n}} वर्ष",
+      "months": "{{n}} माह",
+      "days": "{{n}} दिन",
+      "hours": "{{n}} घं",
+      "minutes": "{{n}} मि"
+    },
+    "activity": {
+      "idle": "कोई गतिविधि नहीं",
+      "running": "काम कर रहा है",
+      "awaiting": "आपके उत्तर की प्रतीक्षा में",
+      "done": "पूरा — अभी पढ़ा नहीं"
+    },
+    "filter": {
+      "status": "स्थिति",
+      "tabs": "टैब",
+      "open": "खुले",
+      "closed": "बंद",
+      "completed": "पूर्ण",
+      "active": "सक्रिय",
+      "countsTitle": "स्थिति के अनुसार सत्रों की गिनती",
+      "activeTitle": "केवल वे सत्र दिखाएँ जिन्हें इनपुट चाहिए, जो काम कर रहे हैं, या अपठित हैं",
+      "noneActive": "कोई सत्र आपकी प्रतीक्षा नहीं कर रहा"
+    },
+    "copySessionId": "सत्र ID कॉपी करें",
+    "sessionIdCopied": "सत्र ID कॉपी किया गया",
+    "copyFailed": "कॉपी नहीं हो सका",
+    "select": {
+      "start": "चुनें",
+      "startTitle": "हटाने के लिए कई सत्र चुनें",
+      "count_one": "{{count}} चुना गया",
+      "count_other": "{{count}} चुने गए",
+      "all": "सभी",
+      "delete": "हटाएँ",
+      "cancel": "रद्द करें",
+      "deleteTitle_one": "{{count}} सत्र हटाएँ?",
+      "deleteTitle_other": "{{count}} सत्र हटाएँ?",
+      "deleteMessage_one": "सत्र का ट्रांसक्रिप्ट डिस्क से हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
+      "deleteMessage_other": "उनके ट्रांसक्रिप्ट डिस्क से हटा दिए जाएँगे। इसे पूर्ववत नहीं किया जा सकता।"
+    },
+    "origin": {
+      "terminal": "टर्मिनल",
+      "terminalHint": "टर्मिनल में claude से शुरू हुआ",
+      "vscode": "VS Code",
+      "vscodeHint": "VS Code एक्सटेंशन में शुरू हुआ",
+      "desktop": "डेस्कटॉप",
+      "desktopHint": "Claude डेस्कटॉप ऐप में शुरू हुआ",
+      "remote": "रिमोट",
+      "remoteHint": "रिमोट Claude Code सत्र में शुरू हुआ",
+      "githubAction": "GitHub",
+      "githubActionHint": "Claude Code GitHub Action द्वारा शुरू हुआ"
+    }
+  },
+  "sessionExport": {
+    "saved": "{{path}} में सहेजा गया",
+    "failed": "सत्र निर्यात नहीं हो सका: {{error}}",
+    "empty": "इस बातचीत में अभी निर्यात करने को कुछ नहीं है।",
+    "noSession": "निर्यात करने से पहले बातचीत शुरू करें।"
+  },
+  "sponsorGated": {
+    "message": "यह एक छोटी सुविधा है जो मैं प्रायोजकों के लिए रखता हूँ",
+    "learnMore": "और जानें"
+  },
+  "promptLibrary": {
+    "title": "प्रॉम्प्ट लाइब्रेरी",
+    "description": "अक्सर लिखे जाने वाले वाक्यांश सहेजें, फिर चैट इनपुट में !! लिखकर एक पेस्ट करें। क्रम बदलने के लिए पंक्ति खींचें, या उसे किसी श्रेणी पर छोड़ें।",
+    "create": "प्रॉम्प्ट बनाएँ",
+    "empty": "अभी तक कोई सहेजा गया प्रॉम्प्ट नहीं",
+    "projectUnavailable": "प्रोजेक्ट प्रॉम्प्ट सहेजने के लिए कोई प्रोजेक्ट खोलें।",
+    "nameLabel": "नाम",
+    "namePlaceholder": "यह प्रॉम्प्ट किस लिए है",
+    "contentLabel": "सामग्री",
+    "contentPlaceholder": "चैट इनपुट में पेस्ट करने वाला वाक्यांश। डालते समय कोई मान पूछे जाने के लिए {{sample}} लिखें।",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "edit": "संपादित करें",
+    "delete": "हटाएँ",
+    "deleteTitle": "प्रॉम्प्ट हटाएँ",
+    "deleteMessage": "\"{{name}}\" हटाएँ? इसे पूर्ववत नहीं किया जा सकता।",
+    "nameRequired": "नाम दर्ज करें।",
+    "contentRequired": "प्रॉम्प्ट टेक्स्ट दर्ज करें।",
+    "saveFailed": "प्रॉम्प्ट सहेजा नहीं जा सका।",
+    "deleteFailed": "प्रॉम्प्ट हटाया नहीं जा सका।",
+    "loadFailed": "प्रॉम्प्ट लोड नहीं हो सके।",
+    "globalSection": "वैश्विक प्रॉम्प्ट",
+    "projectSection": "प्रोजेक्ट प्रॉम्प्ट",
+    "projectSectionNamed": "प्रोजेक्ट प्रॉम्प्ट - {{projectName}}",
+    "addPrompt": "जोड़ें",
+    "createTitle": "प्रॉम्प्ट बनाएँ",
+    "editTitle": "प्रॉम्प्ट संपादित करें",
+    "menu": "मेनू",
+    "loading": "लोड हो रहा है…",
+    "openLibrary": "प्रॉम्प्ट लाइब्रेरी",
+    "scopeFieldLabel": "यहाँ सहेजें",
+    "scopeGlobal": "वैश्विक",
+    "scopeProject": "प्रोजेक्ट",
+    "variables": {
+      "title": "मान भरें",
+      "description": "इस प्रॉम्प्ट में भरने की जगहें हैं। आप जो लिखेंगे वह प्लेसहोल्डर की जगह जाएगा।",
+      "preview": "पूर्वावलोकन",
+      "insert": "डालें"
+    },
+    "transfer": {
+      "export": "निर्यात करें",
+      "import": "आयात करें",
+      "exportTitle": "प्रॉम्प्ट निर्यात करें",
+      "exportHint": "चुनें कि कौन-से प्रॉम्प्ट फ़ाइल में जाएँ।",
+      "exportConfirm": "निर्यात करें",
+      "exportDone": "{{count}} प्रॉम्प्ट सहेजे गए।",
+      "importTitle": "प्रॉम्प्ट आयात करें",
+      "importHint": "{{new}} नए, {{update}} पहले से आपकी लाइब्रेरी में।",
+      "importConfirm": "आयात करें",
+      "importDone": "{{imported}} जोड़े, {{updated}} अपडेट किए, {{skipped}} छोड़े।",
+      "selectedCount": "{{count}} चुने गए",
+      "strategyLabel": "जब कोई प्रॉम्प्ट पहले से आपकी लाइब्रेरी में हो",
+      "status": {
+        "new": "नया",
+        "update": "पहले से मौजूद"
+      },
+      "strategy": {
+        "skip": "मेरा रखें",
+        "overwrite": "बदलें",
+        "duplicate": "दोनों रखें"
+      },
+      "strategyHint": {
+        "skip": "आपके पास जो प्रॉम्प्ट है वह जैसा है वैसा रहता है।",
+        "overwrite": "आने वाला प्रॉम्प्ट आपका वाला बदल देता है।",
+        "duplicate": "दोनों रखे जाते हैं, आने वाला नए id के साथ।"
+      },
+      "error": {
+        "notJson": "वह फ़ाइल JSON नहीं है।",
+        "unrecognisedShape": "वह फ़ाइल प्रॉम्प्ट लाइब्रेरी जैसी नहीं दिखती।",
+        "noPrompts": "उस फ़ाइल से कोई प्रॉम्प्ट पढ़ा नहीं जा सका।",
+        "unreadableFile": "वह फ़ाइल पढ़ी नहीं जा सकी।",
+        "failed": "प्रॉम्प्ट स्थानांतरित नहीं हो सके।"
+      }
+    },
+    "searchPlaceholder": "प्रॉम्प्ट खोजें",
+    "categoryLabel": "श्रेणी",
+    "categoryOrderNote": "यह क्रम केवल इस श्रेणी के अंदर लागू होता है।",
+    "categoryPlaceholder": "कोई श्रेणी चुनें या लिखें",
+    "createCategoryNamed": "\"{{name}}\" बनाएँ",
+    "removeCategory": "{{name}} हटाएँ",
+    "noCategoriesYet": "अभी तक कोई श्रेणी नहीं। बनाने के लिए एक लिखें।",
+    "noCategoryMatch": "उस नाम की कोई श्रेणी नहीं।",
+    "uncategorised": "बिना श्रेणी",
+    "noCategories": "अभी तक कोई श्रेणी नहीं। साइडबार में एक जोड़ें।",
+    "allCategories": "सभी",
+    "addCategory": "श्रेणी जोड़ें",
+    "deleteCategoryTitle": "श्रेणी हटाएँ",
+    "deleteCategoryMessage": "\"{{name}}\" हटाएँ? इसके प्रॉम्प्ट रखे जाते हैं और बिना श्रेणी के हो जाते हैं।"
+  },
+  "helpModal": {
+    "title": "सहायता",
+    "tabsLabel": "सहायता अनुभाग",
+    "tabs": {
+      "shortcuts": "शॉर्टकट"
+    },
+    "groups": {
+      "general": "सामान्य",
+      "chatInput": "चैट इनपुट",
+      "textEditing": "टेक्स्ट संपादन",
+      "emacs": "Control कुंजियों से संपादन"
+    },
+    "groupNotes": {
+      "emacs": "यही कुंजियाँ Mac के हर टेक्स्ट फ़ील्ड में काम करती हैं।"
+    },
+    "shortcuts": {
+      "openHelp": "यह सहायता खोलें या बंद करें",
+      "newTab": "नया चैट टैब खोलें",
+      "openSettings": "सेटिंग्स खोलें",
+      "openModelMenu": "मॉडल चुनें",
+      "rotateModel": "अगले मॉडल पर जाएँ",
+      "clearConversation": "बातचीत साफ़ करें",
+      "searchConversation": "बातचीत में खोजें",
+      "refreshSessionList": "सत्र सूची खुली होने पर उसे ताज़ा करें",
+      "zoomIn": "ज़ूम इन",
+      "zoomOut": "ज़ूम आउट",
+      "zoomReset": "ज़ूम रीसेट करें",
+      "openClaudeCode": "IDE से Claude Code खोलें",
+      "sendMessage": "संदेश भेजें",
+      "insertNewline": "नई पंक्ति शुरू करें",
+      "cyclePermissionMode": "अनुमति मोड बदलें",
+      "recallPrompt": "पहली या आख़िरी पंक्ति से पिछला या अगला प्रॉम्प्ट वापस लाएँ",
+      "toggleDictation": "वॉइस इनपुट शुरू या बंद करें",
+      "insertEditorPath": "एडिटर की फ़ाइल और चुनी हुई पंक्तियाँ चैट में भेजें",
+      "quoteSelection": "बातचीत में चुने गए टेक्स्ट को उद्धृत करें",
+      "lineEdges": "पंक्ति की शुरुआत या अंत पर जाएँ",
+      "textStart": "टेक्स्ट की शुरुआत पर जाएँ",
+      "textEnd": "टेक्स्ट के अंत पर जाएँ",
+      "wordMove": "एक शब्द पीछे या आगे जाएँ",
+      "emacsParagraphEdges": "पैराग्राफ़ की शुरुआत या अंत पर जाएँ",
+      "emacsCharacterMove": "एक अक्षर पीछे या आगे जाएँ",
+      "emacsLineMove": "एक पंक्ति ऊपर या नीचे जाएँ",
+      "emacsDelete": "कर्सर के बाद या पहले का अक्षर हटाएँ",
+      "emacsKill": "पैराग्राफ़ के अंत तक हटाएँ",
+      "emacsYank": "Ctrl+K से हटाया गया पेस्ट करें",
+      "emacsTranspose": "कर्सर के आसपास के दो अक्षरों की अदला-बदली करें",
+      "emacsOpenLine": "कर्सर के बाद नई पंक्ति खोलें",
+      "emacsPageDown": "एक स्क्रीन नीचे जाएँ",
+      "emacsCenter": "कर्सर को बीच में लाने के लिए स्क्रॉल करें"
+    }
+  }
+}

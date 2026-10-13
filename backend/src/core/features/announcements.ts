@@ -47,6 +47,7 @@ const LANGUAGE_TO_LOCALE: Record<string, string> = {
   russian: 'ru',
   persian: 'fa',
   arabic: 'ar',
+  hindi: 'hi',
 };
 const DEFAULT_LOCALE = 'en';
 

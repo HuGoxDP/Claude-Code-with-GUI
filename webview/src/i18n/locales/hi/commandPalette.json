@@ -1,0 +1,108 @@
+{
+  "sections": {
+    "context": "संदर्भ",
+    "model": "मॉडल",
+    "customize": "अनुकूलित करें",
+    "slashCommands": "स्लैश कमांड",
+    "settings": "सेटिंग्स",
+    "support": "सहायता"
+  },
+  "context": {
+    "attachFile": "फ़ाइल संलग्न करें...",
+    "mentionFile": "इस प्रोजेक्ट की फ़ाइल का उल्लेख करें...",
+    "clearConversation": "बातचीत साफ़ करें",
+    "resumeConversation": "बातचीत फिर से शुरू करें",
+    "showBackgroundTasks": "वर्कफ़्लो: बैकग्राउंड कार्य दिखाएँ",
+    "scheduleSend": "संदेश शेड्यूल करें...",
+    "promptLibrary": "प्रॉम्प्ट लाइब्रेरी",
+    "commitMessage": "कमिट संदेश लिखें...",
+    "chatInstructions": "निर्देशों के साथ चैट शुरू करें...",
+    "saveSessionTemplate": "टेम्पलेट के रूप में सहेजें...",
+    "newChatFromTemplate": "टेम्पलेट से नई चैट..."
+  },
+  "scheduleSend": {
+    "title": "संदेश निर्धारित करें",
+    "editTitle": "निर्धारित संदेश बदलें",
+    "sponsorTooltip": "प्रायोजकों के लिए सुविधा",
+    "close": "बंद करें",
+    "messageLabel": "संदेश",
+    "messagePlaceholder": "बाद में भेजने के लिए संदेश",
+    "whenLabel": "कब",
+    "customLabel": "अपनी तारीख और समय",
+    "submit": "निर्धारित करें",
+    "updateSubmit": "सहेजें",
+    "scheduledToast": "संदेश शेड्यूल हुआ",
+    "updatedToast": "आरक्षण अपडेट हुआ",
+    "presets": {
+      "in5min": "5 मिनट में",
+      "in30min": "30 मिनट में",
+      "in1hour": "1 घंटे में",
+      "tomorrowMorning": "कल सुबह 9 बजे",
+      "afterDuration": "एक अवधि के बाद...",
+      "custom": "अपना समय"
+    },
+    "duration": {
+      "days": "दिन",
+      "hours": "घंटे",
+      "minutes": "मिनट",
+      "seconds": "सेकंड"
+    }
+  },
+  "model": {
+    "switchModel": "मॉडल बदलें...",
+    "effort": "प्रयास",
+    "thinking": "सोच",
+    "accountUsage": "खाता और उपयोग...",
+    "toggleFastMode": "फ़ास्ट मोड चालू/बंद करें",
+    "effortUnsupportedReason": "यह मॉडल प्रयास स्तर का समर्थन नहीं करता",
+    "fastModeUnsupportedReason": "फ़ास्ट मोड केवल Opus मॉडल पर उपलब्ध है",
+    "toggleAutoResume": "सीमा पर अपने-आप फिर से शुरू करना चालू/बंद करें",
+    "toggleAllowAllCommands": "इस सत्र में सभी कमांड की अनुमति दें",
+    "autoResumeSponsorOnlyReason": "सीमा पर अपने-आप फिर से शुरू करना केवल प्रायोजकों के लिए उपलब्ध है"
+  },
+  "customize": {
+    "outputStyles": "आउटपुट शैलियाँ",
+    "agents": "एजेंट",
+    "hooks": "हुक",
+    "memory": "मेमोरी",
+    "permissions": "अनुमतियाँ",
+    "mcpServers": "MCP सर्वर",
+    "managePlugins": "प्लगइन प्रबंधित करें",
+    "openInTerminal": "टर्मिनल में Claude खोलें"
+  },
+  "settings": {
+    "switchAccount": "खाता बदलें",
+    "generalConfig": "सामान्य कॉन्फ़िगरेशन..."
+  },
+  "support": {
+    "copyFrontLog": "प्लगइन फ्रंट लॉग कॉपी करें",
+    "copyFrontLogDone": "फ्रंट-एंड लॉग कॉपी हुआ ({{count}} पंक्तियाँ)",
+    "copyFrontLogFailed": "कॉपी करने को कोई फ्रंट-एंड लॉग नहीं",
+    "keyboardShortcuts": "कीबोर्ड शॉर्टकट",
+    "searchConversation": "बातचीत में खोजें",
+    "viewHelpDocs": "सहायता दस्तावेज़ देखें",
+    "restartPlugin": "प्लगइन रीस्टार्ट करें",
+    "restartConfirm": {
+      "title": "प्लगइन रीस्टार्ट करें?",
+      "message": "चल रहा काम बाधित होगा।",
+      "confirmLabel": "पुनः आरंभ"
+    }
+  },
+  "slashCommands": {
+    "clearDescription": "बातचीत साफ़ करें",
+    "usageDescription": "खाता और उपयोग",
+    "exportDescription": "बातचीत को फ़ाइल में निर्यात करें (Markdown, या .jsonl नाम के लिए कच्चा JSONL)"
+  },
+  "panel": {
+    "reportProblem": "समस्या रिपोर्ट करें",
+    "refreshVersion": "संस्करण ताज़ा करें",
+    "comingSoon": "जल्द आ रहा है"
+  },
+  "newConversation": {
+    "title": "नई बातचीत शुरू करें?",
+    "message": "यह बातचीत आपकी सत्र सूची में रहती है।",
+    "messageWhileReplying": "Claude अभी जवाब दे रहा है; नई बातचीत शुरू करने पर यह रुक जाएगा। यह बातचीत आपकी सत्र सूची में रहती है।",
+    "confirm": "नई बातचीत",
+    "cancel": "रद्द करें"
+  }
+}

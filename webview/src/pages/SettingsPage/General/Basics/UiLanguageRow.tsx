@@ -25,6 +25,7 @@ const LANGUAGE_OPTIONS = [
   { value: 'russian', label: 'Русский' },
   { value: 'persian', label: 'فارسی' },
   { value: 'arabic', label: 'العربية' },
+  { value: 'hindi', label: 'हिन्दी' },
 ] as const;
 
 /**

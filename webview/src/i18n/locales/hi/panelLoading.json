@@ -1,0 +1,17 @@
+{
+  "phase": {
+    "indexingWait": "प्रोजेक्ट इंडेक्सिंग की प्रतीक्षा...",
+    "backendStart": "बैकएंड शुरू हो रहा है...",
+    "locatingNode": "Node.js खोजा जा रहा है...",
+    "preparingBackend": "बैकएंड फ़ाइलें तैयार हो रही हैं...",
+    "waitingForPort": "बैकएंड तैयार होने की प्रतीक्षा...",
+    "loadingUi": "स्क्रीन लोड हो रही है...",
+    "loadingUiRemote": "स्क्रीन लोड हो रही है (SSH)..."
+  },
+  "stuck": {
+    "stillIndexing": "बड़े प्रोजेक्ट की इंडेक्सिंग में कई मिनट लग सकते हैं।",
+    "stillIndexingAction": "बिना प्रतीक्षा खोलें",
+    "indexingDone": "पहले ही पूरा हो गया, पर पेज जवाब नहीं दे रहा?",
+    "indexingDoneAction": "फिर से कोशिश करें"
+  }
+}

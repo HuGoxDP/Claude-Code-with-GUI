@@ -12,6 +12,11 @@ describe('languageMap', () => {
     expect(toLocale('arabic')).toBe('ar');
   });
 
+  it('resolves the hindi setting value to the hi locale', () => {
+    expect(SUPPORTED_LOCALES).toContain('hi');
+    expect(toLocale('hindi')).toBe('hi');
+  });
+
   describe('isRtlLanguage', () => {
     it('returns true for RTL languages (persian, arabic)', () => {
       expect(isRtlLanguage('persian')).toBe(true);
@@ -22,6 +27,7 @@ describe('languageMap', () => {
       expect(isRtlLanguage('english')).toBe(false);
       expect(isRtlLanguage('korean')).toBe(false);
       expect(isRtlLanguage('japanese')).toBe(false);
+      expect(isRtlLanguage('hindi')).toBe(false);
     });
 
     it('returns false for unknown/unset values (defaults to English/LTR)', () => {
